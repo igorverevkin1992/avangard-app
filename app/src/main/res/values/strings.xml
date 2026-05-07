@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">АВАНГАРД</string>
+    <string name="dashboard_target_label">АРТЕФАКТ ДНЯ</string>
+    <string name="dashboard_target_empty">НЕ УТВЕРЖДЕН</string>
+    <string name="dashboard_progress_label">ВЫРАБОТКА</string>
+    <string name="toggle_focus_mode">РЕЖИМ ИСПОЛНЕНИЯ</string>
+    <string name="toggle_silence">РЕЖИМ ТИШИНЫ</string>
+    <string name="report_morning_directive">УТВЕРДИТЕ АРТЕФАКТ ДНЯ</string>
+    <string name="report_evening_directive">ПОДТВЕРДИТЕ СОЗДАНИЕ АРТЕФАКТА</string>
+    <string name="failure_analysis_header">АНАЛИЗ ОТКАЗА</string>
+    <string name="notification_evening_due">Требуется вечерний рапорт</string>
+    <string name="notification_artifact_capture">Зафиксируйте артефакты</string>
+    <string name="notification_deadline_breach">Сбой сроков</string>
+</resources>

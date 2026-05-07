@@ -1,0 +1,30 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/**/build/
+local.properties
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+*.iws
+captures/
+.cxx/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Keys / secrets
+*.jks
+*.keystore
+google-services.json
+keystore.properties
+
+# Logs
+*.log
+hs_err_pid*
+
+# Generated
+.kotlin/
