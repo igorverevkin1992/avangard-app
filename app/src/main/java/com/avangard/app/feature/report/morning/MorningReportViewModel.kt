@@ -2,6 +2,7 @@ package com.avangard.app.feature.report.morning
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.avangard.app.BuildConfig
 import com.avangard.app.core.common.DomainResult
 import com.avangard.app.core.domain.ReportRules
 import com.avangard.app.core.domain.model.ReportError
@@ -71,7 +72,10 @@ class MorningReportViewModel @Inject constructor(
         if (!current.canSubmit) return
         _state.value = current.copy(submitting = true, error = null)
         viewModelScope.launch {
-            when (val result = initializeDay(current.artifact, enforceTimeWindow = false)) {
+            // Debug builds skip the regulatory window so we can iterate on the UI
+            // outside of 06:00–08:00; release builds enforce the production rule.
+            val enforceWindow = !BuildConfig.DEBUG
+            when (val result = initializeDay(current.artifact, enforceTimeWindow = enforceWindow)) {
                 is DomainResult.Ok -> {
                     _state.value = current.copy(submitting = false)
                     _effects.send(MorningReportEffect.Submitted)
