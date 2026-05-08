@@ -8,7 +8,7 @@ plugins {
 
 android {
     namespace = "com.avangard.app"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.avangard.app"
@@ -52,6 +52,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     packaging {
