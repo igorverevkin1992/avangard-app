@@ -1,5 +1,6 @@
 package com.avangard.app.feature.dashboard
 
+import app.cash.turbine.test
 import com.avangard.app.core.common.toStartOfDayEpoch
 import com.avangard.app.core.domain.FakeClock
 import com.avangard.app.core.domain.FakeReportRepository
@@ -46,55 +47,70 @@ class DashboardViewModelTest {
 
     @Test
     fun `initial state has no report and toggles off`() = runTest(dispatcher) {
-        val state = viewModel.state.value
-        assertNull(state.report)
-        assertFalse(state.focusMode)
-        assertFalse(state.silenceMode)
-        assertEquals(0f, state.progress, 0.0001f)
+        viewModel.state.test {
+            val initial = awaitItem()
+            assertNull(initial.report)
+            assertFalse(initial.focusMode)
+            assertFalse(initial.silenceMode)
+            assertEquals(0f, initial.progress, 0.0001f)
+            cancelAndIgnoreRemainingEvents()
+        }
     }
 
     @Test
     fun `report flowing through repository updates state`() = runTest(dispatcher) {
-        val epoch = clock.today().toStartOfDayEpoch(clock.zone())
-        repository.upsert(
-            DailyReport(
-                id = 0,
-                dateEpoch = epoch,
-                targetArtifact = "Написана спецификация",
-                isCompleted = true,
-                eliminatedWaste = 3,
-                failureCause = null,
-                correctiveAction = null,
-            ),
-        )
-        val state = viewModel.state.value
-        assertEquals("Написана спецификация", state.targetArtifact)
-        assertTrue(state.isCompleted)
-        assertEquals(1f, state.progress, 0.0001f)
+        viewModel.state.test {
+            awaitItem() // initial
+            val epoch = clock.today().toStartOfDayEpoch(clock.zone())
+            repository.upsert(
+                DailyReport(
+                    id = 0,
+                    dateEpoch = epoch,
+                    targetArtifact = "Написана спецификация",
+                    isCompleted = true,
+                    eliminatedWaste = 3,
+                    failureCause = null,
+                    correctiveAction = null,
+                ),
+            )
+            val updated = awaitItem()
+            assertEquals("Написана спецификация", updated.targetArtifact)
+            assertTrue(updated.isCompleted)
+            assertEquals(1f, updated.progress, 0.0001f)
+            cancelAndIgnoreRemainingEvents()
+        }
     }
 
     @Test
     fun `setFocusMode persists flag`() = runTest(dispatcher) {
-        viewModel.setFocusMode(true)
-        assertTrue(viewModel.state.value.focusMode)
-        viewModel.setFocusMode(false)
-        assertFalse(viewModel.state.value.focusMode)
+        viewModel.state.test {
+            awaitItem() // initial
+            viewModel.setFocusMode(true)
+            assertTrue(awaitItem().focusMode)
+            viewModel.setFocusMode(false)
+            assertFalse(awaitItem().focusMode)
+            cancelAndIgnoreRemainingEvents()
+        }
     }
 
     @Test
     fun `failed report still in progress shows partial progress`() = runTest(dispatcher) {
-        val epoch = clock.today().toStartOfDayEpoch(clock.zone())
-        repository.upsert(
-            DailyReport(
-                id = 0,
-                dateEpoch = epoch,
-                targetArtifact = "Собран прототип",
-                isCompleted = false,
-                eliminatedWaste = 0,
-                failureCause = null,
-                correctiveAction = null,
-            ),
-        )
-        assertEquals(0.5f, viewModel.state.value.progress, 0.0001f)
+        viewModel.state.test {
+            awaitItem() // initial
+            val epoch = clock.today().toStartOfDayEpoch(clock.zone())
+            repository.upsert(
+                DailyReport(
+                    id = 0,
+                    dateEpoch = epoch,
+                    targetArtifact = "Собран прототип",
+                    isCompleted = false,
+                    eliminatedWaste = 0,
+                    failureCause = null,
+                    correctiveAction = null,
+                ),
+            )
+            assertEquals(0.5f, awaitItem().progress, 0.0001f)
+            cancelAndIgnoreRemainingEvents()
+        }
     }
 }
