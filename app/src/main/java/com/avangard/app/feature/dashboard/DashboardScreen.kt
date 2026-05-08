@@ -7,6 +7,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -36,6 +37,8 @@ import com.avangard.app.ui.theme.MachineTheme
 fun DashboardScreen(
     onOpenMorningReport: () -> Unit = {},
     onOpenEveningReport: () -> Unit = {},
+    onOpenAnalytics: () -> Unit = {},
+    onOpenSettings: () -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: DashboardViewModel = hiltViewModel(),
 ) {
@@ -48,6 +51,8 @@ fun DashboardScreen(
             onSilenceToggle = viewModel::setSilenceMode,
             onOpenMorningReport = onOpenMorningReport,
             onOpenEveningReport = onOpenEveningReport,
+            onOpenAnalytics = onOpenAnalytics,
+            onOpenSettings = onOpenSettings,
         )
     }
 }
@@ -59,6 +64,8 @@ internal fun DashboardContent(
     onSilenceToggle: (Boolean) -> Unit,
     onOpenMorningReport: () -> Unit,
     onOpenEveningReport: () -> Unit,
+    onOpenAnalytics: () -> Unit,
+    onOpenSettings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -86,6 +93,16 @@ internal fun DashboardContent(
                 label = stringResource(R.string.toggle_silence),
                 checked = state.silenceMode,
                 onCheckedChange = onSilenceToggle,
+            )
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            DashboardActionButton(
+                label = stringResource(R.string.action_open_analytics),
+                onClick = onOpenAnalytics,
+            )
+            DashboardActionButton(
+                label = stringResource(R.string.action_open_settings),
+                onClick = onOpenSettings,
             )
         }
     }
@@ -181,6 +198,8 @@ private fun DashboardEmptyPreview() {
             onSilenceToggle = {},
             onOpenMorningReport = {},
             onOpenEveningReport = {},
+            onOpenAnalytics = {},
+            onOpenSettings = {},
         )
     }
 }

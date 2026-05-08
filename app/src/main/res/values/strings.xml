@@ -15,8 +15,30 @@
 
     <string name="action_open_morning_report">УТВЕРДИТЬ АРТЕФАКТ</string>
     <string name="action_open_evening_report">ВЕЧЕРНИЙ РАПОРТ</string>
+    <string name="action_open_analytics">ЖУРНАЛ</string>
+    <string name="action_open_settings">КОНФИГ</string>
     <string name="action_confirm">ПОДТВЕРДИТЬ</string>
     <string name="action_close_shift">ЗАКРЫТЬ СМЕНУ</string>
+
+    <string name="analytics_recorded">ВСЕГО</string>
+    <string name="analytics_completed">СОЗДАНО</string>
+    <string name="analytics_rate">ВЫПОЛНЕНИЕ</string>
+    <string name="journal_col_date">ДАТА</string>
+    <string name="journal_col_status">СТАТУС</string>
+    <string name="journal_col_artifact">АРТЕФАКТ</string>
+    <string name="journal_col_failure">СБОЙ</string>
+    <string name="journal_empty">ЗАПИСИ ОТСУТСТВУЮТ</string>
+
+    <string name="settings_header">КОНФИГУРАЦИЯ</string>
+    <string name="settings_permissions">РАЗРЕШЕНИЯ СИСТЕМЫ</string>
+    <string name="settings_perm_notifications">Уведомления</string>
+    <string name="settings_perm_exact_alarms">Точный будильник</string>
+    <string name="settings_data">ЛОКАЛЬНАЯ БАЗА</string>
+    <string name="settings_wipe_request">СТЕРЕТЬ ВСЁ</string>
+    <string name="settings_wipe_confirm">ПОДТВЕРДИТЬ СТИРАНИЕ</string>
+    <string name="settings_wipe_cancel">ОТМЕНА</string>
+    <string name="settings_wipe_confirm_message">Все рапорты будут удалены без возможности восстановления.</string>
+    <string name="settings_wipe_in_progress">Стирание базы…</string>
 
     <string name="morning_artifact_field">АРТЕФАКТ ДНЯ</string>
     <string name="morning_artifact_hint">существительное или совершённый глагол</string>
