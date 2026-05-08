@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.avangard.app.feature.dashboard.DashboardScreen
+import com.avangard.app.navigation.AvangardNavHost
 import com.avangard.app.ui.theme.MachineColors
 import com.avangard.app.ui.theme.MachineTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -32,7 +32,7 @@ private fun AvangardApp() {
                 .background(MachineColors.Background),
             color = MachineColors.Background,
         ) {
-            DashboardScreen()
+            AvangardNavHost()
         }
     }
 }

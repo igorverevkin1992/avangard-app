@@ -12,4 +12,32 @@
     <string name="notification_evening_due">Требуется вечерний рапорт</string>
     <string name="notification_artifact_capture">Зафиксируйте артефакты</string>
     <string name="notification_deadline_breach">Сбой сроков</string>
+
+    <string name="action_open_morning_report">УТВЕРДИТЬ АРТЕФАКТ</string>
+    <string name="action_open_evening_report">ВЕЧЕРНИЙ РАПОРТ</string>
+    <string name="action_confirm">ПОДТВЕРДИТЬ</string>
+    <string name="action_close_shift">ЗАКРЫТЬ СМЕНУ</string>
+
+    <string name="morning_artifact_field">АРТЕФАКТ ДНЯ</string>
+    <string name="morning_artifact_hint">существительное или совершённый глагол</string>
+    <string name="morning_waste_label">ОТСЕЧЕНИЕ ПРОЦЕССОВ</string>
+    <string name="morning_waste_email">Проверка почты до 12:00</string>
+    <string name="morning_waste_meetings">Встречи без повестки</string>
+    <string name="morning_waste_messengers">Мессенджеры</string>
+
+    <string name="evening_status_label">СТАТУС АРТЕФАКТА</string>
+    <string name="evening_status_completed">СОЗДАН</string>
+    <string name="evening_status_failed">ПРОВАЛ</string>
+    <string name="evening_waste_label">УНИЧТОЖЕНО МИКРОЗАДАЧ</string>
+    <string name="evening_failure_cause_label">ЗОНА КОНТРОЛЯ (мин. 20 символов)</string>
+    <string name="evening_failure_action_label">КОРРЕКТИРУЮЩЕЕ ДЕЙСТВИЕ (мин. 20 символов)</string>
+
+    <string name="error_time_slot">Вне регламентного слота</string>
+    <string name="error_artifact_empty">Артефакт не указан</string>
+    <string name="error_artifact_too_long">Превышение длины артефакта</string>
+    <string name="error_artifact_invalid_shape">Требуется конкретный артефакт</string>
+    <string name="error_already_initialized">Смена уже открыта</string>
+    <string name="error_not_initialized">Смена не открыта</string>
+    <string name="error_failure_cause_short">Зона контроля короче 20 символов</string>
+    <string name="error_corrective_action_short">Корректирующее действие короче 20 символов</string>
 </resources>
