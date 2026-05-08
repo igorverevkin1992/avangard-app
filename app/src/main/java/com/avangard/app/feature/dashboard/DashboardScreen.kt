@@ -28,6 +28,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.avangard.app.R
 import com.avangard.app.core.ui.components.IndustrialGauge
 import com.avangard.app.core.ui.components.IndustrialToggle
+import com.avangard.app.sync.permissions.PermissionGate
 import com.avangard.app.ui.theme.MachineColors
 import com.avangard.app.ui.theme.MachineTheme
 
@@ -39,14 +40,16 @@ fun DashboardScreen(
     viewModel: DashboardViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
-    DashboardContent(
-        state = state,
-        onFocusToggle = viewModel::setFocusMode,
-        onSilenceToggle = viewModel::setSilenceMode,
-        onOpenMorningReport = onOpenMorningReport,
-        onOpenEveningReport = onOpenEveningReport,
-        modifier = modifier,
-    )
+    Column(modifier = modifier) {
+        PermissionGate(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
+        DashboardContent(
+            state = state,
+            onFocusToggle = viewModel::setFocusMode,
+            onSilenceToggle = viewModel::setSilenceMode,
+            onOpenMorningReport = onOpenMorningReport,
+            onOpenEveningReport = onOpenEveningReport,
+        )
+    }
 }
 
 @Composable
