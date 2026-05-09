@@ -1,6 +1,7 @@
 package com.avangard.app.widget
 
 import android.content.Context
+import android.content.Intent
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -62,7 +63,7 @@ private fun WidgetContent(context: Context, report: DailyReport?) {
             .fillMaxSize()
             .background(ColorProvider(WidgetColors.Anthracite))
             .padding(12.dp)
-            .clickable(actionStartActivity<MainActivity>()),
+            .clickable(actionStartActivity(Intent(context, MainActivity::class.java))),
     ) {
         Text(
             text = context.getString(R.string.widget_artifact_label),
