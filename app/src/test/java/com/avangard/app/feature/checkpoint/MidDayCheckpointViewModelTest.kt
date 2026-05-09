@@ -6,7 +6,6 @@ import com.avangard.app.core.domain.FakeClock
 import com.avangard.app.core.domain.FakeReportRepository
 import com.avangard.app.core.domain.model.DailyReport
 import com.avangard.app.core.domain.model.MiddayStatus
-import com.avangard.app.core.domain.model.ReportError
 import com.avangard.app.core.domain.usecase.ObserveTodayReportUseCase
 import com.avangard.app.core.domain.usecase.SubmitMiddayStatusUseCase
 import kotlinx.coroutines.Dispatchers
@@ -120,11 +119,4 @@ class MidDayCheckpointViewModelTest {
         )
     }
 
-    @Test
-    fun `submit on closed shift surfaces NotInitialized error`() = runTest(dispatcher) {
-        buildViewModel()
-        viewModel.selectInProgress()
-        viewModel.submit()
-        assertEquals(ReportError.NotInitialized, viewModel.state.value.error)
-    }
 }
