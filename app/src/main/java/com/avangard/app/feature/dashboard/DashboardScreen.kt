@@ -37,6 +37,7 @@ import com.avangard.app.ui.theme.MachineTheme
 fun DashboardScreen(
     onOpenMorningReport: () -> Unit = {},
     onOpenEveningReport: () -> Unit = {},
+    onOpenHabits: () -> Unit = {},
     onOpenAnalytics: () -> Unit = {},
     onOpenSettings: () -> Unit = {},
     modifier: Modifier = Modifier,
@@ -51,6 +52,7 @@ fun DashboardScreen(
             onSilenceToggle = viewModel::setSilenceMode,
             onOpenMorningReport = onOpenMorningReport,
             onOpenEveningReport = onOpenEveningReport,
+            onOpenHabits = onOpenHabits,
             onOpenAnalytics = onOpenAnalytics,
             onOpenSettings = onOpenSettings,
         )
@@ -64,6 +66,7 @@ internal fun DashboardContent(
     onSilenceToggle: (Boolean) -> Unit,
     onOpenMorningReport: () -> Unit,
     onOpenEveningReport: () -> Unit,
+    onOpenHabits: () -> Unit,
     onOpenAnalytics: () -> Unit,
     onOpenSettings: () -> Unit,
     modifier: Modifier = Modifier,
@@ -96,6 +99,10 @@ internal fun DashboardContent(
             )
         }
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            DashboardActionButton(
+                label = stringResource(R.string.action_open_habits),
+                onClick = onOpenHabits,
+            )
             DashboardActionButton(
                 label = stringResource(R.string.action_open_analytics),
                 onClick = onOpenAnalytics,
@@ -198,6 +205,7 @@ private fun DashboardEmptyPreview() {
             onSilenceToggle = {},
             onOpenMorningReport = {},
             onOpenEveningReport = {},
+            onOpenHabits = {},
             onOpenAnalytics = {},
             onOpenSettings = {},
         )

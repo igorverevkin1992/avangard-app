@@ -7,6 +7,7 @@ import androidx.navigation.compose.rememberNavController
 import com.avangard.app.feature.analytics.AnalyticsScreen
 import com.avangard.app.feature.checkpoint.MidDayCheckpointScreen
 import com.avangard.app.feature.dashboard.DashboardScreen
+import com.avangard.app.feature.habits.HabitTrackerScreen
 import com.avangard.app.feature.report.evening.EveningReportScreen
 import com.avangard.app.feature.report.morning.MorningReportScreen
 import com.avangard.app.feature.settings.SettingsScreen
@@ -19,6 +20,7 @@ fun AvangardNavHost(startDestination: String = NavRoute.Dashboard.route) {
             DashboardScreen(
                 onOpenMorningReport = { navController.navigate(NavRoute.MorningReport.route) },
                 onOpenEveningReport = { navController.navigate(NavRoute.EveningReport.route) },
+                onOpenHabits = { navController.navigate(NavRoute.Habits.route) },
                 onOpenAnalytics = { navController.navigate(NavRoute.Analytics.route) },
                 onOpenSettings = { navController.navigate(NavRoute.Settings.route) },
             )
@@ -38,6 +40,7 @@ fun AvangardNavHost(startDestination: String = NavRoute.Dashboard.route) {
         composable(NavRoute.EveningReport.route) {
             EveningReportScreen(onCompleted = { navController.popBackStack() })
         }
+        composable(NavRoute.Habits.route) { HabitTrackerScreen() }
         composable(NavRoute.Analytics.route) { AnalyticsScreen() }
         composable(NavRoute.Settings.route) { SettingsScreen() }
     }

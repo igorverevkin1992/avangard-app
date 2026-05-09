@@ -1,5 +1,6 @@
 package com.avangard.app.feature.settings
 
+import com.avangard.app.core.domain.FakeHabitRepository
 import com.avangard.app.core.domain.FakeReportRepository
 import com.avangard.app.core.domain.model.DailyReport
 import com.avangard.app.core.domain.model.SystemFlag
@@ -21,13 +22,15 @@ class SettingsViewModelTest {
 
     private val dispatcher = UnconfinedTestDispatcher()
     private lateinit var repository: FakeReportRepository
+    private lateinit var habits: FakeHabitRepository
     private lateinit var viewModel: SettingsViewModel
 
     @Before
     fun setUp() {
         Dispatchers.setMain(dispatcher)
         repository = FakeReportRepository()
-        viewModel = SettingsViewModel(repository)
+        habits = FakeHabitRepository()
+        viewModel = SettingsViewModel(repository, habits)
     }
 
     @After

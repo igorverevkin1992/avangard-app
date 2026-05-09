@@ -2,6 +2,7 @@ package com.avangard.app.feature.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.avangard.app.core.domain.repository.HabitRepository
 import com.avangard.app.core.domain.repository.ReportRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -18,6 +19,7 @@ data class SettingsState(
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val repository: ReportRepository,
+    private val habits: HabitRepository,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SettingsState())
@@ -36,6 +38,7 @@ class SettingsViewModel @Inject constructor(
         _state.value = _state.value.copy(wipeInProgress = true, confirmingWipe = false)
         viewModelScope.launch {
             repository.wipe()
+            habits.wipe()
             _state.value = _state.value.copy(wipeInProgress = false)
         }
     }

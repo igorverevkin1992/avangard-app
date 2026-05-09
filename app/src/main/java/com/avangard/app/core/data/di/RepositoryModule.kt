@@ -1,6 +1,8 @@
 package com.avangard.app.core.data.di
 
+import com.avangard.app.core.data.RoomHabitRepository
 import com.avangard.app.core.data.RoomReportRepository
+import com.avangard.app.core.domain.repository.HabitRepository
 import com.avangard.app.core.domain.repository.ReportRepository
 import dagger.Binds
 import dagger.Module
@@ -15,4 +17,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindReportRepository(impl: RoomReportRepository): ReportRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindHabitRepository(impl: RoomHabitRepository): HabitRepository
 }
