@@ -81,7 +81,7 @@ internal fun MidDayCheckpointContent(
             style = MaterialTheme.typography.headlineLarge,
         )
 
-        state.todayArtifact?.let { artifact ->
+        state.todayArtifact?.takeIf { it.isNotBlank() }?.let { artifact ->
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -99,19 +99,21 @@ internal fun MidDayCheckpointContent(
                     style = MaterialTheme.typography.bodyLarge,
                 )
             }
-        }
+        } ?: ShiftClosedNotice()
 
-        ChoiceSelector(
-            choice = state.choice,
-            onSelectInProgress = onSelectInProgress,
-            onSelectBlocked = onSelectBlocked,
-        )
-
-        if (state.showActionField) {
-            UnblockingActionField(
-                value = state.unblockingAction,
-                onChange = onActionChange,
+        if (state.isShiftOpen) {
+            ChoiceSelector(
+                choice = state.choice,
+                onSelectInProgress = onSelectInProgress,
+                onSelectBlocked = onSelectBlocked,
             )
+
+            if (state.showActionField) {
+                UnblockingActionField(
+                    value = state.unblockingAction,
+                    onChange = onActionChange,
+                )
+            }
         }
 
         state.error?.let { ErrorBanner(it) }
@@ -122,6 +124,28 @@ internal fun MidDayCheckpointContent(
             label = stringResource(R.string.midday_action_lock_in),
             enabled = state.canSubmit,
             onClick = onSubmit,
+        )
+    }
+}
+
+@Composable
+private fun ShiftClosedNotice() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(width = 1.dp, color = MachineColors.AtlasRed)
+            .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Text(
+            text = stringResource(R.string.midday_shift_closed_title),
+            color = MachineColors.AtlasRed,
+            style = MaterialTheme.typography.titleLarge,
+        )
+        Text(
+            text = stringResource(R.string.midday_shift_closed_body),
+            color = MachineColors.Ivory,
+            style = MaterialTheme.typography.bodyMedium,
         )
     }
 }

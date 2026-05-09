@@ -15,8 +15,8 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -37,16 +37,17 @@ class HabitTrackerViewModel @Inject constructor(
     private val today: LocalDate = clock.today()
     private val selected = MutableStateFlow(YearMonth.from(today))
 
-    val state: StateFlow<HabitTrackerState> = combine(
-        selected,
-        selected.flatMapLatest { ym -> observeMonth(ym.year, ym.monthValue) },
-    ) { ym, view ->
-        HabitTrackerState(today = today, selected = ym, view = view)
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = HabitTrackerState(today = today, selected = YearMonth.from(today)),
-    )
+    val state: StateFlow<HabitTrackerState> = selected
+        .flatMapLatest { ym ->
+            observeMonth(ym.year, ym.monthValue).map { view ->
+                HabitTrackerState(today = today, selected = ym, view = view)
+            }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = HabitTrackerState(today = today, selected = YearMonth.from(today)),
+        )
 
     fun selectMonth(yearMonth: YearMonth) {
         selected.value = yearMonth

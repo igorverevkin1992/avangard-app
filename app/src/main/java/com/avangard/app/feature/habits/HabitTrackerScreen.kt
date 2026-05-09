@@ -230,7 +230,7 @@ private fun DayRow(
         modifier = Modifier
             .fillMaxWidth()
             .background(rowBg)
-            .height(36.dp),
+            .height(44.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
@@ -256,8 +256,7 @@ private fun HabitCell(isOn: Boolean, onClick: () -> Unit, modifier: Modifier = M
     val interactionSource = remember { MutableInteractionSource() }
     Box(
         modifier = modifier
-            .padding(2.dp)
-            .height(28.dp)
+            .height(44.dp)
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
@@ -267,7 +266,7 @@ private fun HabitCell(isOn: Boolean, onClick: () -> Unit, modifier: Modifier = M
     ) {
         Box(
             modifier = Modifier
-                .size(20.dp)
+                .size(22.dp)
                 .border(width = 1.dp, color = MachineColors.SteelEdge)
                 .background(if (isOn) MachineColors.ReardenCopper else Color.Transparent),
         )

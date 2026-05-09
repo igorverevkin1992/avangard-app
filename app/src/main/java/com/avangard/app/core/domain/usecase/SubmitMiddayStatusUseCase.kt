@@ -21,13 +21,18 @@ class SubmitMiddayStatusUseCase @Inject constructor(
             return DomainResult.Err(ReportError.UnblockingActionTooShort)
         }
 
+        val dateEpoch = clock.today().toStartOfDayEpoch(clock.zone())
+        val current = repository.findForDate(dateEpoch)
+        if (current == null || current.targetArtifact.isBlank()) {
+            return DomainResult.Err(ReportError.NotInitialized)
+        }
+
         val normalized = if (status is MiddayStatus.Blocked) {
             MiddayStatus.Blocked(status.unblockingAction.trim())
         } else {
             status
         }
 
-        val dateEpoch = clock.today().toStartOfDayEpoch(clock.zone())
         val id = repository.submitMidday(dateEpoch, normalized, clock.nowEpochMillis())
         return DomainResult.Ok(id)
     }

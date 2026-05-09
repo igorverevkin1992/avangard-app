@@ -27,9 +27,10 @@ data class MidDayCheckpointState(
     val submitting: Boolean = false,
 ) {
     val showActionField: Boolean get() = choice == MiddayChoice.Blocked
+    val isShiftOpen: Boolean get() = !todayArtifact.isNullOrBlank()
 
     val canSubmit: Boolean
-        get() = !submitting && when (choice) {
+        get() = isShiftOpen && !submitting && when (choice) {
             MiddayChoice.Unset -> false
             MiddayChoice.InProgress -> true
             MiddayChoice.Blocked ->

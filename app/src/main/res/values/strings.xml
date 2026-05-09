@@ -74,6 +74,8 @@
     <string name="error_unblocking_action_short">Разблокирующее действие короче 20 символов</string>
 
     <string name="midday_directive">СРЕЗ СТАТУСА. ЗАФИКСИРУЙТЕ ПОЛОЖЕНИЕ</string>
+    <string name="midday_shift_closed_title">СМЕНА НЕ ОТКРЫТА</string>
+    <string name="midday_shift_closed_body">УТВЕРДИТЕ АРТЕФАКТ ДНЯ В УТРЕННЕМ ОКНЕ. БЕЗ АРТЕФАКТА КОНТРОЛЬНАЯ ТОЧКА НЕ ФИКСИРУЕТСЯ.</string>
     <string name="midday_status_label">КОНТУР ИСПОЛНЕНИЯ</string>
     <string name="midday_status_in_progress">В РАБОТЕ</string>
     <string name="midday_status_blocked">ЗАБЛОКИРОВАН</string>
