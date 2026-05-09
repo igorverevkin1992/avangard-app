@@ -40,7 +40,10 @@ class AnalyticsMappingTest {
         )
         val state = reports.toAnalyticsState()
         assertEquals(listOf(2_000L, 1_000L), state.entries.map { it.dateEpoch })
-        assertEquals(listOf(1, 0), state.entries.map { it.statusCode })
+        assertEquals(
+            listOf(DayStatus.Completed, DayStatus.Failed),
+            state.entries.map { it.status },
+        )
     }
 
     @Test

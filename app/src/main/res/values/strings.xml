@@ -4,6 +4,14 @@
     <string name="dashboard_target_label">АРТЕФАКТ ДНЯ</string>
     <string name="dashboard_target_empty">НЕ УТВЕРЖДЕН</string>
     <string name="dashboard_progress_label">ВЫРАБОТКА</string>
+    <string name="dashboard_streak_label">КОНТУР ИНТЕГРИТИ</string>
+    <string name="dashboard_streak_value">%d ДНЕЙ</string>
+    <string name="widget_artifact_label">АРТЕФАКТ ДНЯ</string>
+    <string name="widget_state_pending">НЕ УТВЕРЖДЁН</string>
+    <string name="widget_state_in_progress">В РАБОТЕ</string>
+    <string name="widget_state_completed">СОЗДАН</string>
+    <string name="widget_state_failed">ПРОВАЛ</string>
+    <string name="widget_label">Avangard</string>
     <string name="toggle_focus_mode">РЕЖИМ ИСПОЛНЕНИЯ</string>
     <string name="toggle_silence">РЕЖИМ ТИШИНЫ</string>
     <string name="report_morning_directive">УТВЕРДИТЕ АРТЕФАКТ ДНЯ</string>
@@ -11,10 +19,11 @@
     <string name="failure_analysis_header">АНАЛИЗ ОТКАЗА</string>
     <string name="notification_evening_due">Требуется вечерний рапорт</string>
     <string name="notification_artifact_capture">Зафиксируйте артефакты</string>
-    <string name="notification_deadline_breach">Сбой сроков</string>
+    <string name="notification_deadline_breach">СРЕЗ СТАТУСА</string>
 
     <string name="action_open_morning_report">УТВЕРДИТЬ АРТЕФАКТ</string>
     <string name="action_open_evening_report">ВЕЧЕРНИЙ РАПОРТ</string>
+    <string name="action_open_habits">ПРИВЫЧКИ</string>
     <string name="action_open_analytics">ЖУРНАЛ</string>
     <string name="action_open_settings">КОНФИГ</string>
     <string name="action_confirm">ПОДТВЕРДИТЬ</string>
@@ -62,4 +71,14 @@
     <string name="error_not_initialized">Смена не открыта</string>
     <string name="error_failure_cause_short">Зона контроля короче 20 символов</string>
     <string name="error_corrective_action_short">Корректирующее действие короче 20 символов</string>
+    <string name="error_unblocking_action_short">Разблокирующее действие короче 20 символов</string>
+
+    <string name="midday_directive">СРЕЗ СТАТУСА. ЗАФИКСИРУЙТЕ ПОЛОЖЕНИЕ</string>
+    <string name="midday_shift_closed_title">СМЕНА НЕ ОТКРЫТА</string>
+    <string name="midday_shift_closed_body">УТВЕРДИТЕ АРТЕФАКТ ДНЯ В УТРЕННЕМ ОКНЕ. БЕЗ АРТЕФАКТА КОНТРОЛЬНАЯ ТОЧКА НЕ ФИКСИРУЕТСЯ.</string>
+    <string name="midday_status_label">КОНТУР ИСПОЛНЕНИЯ</string>
+    <string name="midday_status_in_progress">В РАБОТЕ</string>
+    <string name="midday_status_blocked">ЗАБЛОКИРОВАН</string>
+    <string name="midday_action_label">РАЗБЛОКИРУЮЩЕЕ ДЕЙСТВИЕ (мин. 20 символов)</string>
+    <string name="midday_action_lock_in">ЗАФИКСИРОВАТЬ</string>
 </resources>

@@ -33,8 +33,8 @@ fun IndustrialToggle(
     onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val activeColor = MachineColors.IndicationYellow
-    val inactiveColor = MachineColors.OutlineGray
+    val activeColor = MachineColors.ReardenCopper
+    val inactiveColor = MachineColors.WarmGray
     val color = if (checked) activeColor else inactiveColor
     val knobOffset by animateFloatAsState(
         targetValue = if (checked) 1f else 0f,

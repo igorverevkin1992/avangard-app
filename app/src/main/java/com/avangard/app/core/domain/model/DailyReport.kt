@@ -8,4 +8,6 @@ data class DailyReport(
     val eliminatedWaste: Int,
     val failureCause: String?,
     val correctiveAction: String?,
+    val midday: MiddayStatus = MiddayStatus.NotPolled,
+    val middayRecordedAt: Long? = null,
 )

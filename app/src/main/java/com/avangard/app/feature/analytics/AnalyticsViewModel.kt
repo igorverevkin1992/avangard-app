@@ -12,9 +12,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
+enum class DayStatus { Failed, Completed }
+
 data class JournalEntry(
     val dateEpoch: Long,
-    val statusCode: Int,
+    val status: DayStatus,
     val artifact: String,
     val hasFailureAnalysis: Boolean,
 )
@@ -47,17 +49,13 @@ internal fun List<DailyReport>.toAnalyticsState(): AnalyticsState {
     if (isEmpty()) return AnalyticsState()
     val byDateAsc = sortedBy { it.dateEpoch }
     val points = byDateAsc.map { report ->
-        // Project domain state into the [0, 1] band:
-        //   1.0 — artifact created
-        //   0.5 — initialized but not completed
-        //   0.0 — placeholder for empty rows (unused here)
         val value = if (report.isCompleted) 1f else 0.5f
         ChartPoint(value = value, success = report.isCompleted)
     }
     val entries = sortedByDescending { it.dateEpoch }.map { report ->
         JournalEntry(
             dateEpoch = report.dateEpoch,
-            statusCode = if (report.isCompleted) 1 else 0,
+            status = if (report.isCompleted) DayStatus.Completed else DayStatus.Failed,
             artifact = report.targetArtifact,
             hasFailureAnalysis = !report.isCompleted &&
                 !report.failureCause.isNullOrBlank() &&

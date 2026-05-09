@@ -5,6 +5,7 @@ import com.avangard.app.core.common.toStartOfDayEpoch
 import com.avangard.app.core.domain.FakeClock
 import com.avangard.app.core.domain.FakeReportRepository
 import com.avangard.app.core.domain.model.DailyReport
+import com.avangard.app.core.domain.usecase.ObserveStreakUseCase
 import com.avangard.app.core.domain.usecase.ObserveTodayReportUseCase
 import com.avangard.app.core.domain.usecase.ToggleSwitchUseCase
 import kotlinx.coroutines.Dispatchers
@@ -36,6 +37,7 @@ class DashboardViewModelTest {
         clock = FakeClock()
         viewModel = DashboardViewModel(
             observeToday = ObserveTodayReportUseCase(repository, clock),
+            observeStreak = ObserveStreakUseCase(repository, clock),
             toggle = ToggleSwitchUseCase(repository),
         )
     }

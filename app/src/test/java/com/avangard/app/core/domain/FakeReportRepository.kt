@@ -1,6 +1,7 @@
 package com.avangard.app.core.domain
 
 import com.avangard.app.core.domain.model.DailyReport
+import com.avangard.app.core.domain.model.MiddayStatus
 import com.avangard.app.core.domain.model.SystemFlag
 import com.avangard.app.core.domain.repository.ReportRepository
 import kotlinx.coroutines.flow.Flow
@@ -31,6 +32,23 @@ class FakeReportRepository : ReportRepository {
         val stored = report.copy(id = id)
         reports.value = reports.value + (stored.dateEpoch to stored)
         return id
+    }
+
+    override suspend fun submitMidday(
+        dateEpoch: Long,
+        status: MiddayStatus,
+        recordedAt: Long,
+    ): Long {
+        val current = reports.value[dateEpoch] ?: DailyReport(
+            id = 0,
+            dateEpoch = dateEpoch,
+            targetArtifact = "",
+            isCompleted = false,
+            eliminatedWaste = 0,
+            failureCause = null,
+            correctiveAction = null,
+        )
+        return upsert(current.copy(midday = status, middayRecordedAt = recordedAt))
     }
 
     override suspend fun wipe() {

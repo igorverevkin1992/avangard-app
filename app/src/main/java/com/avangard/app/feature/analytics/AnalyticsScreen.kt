@@ -49,7 +49,7 @@ internal fun AnalyticsContent(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(MachineColors.Background)
+            .background(MachineColors.Anthracite)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
@@ -59,7 +59,7 @@ internal fun AnalyticsContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(1.6f)
-                .border(width = 1.dp, color = MachineColors.OutlineGray)
+                .border(width = 1.dp, color = MachineColors.WarmGray)
                 .padding(8.dp),
         )
         JournalTable(entries = state.entries)
@@ -89,12 +89,12 @@ private fun StatBlock(label: String, value: String) {
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Text(
             text = label,
-            color = MachineColors.OutlineGray,
+            color = MachineColors.WarmGray,
             style = MaterialTheme.typography.labelMedium,
         )
         Text(
             text = value,
-            color = MachineColors.IndicationYellow,
+            color = MachineColors.ReardenCopper,
             style = MaterialTheme.typography.headlineLarge,
         )
     }
@@ -105,7 +105,7 @@ private fun JournalTable(entries: List<JournalEntry>) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .border(width = 1.dp, color = MachineColors.OutlineGray),
+            .border(width = 1.dp, color = MachineColors.WarmGray),
     ) {
         TableRow(
             cells = listOf(
@@ -119,7 +119,7 @@ private fun JournalTable(entries: List<JournalEntry>) {
         if (entries.isEmpty()) {
             Text(
                 text = stringResource(R.string.journal_empty),
-                color = MachineColors.OutlineGray,
+                color = MachineColors.WarmGray,
                 style = MaterialTheme.typography.labelMedium,
                 modifier = Modifier.padding(12.dp),
             )
@@ -137,14 +137,14 @@ private fun JournalRow(entry: JournalEntry) {
         .atZone(ZoneId.systemDefault())
         .toLocalDate()
         .format(journalDateFormatter)
-    val statusLabel = entry.statusCode.toString()
-    val failureLabel = if (entry.statusCode == 0) {
+    val statusLabel = if (entry.status == DayStatus.Completed) "1" else "0"
+    val failureLabel = if (entry.status == DayStatus.Failed) {
         if (entry.hasFailureAnalysis) "+" else "—"
     } else ""
     TableRow(
         cells = listOf(date, statusLabel, entry.artifact, failureLabel),
         isHeader = false,
-        statusCode = entry.statusCode,
+        status = entry.status,
     )
 }
 
@@ -152,10 +152,10 @@ private fun JournalRow(entry: JournalEntry) {
 private fun TableRow(
     cells: List<String>,
     isHeader: Boolean,
-    statusCode: Int = 1,
+    status: DayStatus = DayStatus.Completed,
 ) {
-    val accent = if (statusCode == 0) MachineColors.SignalRed else MachineColors.TextPrimary
-    val color = if (isHeader) MachineColors.OutlineGray else accent
+    val accent = if (status == DayStatus.Failed) MachineColors.AtlasRed else MachineColors.Ivory
+    val color = if (isHeader) MachineColors.WarmGray else accent
     val style = MaterialTheme.typography.labelMedium.copy(
         fontFamily = FontFamily.Monospace,
         fontWeight = if (isHeader) FontWeight.Bold else FontWeight.Normal,
