@@ -137,14 +137,14 @@ private fun JournalRow(entry: JournalEntry) {
         .atZone(ZoneId.systemDefault())
         .toLocalDate()
         .format(journalDateFormatter)
-    val statusLabel = entry.statusCode.toString()
-    val failureLabel = if (entry.statusCode == 0) {
+    val statusLabel = if (entry.status == DayStatus.Completed) "1" else "0"
+    val failureLabel = if (entry.status == DayStatus.Failed) {
         if (entry.hasFailureAnalysis) "+" else "—"
     } else ""
     TableRow(
         cells = listOf(date, statusLabel, entry.artifact, failureLabel),
         isHeader = false,
-        statusCode = entry.statusCode,
+        status = entry.status,
     )
 }
 
@@ -152,9 +152,9 @@ private fun JournalRow(entry: JournalEntry) {
 private fun TableRow(
     cells: List<String>,
     isHeader: Boolean,
-    statusCode: Int = 1,
+    status: DayStatus = DayStatus.Completed,
 ) {
-    val accent = if (statusCode == 0) MachineColors.AtlasRed else MachineColors.Ivory
+    val accent = if (status == DayStatus.Failed) MachineColors.AtlasRed else MachineColors.Ivory
     val color = if (isHeader) MachineColors.WarmGray else accent
     val style = MaterialTheme.typography.labelMedium.copy(
         fontFamily = FontFamily.Monospace,

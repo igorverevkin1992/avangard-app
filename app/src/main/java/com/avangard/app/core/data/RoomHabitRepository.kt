@@ -1,12 +1,14 @@
 package com.avangard.app.core.data
 
 import com.avangard.app.core.common.Clock
+import com.avangard.app.core.common.DAY_MILLIS
 import com.avangard.app.core.common.toStartOfDayEpoch
 import com.avangard.app.core.database.dao.HabitLogDao
 import com.avangard.app.core.database.entity.HabitLogEntity
 import com.avangard.app.core.domain.model.Habit
 import com.avangard.app.core.domain.model.HabitMonthlyView
 import com.avangard.app.core.domain.repository.HabitRepository
+import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
@@ -24,16 +26,14 @@ class RoomHabitRepository @Inject constructor(
     override fun observeMonth(year: Int, month: Int): Flow<HabitMonthlyView> {
         val zone = clock.zone()
         val ym = YearMonth.of(year, month)
-        val first = ym.atDay(1)
-        val from = first.toStartOfDayEpoch(zone)
+        val from = ym.atDay(1).toStartOfDayEpoch(zone)
         val to = ym.atEndOfMonth().toStartOfDayEpoch(zone) + DAY_MILLIS - 1
         return dao.observeRange(from, to).map { rows ->
-            val cells = buildMonthlyCells(rows, zone)
             HabitMonthlyView(
                 year = year,
                 month = month,
                 daysInMonth = ym.lengthOfMonth(),
-                cells = cells,
+                cells = buildMonthlyCells(rows, zone),
             )
         }
     }
@@ -56,23 +56,17 @@ class RoomHabitRepository @Inject constructor(
     override suspend fun wipe() {
         dao.deleteAll()
     }
+}
 
-    private fun buildMonthlyCells(
-        rows: List<HabitLogEntity>,
-        zone: ZoneId,
-    ): Map<LocalDate, Set<Habit>> {
-        val grouped = mutableMapOf<LocalDate, MutableSet<Habit>>()
-        for (row in rows) {
-            val habit = Habit.byCode(row.habitCode) ?: continue
-            val date = java.time.Instant.ofEpochMilli(row.dateEpoch)
-                .atZone(zone)
-                .toLocalDate()
-            grouped.getOrPut(date) { mutableSetOf() }.add(habit)
-        }
-        return grouped
+internal fun buildMonthlyCells(
+    rows: List<HabitLogEntity>,
+    zone: ZoneId,
+): Map<LocalDate, Set<Habit>> {
+    val grouped = mutableMapOf<LocalDate, MutableSet<Habit>>()
+    for (row in rows) {
+        val habit = Habit.byCode(row.habitCode) ?: continue
+        val date = Instant.ofEpochMilli(row.dateEpoch).atZone(zone).toLocalDate()
+        grouped.getOrPut(date) { mutableSetOf() }.add(habit)
     }
-
-    companion object {
-        private const val DAY_MILLIS = 24L * 60 * 60 * 1000
-    }
+    return grouped
 }

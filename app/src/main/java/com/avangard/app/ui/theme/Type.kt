@@ -28,10 +28,12 @@ private val GoogleFontProvider = GoogleFont.Provider(
 
 private val RobotoCondensed = GoogleFont("Roboto Condensed")
 
+// Roboto Condensed on Google Fonts ships only Light/Regular/Medium/Bold,
+// so we omit Black to avoid silent fallback at runtime.
 private val DisplayFamily = FontFamily(
     Font(googleFont = RobotoCondensed, fontProvider = GoogleFontProvider, weight = FontWeight.Normal, style = FontStyle.Normal),
+    Font(googleFont = RobotoCondensed, fontProvider = GoogleFontProvider, weight = FontWeight.Medium, style = FontStyle.Normal),
     Font(googleFont = RobotoCondensed, fontProvider = GoogleFontProvider, weight = FontWeight.Bold, style = FontStyle.Normal),
-    Font(googleFont = RobotoCondensed, fontProvider = GoogleFontProvider, weight = FontWeight.Black, style = FontStyle.Normal),
 )
 
 private val MonoFamily = FontFamily.Monospace
@@ -39,7 +41,7 @@ private val MonoFamily = FontFamily.Monospace
 val MachineTypography = Typography(
     displayLarge = TextStyle(
         fontFamily = DisplayFamily,
-        fontWeight = FontWeight.Black,
+        fontWeight = FontWeight.Bold,
         fontSize = 48.sp,
         letterSpacing = 4.sp,
     ),
