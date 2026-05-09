@@ -29,24 +29,26 @@ data class HabitTrackerState(
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class HabitTrackerViewModel @Inject constructor(
-    clock: Clock,
+    private val clock: Clock,
     observeMonth: ObserveMonthHabitsUseCase,
     private val toggleUseCase: ToggleHabitUseCase,
 ) : ViewModel() {
 
-    private val today: LocalDate = clock.today()
-    private val selected = MutableStateFlow(YearMonth.from(today))
+    private val selected = MutableStateFlow(YearMonth.from(clock.today()))
 
     val state: StateFlow<HabitTrackerState> = selected
         .flatMapLatest { ym ->
             observeMonth(ym.year, ym.monthValue).map { view ->
-                HabitTrackerState(today = today, selected = ym, view = view)
+                HabitTrackerState(today = clock.today(), selected = ym, view = view)
             }
         }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = HabitTrackerState(today = today, selected = YearMonth.from(today)),
+            initialValue = HabitTrackerState(
+                today = clock.today(),
+                selected = YearMonth.from(clock.today()),
+            ),
         )
 
     fun selectMonth(yearMonth: YearMonth) {
