@@ -62,4 +62,12 @@
     <string name="error_not_initialized">Смена не открыта</string>
     <string name="error_failure_cause_short">Зона контроля короче 20 символов</string>
     <string name="error_corrective_action_short">Корректирующее действие короче 20 символов</string>
+    <string name="error_unblocking_action_short">Разблокирующее действие короче 20 символов</string>
+
+    <string name="midday_directive">СРЕЗ СТАТУСА. ЗАФИКСИРУЙТЕ ПОЛОЖЕНИЕ</string>
+    <string name="midday_status_label">КОНТУР ИСПОЛНЕНИЯ</string>
+    <string name="midday_status_in_progress">В РАБОТЕ</string>
+    <string name="midday_status_blocked">ЗАБЛОКИРОВАН</string>
+    <string name="midday_action_label">РАЗБЛОКИРУЮЩЕЕ ДЕЙСТВИЕ (мин. 20 символов)</string>
+    <string name="midday_action_lock_in">ЗАФИКСИРОВАТЬ</string>
 </resources>

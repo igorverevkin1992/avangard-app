@@ -173,6 +173,7 @@ internal fun ErrorBanner(error: ReportError) {
         ReportError.NotInitialized -> R.string.error_not_initialized
         ReportError.FailureCauseTooShort -> R.string.error_failure_cause_short
         ReportError.CorrectiveActionTooShort -> R.string.error_corrective_action_short
+        ReportError.UnblockingActionTooShort -> R.string.error_unblocking_action_short
     }
     Text(
         text = stringResource(resId),

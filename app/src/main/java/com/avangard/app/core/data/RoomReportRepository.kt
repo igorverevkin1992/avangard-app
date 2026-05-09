@@ -5,6 +5,9 @@ import com.avangard.app.core.database.dao.SystemMetricDao
 import com.avangard.app.core.database.entity.DailyLogEntity
 import com.avangard.app.core.database.entity.SystemMetricEntity
 import com.avangard.app.core.domain.model.DailyReport
+import com.avangard.app.core.domain.model.MiddayStatus
+import com.avangard.app.core.domain.model.MiddayStatus.Companion.actionText
+import com.avangard.app.core.domain.model.MiddayStatus.Companion.toCode
 import com.avangard.app.core.domain.model.SystemFlag
 import com.avangard.app.core.domain.repository.ReportRepository
 import javax.inject.Inject
@@ -33,6 +36,21 @@ class RoomReportRepository @Inject constructor(
     override suspend fun upsert(report: DailyReport): Long =
         dailyLogDao.upsert(report.toEntity())
 
+    override suspend fun submitMidday(
+        dateEpoch: Long,
+        status: MiddayStatus,
+        recordedAt: Long,
+    ): Long {
+        val current = dailyLogDao.findByDate(dateEpoch)
+            ?: DailyLogEntity(dateEpoch = dateEpoch, targetArtifact = "")
+        val updated = current.copy(
+            middayStatus = status.toCode(),
+            middayAction = status.actionText(),
+            middayRecordedAt = recordedAt,
+        )
+        return dailyLogDao.upsert(updated)
+    }
+
     override suspend fun wipe() {
         dailyLogDao.deleteAll()
         systemMetricDao.deleteAll()
@@ -54,6 +72,8 @@ private fun DailyLogEntity.toDomain(): DailyReport = DailyReport(
     eliminatedWaste = eliminatedWaste,
     failureCause = failureCause,
     correctiveAction = correctiveAction,
+    midday = MiddayStatus.fromCode(middayStatus, middayAction),
+    middayRecordedAt = middayRecordedAt,
 )
 
 private fun DailyReport.toEntity(): DailyLogEntity = DailyLogEntity(
@@ -64,4 +84,7 @@ private fun DailyReport.toEntity(): DailyLogEntity = DailyLogEntity(
     eliminatedWaste = eliminatedWaste,
     failureCause = failureCause,
     correctiveAction = correctiveAction,
+    middayStatus = midday.toCode(),
+    middayAction = midday.actionText(),
+    middayRecordedAt = middayRecordedAt,
 )

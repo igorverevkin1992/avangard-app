@@ -9,6 +9,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.avangard.app.MainActivity
 import com.avangard.app.R
+import com.avangard.app.navigation.NavRoute
 import com.avangard.app.sync.scheduler.AlarmSlot
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -44,6 +45,14 @@ class ReportNotificationPresenter @Inject constructor(
         }
         val openIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            when (slot) {
+                AlarmSlot.MidDayCheckpoint ->
+                    putExtra(MainActivity.EXTRA_START_DESTINATION, NavRoute.MidDayCheckpoint.route)
+                AlarmSlot.MorningInitialization ->
+                    putExtra(MainActivity.EXTRA_START_DESTINATION, NavRoute.MorningReport.route)
+                AlarmSlot.EveningReport ->
+                    putExtra(MainActivity.EXTRA_START_DESTINATION, NavRoute.EveningReport.route)
+            }
         }
         val pendingIntent = PendingIntent.getActivity(
             context,

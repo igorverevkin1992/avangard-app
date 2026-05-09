@@ -7,6 +7,7 @@ sealed interface ReportError {
     data object ArtifactInvalidShape : ReportError
     data object FailureCauseTooShort : ReportError
     data object CorrectiveActionTooShort : ReportError
+    data object UnblockingActionTooShort : ReportError
     data object AlreadyInitialized : ReportError
     data object NotInitialized : ReportError
 }

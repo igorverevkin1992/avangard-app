@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.avangard.app.core.database.AppDatabase
 import com.avangard.app.core.database.dao.DailyLogDao
+import com.avangard.app.core.database.dao.HabitLogDao
 import com.avangard.app.core.database.dao.SystemMetricDao
 import dagger.Module
 import dagger.Provides
@@ -20,6 +21,7 @@ object DatabaseModule {
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): AppDatabase =
         Room.databaseBuilder(context, AppDatabase::class.java, AppDatabase.DB_NAME)
+            .addMigrations(AppDatabase.MIGRATION_1_2)
             .build()
 
     @Provides
@@ -27,4 +29,7 @@ object DatabaseModule {
 
     @Provides
     fun provideSystemMetricDao(db: AppDatabase): SystemMetricDao = db.systemMetricDao()
+
+    @Provides
+    fun provideHabitLogDao(db: AppDatabase): HabitLogDao = db.habitLogDao()
 }

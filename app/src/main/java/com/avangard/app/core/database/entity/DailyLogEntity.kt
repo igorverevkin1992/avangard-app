@@ -30,4 +30,13 @@ data class DailyLogEntity(
 
     @ColumnInfo(name = "corrective_action")
     val correctiveAction: String? = null,
+
+    @ColumnInfo(name = "midday_status")
+    val middayStatus: Int = 0,
+
+    @ColumnInfo(name = "midday_action")
+    val middayAction: String? = null,
+
+    @ColumnInfo(name = "midday_recorded_at")
+    val middayRecordedAt: Long? = null,
 )

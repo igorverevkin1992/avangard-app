@@ -5,15 +5,16 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.avangard.app.feature.analytics.AnalyticsScreen
+import com.avangard.app.feature.checkpoint.MidDayCheckpointScreen
 import com.avangard.app.feature.dashboard.DashboardScreen
 import com.avangard.app.feature.report.evening.EveningReportScreen
 import com.avangard.app.feature.report.morning.MorningReportScreen
 import com.avangard.app.feature.settings.SettingsScreen
 
 @Composable
-fun AvangardNavHost() {
+fun AvangardNavHost(startDestination: String = NavRoute.Dashboard.route) {
     val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = NavRoute.Dashboard.route) {
+    NavHost(navController = navController, startDestination = startDestination) {
         composable(NavRoute.Dashboard.route) {
             DashboardScreen(
                 onOpenMorningReport = { navController.navigate(NavRoute.MorningReport.route) },
@@ -24,6 +25,15 @@ fun AvangardNavHost() {
         }
         composable(NavRoute.MorningReport.route) {
             MorningReportScreen(onCompleted = { navController.popBackStack() })
+        }
+        composable(NavRoute.MidDayCheckpoint.route) {
+            MidDayCheckpointScreen(onCompleted = {
+                if (!navController.popBackStack()) {
+                    navController.navigate(NavRoute.Dashboard.route) {
+                        popUpTo(NavRoute.MidDayCheckpoint.route) { inclusive = true }
+                    }
+                }
+            })
         }
         composable(NavRoute.EveningReport.route) {
             EveningReportScreen(onCompleted = { navController.popBackStack() })
