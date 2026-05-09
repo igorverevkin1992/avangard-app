@@ -24,7 +24,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -205,7 +204,6 @@ private fun WasteCounter(value: Int, onChange: (Int) -> Unit) {
                     onChange(input.filter(Char::isDigit).toIntOrNull() ?: 0)
                 },
                 singleLine = true,
-                cursorBrush = SolidColor(MachineColors.ReardenCopper),
                 textStyle = MaterialTheme.typography.bodyLarge.copy(color = MachineColors.Ivory),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number,
@@ -282,7 +280,6 @@ private fun AnalysisField(label: String, value: String, onValueChange: (String) 
         BasicTextField(
             value = value,
             onValueChange = onValueChange,
-            cursorBrush = SolidColor(MachineColors.AtlasRed),
             textStyle = MaterialTheme.typography.bodyLarge.copy(color = MachineColors.Ivory),
             keyboardOptions = KeyboardOptions(
                 capitalization = KeyboardCapitalization.Sentences,
