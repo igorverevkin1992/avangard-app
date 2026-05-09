@@ -22,9 +22,9 @@ import com.avangard.app.ui.theme.MachineColors
 fun OscilloscopeChart(
     points: List<ChartPoint>,
     modifier: Modifier = Modifier,
-    seriesColor: Color = MachineColors.IndicationYellow,
-    gridColor: Color = MachineColors.OutlineGray,
-    failureColor: Color = MachineColors.SignalRed,
+    seriesColor: Color = MachineColors.ReardenCopper,
+    gridColor: Color = MachineColors.WarmGray,
+    failureColor: Color = MachineColors.AtlasRed,
 ) {
     Canvas(modifier = modifier) {
         // Grid: 5 horizontal divisions, ten vertical.

@@ -71,7 +71,7 @@ internal fun DashboardContent(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(MachineColors.Background)
+            .background(MachineColors.Anthracite)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
@@ -119,18 +119,18 @@ private fun TargetBlock(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .border(width = 1.dp, color = MachineColors.OutlineGray)
+            .border(width = 1.dp, color = MachineColors.WarmGray)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(
             text = stringResource(R.string.dashboard_target_label),
-            color = MachineColors.OutlineGray,
+            color = MachineColors.WarmGray,
             style = MaterialTheme.typography.labelLarge,
         )
         Text(
             text = target ?: stringResource(R.string.dashboard_target_empty),
-            color = if (target == null || isFailure) MachineColors.SignalRed else MachineColors.TextPrimary,
+            color = if (target == null || isFailure) MachineColors.AtlasRed else MachineColors.Ivory,
             style = MaterialTheme.typography.headlineLarge,
         )
         if (!isInitialized) {
@@ -152,10 +152,10 @@ private fun DashboardActionButton(label: String, onClick: () -> Unit) {
     val interactionSource = remember { MutableInteractionSource() }
     Text(
         text = "> $label",
-        color = MachineColors.IndicationYellow,
+        color = MachineColors.ReardenCopper,
         style = MaterialTheme.typography.labelLarge,
         modifier = Modifier
-            .border(width = 1.dp, color = MachineColors.IndicationYellow)
+            .border(width = 1.dp, color = MachineColors.ReardenCopper)
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
@@ -170,7 +170,7 @@ private fun GaugeBlock(progress: Float) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = stringResource(R.string.dashboard_progress_label),
-            color = MachineColors.OutlineGray,
+            color = MachineColors.WarmGray,
             style = MaterialTheme.typography.labelLarge,
         )
         Spacer(Modifier.height(8.dp))

@@ -5,17 +5,17 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 
 private val MachineColorScheme = darkColorScheme(
-    primary = MachineColors.IndicationYellow,
-    onPrimary = MachineColors.Background,
-    secondary = MachineColors.OutlineGray,
-    onSecondary = MachineColors.Background,
-    error = MachineColors.SignalRed,
-    onError = MachineColors.TextPrimary,
-    background = MachineColors.Background,
-    onBackground = MachineColors.TextPrimary,
-    surface = MachineColors.Background,
-    onSurface = MachineColors.TextPrimary,
-    outline = MachineColors.OutlineGray,
+    primary = MachineColors.ReardenCopper,
+    onPrimary = MachineColors.Anthracite,
+    secondary = MachineColors.BlueprintCyan,
+    onSecondary = MachineColors.Anthracite,
+    error = MachineColors.AtlasRed,
+    onError = MachineColors.Ivory,
+    background = MachineColors.Anthracite,
+    onBackground = MachineColors.Ivory,
+    surface = MachineColors.Anthracite,
+    onSurface = MachineColors.Ivory,
+    outline = MachineColors.WarmGray,
 )
 
 @Composable

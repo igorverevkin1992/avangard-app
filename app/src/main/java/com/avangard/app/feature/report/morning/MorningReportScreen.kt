@@ -74,14 +74,14 @@ internal fun MorningReportContent(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(MachineColors.Background)
+            .background(MachineColors.Anthracite)
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
         Text(
             text = stringResource(R.string.report_morning_directive),
-            color = MachineColors.TextPrimary,
+            color = MachineColors.Ivory,
             style = MaterialTheme.typography.headlineLarge,
         )
 
@@ -93,7 +93,7 @@ internal fun MorningReportContent(
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(
                 text = stringResource(R.string.morning_waste_label),
-                color = MachineColors.OutlineGray,
+                color = MachineColors.WarmGray,
                 style = MaterialTheme.typography.labelLarge,
             )
             IndustrialCheckbox(
@@ -136,27 +136,27 @@ private fun ArtifactField(value: String, onValueChange: (String) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(
             text = stringResource(R.string.morning_artifact_field),
-            color = MachineColors.OutlineGray,
+            color = MachineColors.WarmGray,
             style = MaterialTheme.typography.labelLarge,
         )
         BasicTextField(
             value = value,
             onValueChange = onValueChange,
             singleLine = true,
-            cursorBrush = SolidColor(MachineColors.IndicationYellow),
-            textStyle = MaterialTheme.typography.bodyLarge.copy(color = MachineColors.TextPrimary),
+            cursorBrush = SolidColor(MachineColors.ReardenCopper),
+            textStyle = MaterialTheme.typography.bodyLarge.copy(color = MachineColors.Ivory),
             keyboardOptions = KeyboardOptions(
                 capitalization = KeyboardCapitalization.Sentences,
                 imeAction = ImeAction.Done,
             ),
             modifier = Modifier
                 .fillMaxWidth()
-                .border(width = 1.dp, color = MachineColors.OutlineGray)
+                .border(width = 1.dp, color = MachineColors.WarmGray)
                 .padding(horizontal = 12.dp, vertical = 12.dp),
         )
         Text(
             text = stringResource(R.string.morning_artifact_hint),
-            color = MachineColors.OutlineGray,
+            color = MachineColors.WarmGray,
             style = MaterialTheme.typography.labelMedium,
         )
     }
@@ -176,18 +176,18 @@ internal fun ErrorBanner(error: ReportError) {
     }
     Text(
         text = stringResource(resId),
-        color = MachineColors.SignalRed,
+        color = MachineColors.AtlasRed,
         style = MaterialTheme.typography.labelLarge,
         modifier = Modifier
             .fillMaxWidth()
-            .border(width = 1.dp, color = MachineColors.SignalRed)
+            .border(width = 1.dp, color = MachineColors.AtlasRed)
             .padding(12.dp),
     )
 }
 
 @Composable
 internal fun ConfirmButton(label: String, enabled: Boolean, onClick: () -> Unit) {
-    val color = if (enabled) MachineColors.IndicationYellow else MachineColors.OutlineGray
+    val color = if (enabled) MachineColors.ReardenCopper else MachineColors.WarmGray
     val interactionSource = remember { MutableInteractionSource() }
     Text(
         text = label,

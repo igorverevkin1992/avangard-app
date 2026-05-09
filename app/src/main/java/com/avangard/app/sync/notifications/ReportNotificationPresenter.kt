@@ -53,7 +53,7 @@ class ReportNotificationPresenter @Inject constructor(
         )
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_avangard)
-            .setColor(android.graphics.Color.parseColor("#EFCC26"))
+            .setColor(android.graphics.Color.parseColor("#B87333"))
             .setContentTitle(context.getString(titleRes))
             .setContentText(context.getString(R.string.app_name))
             .setPriority(NotificationCompat.PRIORITY_HIGH)

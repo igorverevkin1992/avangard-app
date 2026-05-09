@@ -11,7 +11,7 @@
     <string name="failure_analysis_header">АНАЛИЗ ОТКАЗА</string>
     <string name="notification_evening_due">Требуется вечерний рапорт</string>
     <string name="notification_artifact_capture">Зафиксируйте артефакты</string>
-    <string name="notification_deadline_breach">Сбой сроков</string>
+    <string name="notification_deadline_breach">СРЕЗ СТАТУСА</string>
 
     <string name="action_open_morning_report">УТВЕРДИТЬ АРТЕФАКТ</string>
     <string name="action_open_evening_report">ВЕЧЕРНИЙ РАПОРТ</string>

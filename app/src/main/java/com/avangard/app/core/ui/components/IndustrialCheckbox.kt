@@ -24,7 +24,7 @@ fun IndustrialCheckbox(
     onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val color = if (checked) MachineColors.IndicationYellow else MachineColors.OutlineGray
+    val color = if (checked) MachineColors.ReardenCopper else MachineColors.WarmGray
     val interactionSource = remember { MutableInteractionSource() }
     Row(
         modifier = modifier.clickable(

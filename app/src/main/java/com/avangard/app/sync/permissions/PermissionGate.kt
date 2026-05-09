@@ -71,7 +71,7 @@ private fun DegradationBanner(modifier: Modifier = Modifier, onClick: () -> Unit
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .border(width = 1.dp, color = MachineColors.SignalRed)
+            .border(width = 1.dp, color = MachineColors.AtlasRed)
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
@@ -82,12 +82,12 @@ private fun DegradationBanner(modifier: Modifier = Modifier, onClick: () -> Unit
     ) {
         Text(
             text = "ТОЧНОСТЬ СНИЖЕНА",
-            color = MachineColors.SignalRed,
+            color = MachineColors.AtlasRed,
             style = MaterialTheme.typography.labelLarge,
         )
         Text(
             text = "Требуется разрешение на точный будильник",
-            color = MachineColors.TextPrimary,
+            color = MachineColors.Ivory,
             style = MaterialTheme.typography.bodyMedium,
         )
     }

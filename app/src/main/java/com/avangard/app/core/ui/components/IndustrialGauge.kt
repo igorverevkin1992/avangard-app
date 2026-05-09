@@ -34,9 +34,9 @@ fun IndustrialGauge(
     majorTicks: Int = 10,
     minorTicksPerMajor: Int = 5,
     label: String? = null,
-    valueColor: Color = MachineColors.IndicationYellow,
-    frameColor: Color = MachineColors.OutlineGray,
-    textColor: Color = MachineColors.TextPrimary,
+    valueColor: Color = MachineColors.ReardenCopper,
+    frameColor: Color = MachineColors.WarmGray,
+    textColor: Color = MachineColors.Ivory,
 ) {
     val clamped = progress.coerceIn(0f, 1f)
     val animated by animateFloatAsState(

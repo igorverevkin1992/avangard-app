@@ -72,14 +72,14 @@ internal fun EveningReportContent(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(MachineColors.Background)
+            .background(MachineColors.Anthracite)
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
         Text(
             text = stringResource(R.string.report_evening_directive),
-            color = MachineColors.TextPrimary,
+            color = MachineColors.Ivory,
             style = MaterialTheme.typography.headlineLarge,
         )
 
@@ -87,17 +87,17 @@ internal fun EveningReportContent(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(width = 1.dp, color = MachineColors.OutlineGray)
+                    .border(width = 1.dp, color = MachineColors.WarmGray)
                     .padding(12.dp),
             ) {
                 Text(
                     text = stringResource(R.string.dashboard_target_label),
-                    color = MachineColors.OutlineGray,
+                    color = MachineColors.WarmGray,
                     style = MaterialTheme.typography.labelLarge,
                 )
                 Text(
                     text = artifact,
-                    color = MachineColors.TextPrimary,
+                    color = MachineColors.Ivory,
                     style = MaterialTheme.typography.bodyLarge,
                 )
             }
@@ -139,21 +139,21 @@ private fun StatusSelector(isCompleted: Boolean, onChange: (Boolean) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
             text = stringResource(R.string.evening_status_label),
-            color = MachineColors.OutlineGray,
+            color = MachineColors.WarmGray,
             style = MaterialTheme.typography.labelLarge,
         )
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             StatusOption(
                 label = stringResource(R.string.evening_status_completed),
                 selected = isCompleted,
-                tint = MachineColors.IndicationYellow,
+                tint = MachineColors.ReardenCopper,
                 onClick = { onChange(true) },
                 modifier = Modifier.weight(1f),
             )
             StatusOption(
                 label = stringResource(R.string.evening_status_failed),
                 selected = !isCompleted,
-                tint = MachineColors.SignalRed,
+                tint = MachineColors.AtlasRed,
                 onClick = { onChange(false) },
                 modifier = Modifier.weight(1f),
             )
@@ -169,7 +169,7 @@ private fun StatusOption(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val color = if (selected) tint else MachineColors.OutlineGray
+    val color = if (selected) tint else MachineColors.WarmGray
     val interactionSource = remember { MutableInteractionSource() }
     Text(
         text = label,
@@ -191,7 +191,7 @@ private fun WasteCounter(value: Int, onChange: (Int) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
             text = stringResource(R.string.evening_waste_label),
-            color = MachineColors.OutlineGray,
+            color = MachineColors.WarmGray,
             style = MaterialTheme.typography.labelLarge,
         )
         Row(
@@ -205,15 +205,15 @@ private fun WasteCounter(value: Int, onChange: (Int) -> Unit) {
                     onChange(input.filter(Char::isDigit).toIntOrNull() ?: 0)
                 },
                 singleLine = true,
-                cursorBrush = SolidColor(MachineColors.IndicationYellow),
-                textStyle = MaterialTheme.typography.bodyLarge.copy(color = MachineColors.TextPrimary),
+                cursorBrush = SolidColor(MachineColors.ReardenCopper),
+                textStyle = MaterialTheme.typography.bodyLarge.copy(color = MachineColors.Ivory),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number,
                     imeAction = ImeAction.Done,
                 ),
                 modifier = Modifier
                     .weight(1f)
-                    .border(width = 1.dp, color = MachineColors.OutlineGray)
+                    .border(width = 1.dp, color = MachineColors.WarmGray)
                     .padding(horizontal = 12.dp, vertical = 12.dp),
             )
             StepButton(symbol = "+", onClick = { onChange(value + 1) })
@@ -226,10 +226,10 @@ private fun StepButton(symbol: String, onClick: () -> Unit) {
     val interactionSource = remember { MutableInteractionSource() }
     Text(
         text = symbol,
-        color = MachineColors.IndicationYellow,
+        color = MachineColors.ReardenCopper,
         style = MaterialTheme.typography.headlineLarge,
         modifier = Modifier
-            .border(width = 1.dp, color = MachineColors.IndicationYellow)
+            .border(width = 1.dp, color = MachineColors.ReardenCopper)
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
@@ -249,13 +249,13 @@ private fun FailureAnalysis(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .border(width = 1.dp, color = MachineColors.SignalRed)
+            .border(width = 1.dp, color = MachineColors.AtlasRed)
             .padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(
             text = stringResource(R.string.failure_analysis_header),
-            color = MachineColors.SignalRed,
+            color = MachineColors.AtlasRed,
             style = MaterialTheme.typography.titleLarge,
         )
         AnalysisField(
@@ -276,21 +276,21 @@ private fun AnalysisField(label: String, value: String, onValueChange: (String) 
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(
             text = label,
-            color = MachineColors.OutlineGray,
+            color = MachineColors.WarmGray,
             style = MaterialTheme.typography.labelMedium,
         )
         BasicTextField(
             value = value,
             onValueChange = onValueChange,
-            cursorBrush = SolidColor(MachineColors.SignalRed),
-            textStyle = MaterialTheme.typography.bodyLarge.copy(color = MachineColors.TextPrimary),
+            cursorBrush = SolidColor(MachineColors.AtlasRed),
+            textStyle = MaterialTheme.typography.bodyLarge.copy(color = MachineColors.Ivory),
             keyboardOptions = KeyboardOptions(
                 capitalization = KeyboardCapitalization.Sentences,
                 imeAction = ImeAction.Default,
             ),
             modifier = Modifier
                 .fillMaxWidth()
-                .border(width = 1.dp, color = MachineColors.OutlineGray)
+                .border(width = 1.dp, color = MachineColors.WarmGray)
                 .padding(horizontal = 12.dp, vertical = 12.dp),
         )
     }

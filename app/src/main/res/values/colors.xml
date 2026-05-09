@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="background">#FF010006</color>
-    <color name="text_primary">#FFDFD2C9</color>
-    <color name="signal_red">#FFFF0000</color>
-    <color name="indication_yellow">#FFEFCC26</color>
-    <color name="outline_gray">#FFBBBBBB</color>
+    <color name="anthracite">#FF1A1612</color>
+    <color name="ivory">#FFEDE3D2</color>
+    <color name="atlas_red">#FFA52818</color>
+    <color name="rearden_copper">#FFB87333</color>
+    <color name="warm_gray">#FF6B5E50</color>
+    <color name="blueprint_cyan">#FF3A8FB7</color>
 </resources>

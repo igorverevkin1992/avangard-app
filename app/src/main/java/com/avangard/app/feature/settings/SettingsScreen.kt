@@ -56,13 +56,13 @@ internal fun SettingsContent(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(MachineColors.Background)
+            .background(MachineColors.Anthracite)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text(
             text = stringResource(R.string.settings_header),
-            color = MachineColors.TextPrimary,
+            color = MachineColors.Ivory,
             style = MaterialTheme.typography.headlineLarge,
         )
 
@@ -111,25 +111,25 @@ private fun DataBlock(
         if (!state.confirmingWipe) {
             ActionRow(
                 label = stringResource(R.string.settings_wipe_request),
-                tint = MachineColors.SignalRed,
+                tint = MachineColors.AtlasRed,
                 onClick = onRequestWipe,
             )
         } else {
             Text(
                 text = stringResource(R.string.settings_wipe_confirm_message),
-                color = MachineColors.SignalRed,
+                color = MachineColors.AtlasRed,
                 style = MaterialTheme.typography.bodyMedium,
             )
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 ActionRow(
                     label = stringResource(R.string.settings_wipe_confirm),
-                    tint = MachineColors.SignalRed,
+                    tint = MachineColors.AtlasRed,
                     onClick = onConfirmWipe,
                     modifier = Modifier.weight(1f),
                 )
                 ActionRow(
                     label = stringResource(R.string.settings_wipe_cancel),
-                    tint = MachineColors.OutlineGray,
+                    tint = MachineColors.WarmGray,
                     onClick = onCancelWipe,
                     modifier = Modifier.weight(1f),
                 )
@@ -138,7 +138,7 @@ private fun DataBlock(
         if (state.wipeInProgress) {
             Text(
                 text = stringResource(R.string.settings_wipe_in_progress),
-                color = MachineColors.IndicationYellow,
+                color = MachineColors.ReardenCopper,
                 style = MaterialTheme.typography.labelMedium,
             )
         }
@@ -150,13 +150,13 @@ private fun SectionFrame(title: String, content: @Composable () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .border(width = 1.dp, color = MachineColors.OutlineGray)
+            .border(width = 1.dp, color = MachineColors.WarmGray)
             .padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(
             text = title,
-            color = MachineColors.OutlineGray,
+            color = MachineColors.WarmGray,
             style = MaterialTheme.typography.labelLarge,
         )
         content()
@@ -171,12 +171,12 @@ private fun StatusRow(label: String, granted: Boolean) {
     ) {
         Text(
             text = label,
-            color = MachineColors.TextPrimary,
+            color = MachineColors.Ivory,
             style = MaterialTheme.typography.bodyMedium,
         )
         Text(
             text = if (granted) "OK" else "—",
-            color = if (granted) MachineColors.IndicationYellow else MachineColors.SignalRed,
+            color = if (granted) MachineColors.ReardenCopper else MachineColors.AtlasRed,
             style = MaterialTheme.typography.labelLarge,
         )
     }
