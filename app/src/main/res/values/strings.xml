@@ -4,6 +4,14 @@
     <string name="dashboard_target_label">АРТЕФАКТ ДНЯ</string>
     <string name="dashboard_target_empty">НЕ УТВЕРЖДЕН</string>
     <string name="dashboard_progress_label">ВЫРАБОТКА</string>
+    <string name="dashboard_streak_label">КОНТУР ИНТЕГРИТИ</string>
+    <string name="dashboard_streak_value">%d ДНЕЙ</string>
+    <string name="widget_artifact_label">АРТЕФАКТ ДНЯ</string>
+    <string name="widget_state_pending">НЕ УТВЕРЖДЁН</string>
+    <string name="widget_state_in_progress">В РАБОТЕ</string>
+    <string name="widget_state_completed">СОЗДАН</string>
+    <string name="widget_state_failed">ПРОВАЛ</string>
+    <string name="widget_label">Avangard</string>
     <string name="toggle_focus_mode">РЕЖИМ ИСПОЛНЕНИЯ</string>
     <string name="toggle_silence">РЕЖИМ ТИШИНЫ</string>
     <string name="report_morning_directive">УТВЕРДИТЕ АРТЕФАКТ ДНЯ</string>

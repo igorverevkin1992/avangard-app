@@ -1,5 +1,6 @@
 package com.avangard.app.core.data
 
+import android.content.Context
 import com.avangard.app.core.database.dao.DailyLogDao
 import com.avangard.app.core.database.dao.SystemMetricDao
 import com.avangard.app.core.database.entity.DailyLogEntity
@@ -10,6 +11,8 @@ import com.avangard.app.core.domain.model.MiddayStatus.Companion.actionText
 import com.avangard.app.core.domain.model.MiddayStatus.Companion.toCode
 import com.avangard.app.core.domain.model.SystemFlag
 import com.avangard.app.core.domain.repository.ReportRepository
+import com.avangard.app.widget.AvangardWidget
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
@@ -19,6 +22,7 @@ import kotlinx.coroutines.flow.map
 class RoomReportRepository @Inject constructor(
     private val dailyLogDao: DailyLogDao,
     private val systemMetricDao: SystemMetricDao,
+    @ApplicationContext private val context: Context,
 ) : ReportRepository {
 
     override fun observeForDate(dateEpoch: Long): Flow<DailyReport?> =
@@ -33,8 +37,11 @@ class RoomReportRepository @Inject constructor(
     override suspend fun findForDate(dateEpoch: Long): DailyReport? =
         dailyLogDao.findByDate(dateEpoch)?.toDomain()
 
-    override suspend fun upsert(report: DailyReport): Long =
-        dailyLogDao.upsert(report.toEntity())
+    override suspend fun upsert(report: DailyReport): Long {
+        val id = dailyLogDao.upsert(report.toEntity())
+        refreshWidget()
+        return id
+    }
 
     override suspend fun submitMidday(
         dateEpoch: Long,
@@ -48,12 +55,15 @@ class RoomReportRepository @Inject constructor(
             middayAction = status.actionText(),
             middayRecordedAt = recordedAt,
         )
-        return dailyLogDao.upsert(updated)
+        val id = dailyLogDao.upsert(updated)
+        refreshWidget()
+        return id
     }
 
     override suspend fun wipe() {
         dailyLogDao.deleteAll()
         systemMetricDao.deleteAll()
+        refreshWidget()
     }
 
     override fun observeFlag(flag: SystemFlag): Flow<Boolean> =
@@ -61,6 +71,10 @@ class RoomReportRepository @Inject constructor(
 
     override suspend fun setFlag(flag: SystemFlag, enabled: Boolean) {
         systemMetricDao.put(SystemMetricEntity(flag.key, if (enabled) "1" else "0"))
+    }
+
+    private suspend fun refreshWidget() {
+        runCatching { AvangardWidget().updateAll(context) }
     }
 }
 

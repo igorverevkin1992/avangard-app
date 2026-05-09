@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.avangard.app.core.domain.model.DailyReport
 import com.avangard.app.core.domain.model.SystemFlag
+import com.avangard.app.core.domain.usecase.ObserveStreakUseCase
 import com.avangard.app.core.domain.usecase.ObserveTodayReportUseCase
 import com.avangard.app.core.domain.usecase.ToggleSwitchUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,6 +19,7 @@ data class DashboardState(
     val report: DailyReport? = null,
     val focusMode: Boolean = false,
     val silenceMode: Boolean = false,
+    val streak: Int = 0,
 ) {
     val targetArtifact: String? get() = report?.targetArtifact
     val isInitialized: Boolean get() = report != null
@@ -32,6 +34,7 @@ data class DashboardState(
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
     observeToday: ObserveTodayReportUseCase,
+    observeStreak: ObserveStreakUseCase,
     private val toggle: ToggleSwitchUseCase,
 ) : ViewModel() {
 
@@ -39,8 +42,9 @@ class DashboardViewModel @Inject constructor(
         observeToday(),
         toggle.observe(SystemFlag.FocusMode),
         toggle.observe(SystemFlag.SilenceMode),
-    ) { report, focus, silence ->
-        DashboardState(report = report, focusMode = focus, silenceMode = silence)
+        observeStreak(),
+    ) { report, focus, silence, streak ->
+        DashboardState(report = report, focusMode = focus, silenceMode = silence, streak = streak)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),

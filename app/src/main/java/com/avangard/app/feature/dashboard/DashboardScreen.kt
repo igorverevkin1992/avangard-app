@@ -85,6 +85,7 @@ internal fun DashboardContent(
             onOpenEveningReport = onOpenEveningReport,
             isInitialized = state.isInitialized,
         )
+        StreakBlock(streak = state.streak)
         GaugeBlock(progress = state.progress)
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             IndustrialToggle(
@@ -170,6 +171,27 @@ private fun DashboardActionButton(label: String, onClick: () -> Unit) {
             )
             .padding(horizontal = 12.dp, vertical = 8.dp),
     )
+}
+
+@Composable
+private fun StreakBlock(streak: Int) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(width = 1.dp, color = MachineColors.BlueprintCyan)
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+    ) {
+        Text(
+            text = stringResource(R.string.dashboard_streak_label),
+            color = MachineColors.BlueprintCyan,
+            style = MaterialTheme.typography.labelLarge,
+        )
+        Text(
+            text = stringResource(R.string.dashboard_streak_value, streak),
+            color = MachineColors.Ivory,
+            style = MaterialTheme.typography.headlineLarge,
+        )
+    }
 }
 
 @Composable
