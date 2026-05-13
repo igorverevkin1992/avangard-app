@@ -15,7 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
-import com.avangard.app.ui.theme.MachineColors
+import com.avangard.app.ui.theme.IsaColors
 
 @Composable
 fun IndustrialCheckbox(
@@ -24,7 +24,7 @@ fun IndustrialCheckbox(
     onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val color = if (checked) MachineColors.ReardenCopper else MachineColors.WarmGray
+    val color = if (checked) IsaColors.Approve else IsaColors.Lattice
     val interactionSource = remember { MutableInteractionSource() }
     Row(
         modifier = modifier.clickable(

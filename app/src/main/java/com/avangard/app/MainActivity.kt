@@ -13,7 +13,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.avangard.app.navigation.AvangardNavHost
-import com.avangard.app.ui.theme.MachineColors
+import com.avangard.app.ui.theme.IsaColors
 import com.avangard.app.ui.theme.MachineTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -31,7 +31,7 @@ private fun AvangardApp() {
     MachineTheme {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
-            containerColor = MachineColors.Anthracite,
+            containerColor = IsaColors.Graphite,
             contentWindowInsets = WindowInsets.systemBars,
         ) { padding ->
             Box(Modifier.padding(padding)) {
