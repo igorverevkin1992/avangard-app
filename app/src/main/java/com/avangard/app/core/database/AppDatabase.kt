@@ -4,25 +4,15 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.avangard.app.core.database.dao.DailyLogDao
 import com.avangard.app.core.database.dao.HabitLogDao
-import com.avangard.app.core.database.dao.SystemMetricDao
-import com.avangard.app.core.database.entity.DailyLogEntity
 import com.avangard.app.core.database.entity.HabitLogEntity
-import com.avangard.app.core.database.entity.SystemMetricEntity
 
 @Database(
-    entities = [
-        DailyLogEntity::class,
-        SystemMetricEntity::class,
-        HabitLogEntity::class,
-    ],
-    version = 2,
+    entities = [HabitLogEntity::class],
+    version = 3,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun dailyLogDao(): DailyLogDao
-    abstract fun systemMetricDao(): SystemMetricDao
     abstract fun habitLogDao(): HabitLogDao
 
     companion object {
@@ -51,6 +41,14 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL(
                     "CREATE INDEX IF NOT EXISTS index_habit_log_date_epoch ON habit_log(date_epoch)"
                 )
+            }
+        }
+
+        // v3.0 (Verevkin's Lab) drops the report/flag tables; habit_log survives untouched.
+        val MIGRATION_2_3: Migration = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("DROP TABLE IF EXISTS daily_log")
+                db.execSQL("DROP TABLE IF EXISTS system_metrics")
             }
         }
     }

@@ -13,7 +13,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.avangard.app.navigation.AvangardNavHost
-import com.avangard.app.navigation.NavRoute
 import com.avangard.app.ui.theme.MachineColors
 import com.avangard.app.ui.theme.MachineTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -23,18 +22,12 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        val startDestination = intent?.getStringExtra(EXTRA_START_DESTINATION)
-            ?: NavRoute.Dashboard.route
-        setContent { AvangardApp(startDestination) }
-    }
-
-    companion object {
-        const val EXTRA_START_DESTINATION = "start_destination"
+        setContent { AvangardApp() }
     }
 }
 
 @Composable
-private fun AvangardApp(startDestination: String) {
+private fun AvangardApp() {
     MachineTheme {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
@@ -42,7 +35,7 @@ private fun AvangardApp(startDestination: String) {
             contentWindowInsets = WindowInsets.systemBars,
         ) { padding ->
             Box(Modifier.padding(padding)) {
-                AvangardNavHost(startDestination = startDestination)
+                AvangardNavHost()
             }
         }
     }
