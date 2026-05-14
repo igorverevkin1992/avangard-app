@@ -22,7 +22,12 @@ import com.avangard.app.core.domain.model.VirtueScores
 import com.avangard.app.core.domain.repository.SessionRepository
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 
 @Singleton
@@ -34,10 +39,24 @@ class RoomSessionRepository @Inject constructor(
     private val clock: Clock,
 ) : SessionRepository {
 
-    override fun observeToday(): Flow<DailySession> {
-        val today = clock.today().toStartOfDayEpoch(clock.zone())
-        return observeForDate(today)
-    }
+    /**
+     * Emits today's session reactively. A minute-resolution ticker re-derives
+     * the date-epoch from the injected Clock; when it crosses midnight the
+     * inner observeForDate flow is rewired to the new day. Without this the
+     * Flow was stuck on the date captured at first subscription and showed
+     * yesterday's row after midnight if the UI never resubscribed.
+     */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun observeToday(): Flow<DailySession> =
+        todayEpochTicker()
+            .flatMapLatest { epoch -> observeForDate(epoch) }
+
+    private fun todayEpochTicker(): Flow<Long> = flow {
+        while (true) {
+            emit(clock.today().toStartOfDayEpoch(clock.zone()))
+            delay(TODAY_TICK_INTERVAL_MS)
+        }
+    }.distinctUntilChanged()
 
     override fun observeForDate(dateEpoch: Long): Flow<DailySession> =
         dailyDao.observeByDate(dateEpoch).map { it?.toDomain() ?: zeroed(dateEpoch) }
@@ -204,6 +223,7 @@ class RoomSessionRepository @Inject constructor(
         private const val CORE_IDLE = 0
         private const val CORE_APPROVED = 1
         private const val CORE_FAILED = 2
+        private const val TODAY_TICK_INTERVAL_MS = 60_000L
     }
 }
 

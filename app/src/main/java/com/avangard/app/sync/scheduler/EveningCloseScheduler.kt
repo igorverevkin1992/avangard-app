@@ -44,6 +44,10 @@ class EveningCloseScheduler @Inject constructor(
         val now = clock.localTime()
         val today = clock.today()
         val target = LocalTime.of(21, 0)
+        // At 21:00:00.000 sharp `isBefore` is false → trigger shifts to tomorrow.
+        // This is intentional: it avoids re-firing the alarm in the same minute
+        // the receiver re-arms itself (the call site of ensureScheduled is the
+        // receiver's onReceive immediately after presenting the notification).
         val date = if (now.isBefore(target)) today else today.plusDays(1)
         return LocalDateTime.of(date, target).atZone(clock.zone()).toEpochSecond() * 1000L
     }
