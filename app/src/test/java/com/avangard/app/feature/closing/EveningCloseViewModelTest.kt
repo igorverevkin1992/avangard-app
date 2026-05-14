@@ -10,6 +10,7 @@ import com.avangard.app.core.domain.usecase.ObserveDailySessionUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -70,7 +71,7 @@ class EveningCloseViewModelTest {
         val today = clock.today().toStartOfDayEpoch(clock.zone())
         repository.approveCore(today, "Шот", clock.nowEpochMillis())
         // Allow observeSession to flush the Approved state into the viewmodel.
-        kotlinx.coroutines.test.advanceUntilIdle()
+        advanceUntilIdle()
         assertFalse(viewModel.state.value.needsDefectKind)
         assertTrue(viewModel.state.value.canSubmit)
     }
