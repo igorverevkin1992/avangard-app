@@ -40,6 +40,17 @@ class ApproveCoreUseCaseTest {
     }
 
     @Test
+    fun `approval is rejected when Core is already Approved`() = runTest {
+        val today = clock.today().toStartOfDayEpoch(clock.zone())
+        repository.approveCore(today, "Шот первый", clock.nowEpochMillis())
+        val result = useCase(prompt = "Шот второй", authorised = true)
+        assertEquals(DomainResult.Err(SessionError.AlreadyApproved), result)
+        val stored = repository.findForDate(today)!!
+        // Existing prompt must be preserved.
+        assertEquals("Шот первый", (stored.coreStatus as CoreStatus.Approved).prompt)
+    }
+
+    @Test
     fun `approval transitions Idle to Approved and closes active focus`() = runTest {
         val today = clock.today().toStartOfDayEpoch(clock.zone())
         val focusId = repository.startFocus(today, Habit.Generations, clock.nowEpochMillis())

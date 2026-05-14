@@ -17,7 +17,7 @@ import com.avangard.app.core.database.entity.HabitLogEntity
         DailySessionEntity::class,
         FocusSessionEntity::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -59,6 +59,45 @@ abstract class AppDatabase : RoomDatabase() {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("DROP TABLE IF EXISTS daily_log")
                 db.execSQL("DROP TABLE IF EXISTS system_metrics")
+            }
+        }
+
+        /**
+         * Adds:
+         *   * partial UNIQUE index on focus_session.ended_at WHERE ended_at IS NULL —
+         *     enforces "at most one active focus session" at the SQLite layer, so
+         *     rapid taps on FlashButton can no longer race past the check;
+         *   * index on focus_session.started_at — observeActive ORDER BY started_at
+         *     DESC LIMIT 1 was a full scan in v4.
+         *
+         * Before creating the partial unique index we end every stray active row
+         * but the most recent one — if a v4 build broke the invariant, the
+         * migration would otherwise fail with a UNIQUE constraint violation.
+         */
+        val MIGRATION_4_5: Migration = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Quiesce any stray active sessions before the unique index is built.
+                db.execSQL(
+                    """
+                    UPDATE focus_session
+                    SET ended_at = started_at
+                    WHERE ended_at IS NULL
+                      AND id NOT IN (
+                        SELECT id FROM focus_session
+                        WHERE ended_at IS NULL
+                        ORDER BY started_at DESC
+                        LIMIT 1
+                      )
+                    """.trimIndent()
+                )
+                db.execSQL(
+                    "CREATE UNIQUE INDEX IF NOT EXISTS uniq_focus_active " +
+                        "ON focus_session(ended_at) WHERE ended_at IS NULL"
+                )
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS index_focus_session_started_at " +
+                        "ON focus_session(started_at)"
+                )
             }
         }
 

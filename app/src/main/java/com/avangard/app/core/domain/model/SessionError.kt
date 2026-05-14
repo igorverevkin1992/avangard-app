@@ -8,4 +8,6 @@ sealed interface SessionError {
     data object MissingDefectKind : SessionError
     data object PromptEmpty : SessionError
     data object HistoryLocked : SessionError
+    /** Core is already Approved today — re-submit is rejected to protect the saved prompt. */
+    data object AlreadyApproved : SessionError
 }

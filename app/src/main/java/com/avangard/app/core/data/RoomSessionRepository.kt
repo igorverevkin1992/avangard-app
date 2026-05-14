@@ -1,5 +1,10 @@
 package com.avangard.app.core.data
 
+import android.database.sqlite.SQLiteConstraintException
+import androidx.room.withTransaction
+import com.avangard.app.core.common.Clock
+import com.avangard.app.core.common.toStartOfDayEpoch
+import com.avangard.app.core.database.AppDatabase
 import com.avangard.app.core.database.dao.DailySessionDao
 import com.avangard.app.core.database.dao.FocusSessionDao
 import com.avangard.app.core.database.dao.HabitLogDao
@@ -15,8 +20,6 @@ import com.avangard.app.core.domain.model.Habit
 import com.avangard.app.core.domain.model.InfraStatus
 import com.avangard.app.core.domain.model.VirtueScores
 import com.avangard.app.core.domain.repository.SessionRepository
-import com.avangard.app.core.common.Clock
-import com.avangard.app.core.common.toStartOfDayEpoch
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
@@ -24,6 +27,7 @@ import kotlinx.coroutines.flow.map
 
 @Singleton
 class RoomSessionRepository @Inject constructor(
+    private val database: AppDatabase,
     private val dailyDao: DailySessionDao,
     private val focusDao: FocusSessionDao,
     private val habitLogDao: HabitLogDao,
@@ -45,32 +49,38 @@ class RoomSessionRepository @Inject constructor(
         dailyDao.findByDate(dateEpoch)?.toDomain()
 
     override suspend fun toggleMvd(dateEpoch: Long) {
-        val current = ensureRow(dateEpoch)
-        dailyDao.upsert(current.copy(mvdActive = if (current.mvdActive == 1) 0 else 1))
+        database.withTransaction {
+            val current = dailyDao.ensureRow(dateEpoch)
+            dailyDao.upsert(current.copy(mvdActive = if (current.mvdActive == 1) 0 else 1))
+        }
     }
 
     override suspend fun approveCore(dateEpoch: Long, prompt: String, approvedAt: Long) {
-        val current = ensureRow(dateEpoch)
-        dailyDao.upsert(
-            current.copy(
-                coreStatus = CORE_APPROVED,
-                corePrompt = prompt,
-                coreAuthorizedAt = approvedAt,
-                coreDefectKind = null,
+        database.withTransaction {
+            val current = dailyDao.ensureRow(dateEpoch)
+            // Re-read under tx — defends against approve-after-approve race within the use case layer.
+            dailyDao.upsert(
+                current.copy(
+                    coreStatus = CORE_APPROVED,
+                    corePrompt = prompt,
+                    coreAuthorizedAt = approvedAt,
+                    coreDefectKind = null,
+                )
             )
-        )
-        // Close any active focus session to keep accounting consistent.
-        focusDao.findActive()?.let { focusDao.endSession(it.id, approvedAt) }
+            focusDao.findActive()?.let { focusDao.endSession(it.id, approvedAt) }
+        }
     }
 
     override suspend fun failCore(dateEpoch: Long, kind: DefectKind, recordedAt: Long) {
-        val current = ensureRow(dateEpoch)
-        dailyDao.upsert(
-            current.copy(
-                coreStatus = CORE_FAILED,
-                coreDefectKind = if (kind == DefectKind.Defect) 0 else 1,
+        database.withTransaction {
+            val current = dailyDao.ensureRow(dateEpoch)
+            dailyDao.upsert(
+                current.copy(
+                    coreStatus = CORE_FAILED,
+                    coreDefectKind = if (kind == DefectKind.Defect) 0 else 1,
+                )
             )
-        )
+        }
     }
 
     override suspend fun setInfraStatus(
@@ -79,19 +89,19 @@ class RoomSessionRepository @Inject constructor(
         status: InfraStatus,
         recordedAt: Long,
     ) {
-        val current = ensureRow(dateEpoch)
-        val code = status.toCode()
-        val updated = when (habit) {
-            Habit.Generations -> current // Core is never updated through this path.
-            Habit.Spanish -> current.copy(infra02Status = code)
-            Habit.Sport -> current.copy(infra03Status = code)
-            Habit.Watching -> current.copy(infra04Status = code)
-            Habit.Reading -> current.copy(infra05Status = code)
-        }
-        dailyDao.upsert(updated)
-        // habit_log bridge: write-through so the Sunday HistoryGrid (which reads
-        // habit_log) stays in sync without re-querying the structured ledger.
-        if (habit != Habit.Generations) {
+        if (habit == Habit.Generations) return // Core is never updated through this path.
+        database.withTransaction {
+            val current = dailyDao.ensureRow(dateEpoch)
+            val code = status.toCode()
+            val updated = when (habit) {
+                Habit.Spanish -> current.copy(infra02Status = code)
+                Habit.Sport -> current.copy(infra03Status = code)
+                Habit.Watching -> current.copy(infra04Status = code)
+                Habit.Reading -> current.copy(infra05Status = code)
+                Habit.Generations -> current
+            }
+            dailyDao.upsert(updated)
+            // habit_log bridge: atomic with the daily_session update inside the same SQLite tx.
             if (status == InfraStatus.NotDone) {
                 habitLogDao.delete(dateEpoch, habit.code)
             } else {
@@ -112,30 +122,36 @@ class RoomSessionRepository @Inject constructor(
         defectKind: DefectKind?,
         recordedAt: Long,
     ) {
-        val current = ensureRow(dateEpoch)
-        val nextCoreStatus = if (current.coreStatus == CORE_IDLE && defectKind != null) {
-            CORE_FAILED
-        } else {
-            current.coreStatus
-        }
-        dailyDao.upsert(
-            current.copy(
-                eveningClosed = 1,
-                eveningClosedAt = recordedAt,
-                coreStatus = nextCoreStatus,
-                coreDefectKind = defectKind?.let { if (it == DefectKind.Defect) 0 else 1 }
-                    ?: current.coreDefectKind,
-                virtRationality = virtues.rationality,
-                virtIndependence = virtues.independence,
-                virtHonesty = virtues.honesty,
-                virtJustice = virtues.justice,
+        database.withTransaction {
+            // Re-read inside the tx so a concurrent approveCore can't slip in and
+            // leave us writing a Failed transition on a now-Approved core.
+            val current = dailyDao.ensureRow(dateEpoch)
+            val nextCoreStatus = if (current.coreStatus == CORE_IDLE && defectKind != null) {
+                CORE_FAILED
+            } else {
+                current.coreStatus
+            }
+            dailyDao.upsert(
+                current.copy(
+                    eveningClosed = 1,
+                    eveningClosedAt = recordedAt,
+                    coreStatus = nextCoreStatus,
+                    coreDefectKind = defectKind?.let { if (it == DefectKind.Defect) 0 else 1 }
+                        ?: current.coreDefectKind,
+                    virtRationality = virtues.rationality,
+                    virtIndependence = virtues.independence,
+                    virtHonesty = virtues.honesty,
+                    virtJustice = virtues.justice,
+                )
             )
-        )
+        }
     }
 
     override suspend fun setBottleneck(dateEpoch: Long, bottleneck: Bottleneck) {
-        val current = ensureRow(dateEpoch)
-        dailyDao.upsert(current.copy(bottleneckForNextWeek = bottleneck.name))
+        database.withTransaction {
+            val current = dailyDao.ensureRow(dateEpoch)
+            dailyDao.upsert(current.copy(bottleneckForNextWeek = bottleneck.name))
+        }
     }
 
     override fun observeActiveFocus(): Flow<FocusSession?> =
@@ -149,29 +165,37 @@ class RoomSessionRepository @Inject constructor(
     override suspend fun sumFocusDurationFor(dateEpoch: Long, habit: Habit): Long =
         focusDao.sumDurationByDayAndCode(dateEpoch, habit.code)
 
+    /**
+     * Insert succeeds atomically or throws [IllegalStateException] when the partial
+     * unique index `uniq_focus_active` (see MIGRATION_4_5) refuses a second
+     * `ended_at IS NULL` row. The use case layer translates the throw into
+     * [com.avangard.app.core.domain.model.SessionError.AnotherFocusActive].
+     */
     override suspend fun startFocus(dateEpoch: Long, habit: Habit, startedAt: Long): Long =
-        focusDao.insert(
-            FocusSessionEntity(
-                dateEpoch = dateEpoch,
-                habitCode = habit.code,
-                startedAt = startedAt,
-                endedAt = null,
+        try {
+            focusDao.insert(
+                FocusSessionEntity(
+                    dateEpoch = dateEpoch,
+                    habitCode = habit.code,
+                    startedAt = startedAt,
+                    endedAt = null,
+                )
             )
-        )
+        } catch (_: SQLiteConstraintException) {
+            throw IllegalStateException("active focus already exists")
+        }
 
     override suspend fun endFocus(id: Long, endedAt: Long) {
         focusDao.endSession(id, endedAt)
     }
 
     override suspend fun wipe() {
-        dailyDao.deleteAll()
-        focusDao.deleteAll()
-    }
-
-    private suspend fun ensureRow(dateEpoch: Long): DailySessionEntity =
-        dailyDao.findByDate(dateEpoch) ?: DailySessionEntity(dateEpoch = dateEpoch).also {
-            dailyDao.upsert(it)
+        database.withTransaction {
+            dailyDao.deleteAll()
+            focusDao.deleteAll()
+            habitLogDao.deleteAll()
         }
+    }
 
     private fun zeroed(dateEpoch: Long): DailySession =
         DailySessionEntity(dateEpoch = dateEpoch).toDomain()
@@ -215,6 +239,8 @@ private fun DailySessionEntity.toDomain(): DailySession = DailySession(
     ) {
         VirtueScores(virtRationality, virtIndependence, virtHonesty, virtJustice)
     } else null,
+    // Gracefully tolerate a stale or unknown enum string (e.g. after enum rename) —
+    // production builds should log this; the test suite covers the round-trip.
     bottleneckForNextWeek = bottleneckForNextWeek?.let { name ->
         runCatching { Bottleneck.valueOf(name) }.getOrNull()
     },

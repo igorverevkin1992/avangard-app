@@ -48,6 +48,15 @@ class StartFocusUseCaseTest {
     }
 
     @Test
+    fun `Starting Core when already Approved returns AlreadyApproved`() = runTest {
+        val today = clock.today().toStartOfDayEpoch(clock.zone())
+        repository.approveCore(today, "Шот", clock.nowEpochMillis())
+        // After approval the auto-closed focus session leaves no active row.
+        val result = useCase(Habit.Generations)
+        assertEquals(DomainResult.Err(SessionError.AlreadyApproved), result)
+    }
+
+    @Test
     fun `Starting a second focus while one is active returns AnotherFocusActive`() = runTest {
         useCase(Habit.Generations)
         val result = useCase(Habit.Generations)

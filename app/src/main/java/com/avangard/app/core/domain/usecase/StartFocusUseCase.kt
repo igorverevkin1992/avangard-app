@@ -14,18 +14,33 @@ class StartFocusUseCase @Inject constructor(
     private val clock: Clock,
 ) {
     suspend operator fun invoke(habit: Habit): DomainResult<Long, SessionError> {
+        // Pre-flight check first — surfaces a clean error when the conflict is
+        // already visible in the read model. The partial unique index in
+        // MIGRATION_4_5 is the actual atomic guarantor — catch it below too.
         if (repository.findActiveFocus() != null) {
             return DomainResult.Err(SessionError.AnotherFocusActive)
         }
-        if (habit != Habit.Generations) {
-            val today = clock.today().toStartOfDayEpoch(clock.zone())
-            val session = repository.findForDate(today)
+        val today = clock.today().toStartOfDayEpoch(clock.zone())
+        val session = repository.findForDate(today)
+        if (habit == Habit.Generations) {
+            // Core already Approved → starting again would double-count effort
+            // when sumFocusDurationFor aggregates the day.
+            if (session?.coreStatus is CoreStatus.Approved) {
+                return DomainResult.Err(SessionError.AlreadyApproved)
+            }
+        } else {
             if (session?.coreStatus !is CoreStatus.Approved) {
                 return DomainResult.Err(SessionError.InfraLocked)
             }
         }
-        val dateEpoch = clock.today().toStartOfDayEpoch(clock.zone())
-        val id = repository.startFocus(dateEpoch, habit, clock.nowEpochMillis())
-        return DomainResult.Ok(id)
+        return try {
+            val id = repository.startFocus(today, habit, clock.nowEpochMillis())
+            DomainResult.Ok(id)
+        } catch (_: IllegalStateException) {
+            // Partial unique index uniq_focus_active fired between the pre-flight
+            // and the insert — concurrent tap. Surface the same error as the
+            // pre-flight branch.
+            DomainResult.Err(SessionError.AnotherFocusActive)
+        }
     }
 }
