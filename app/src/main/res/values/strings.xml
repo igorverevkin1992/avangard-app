@@ -38,4 +38,45 @@
     <string name="sabotage_comparison_title">СОЦИАЛЬНОЕ СРАВНЕНИЕ</string>
     <string name="sabotage_comparison_body">Чужой результат есть закономерное следствие чужого вложенного времени. Сравнение несопоставимых переменных логически ошибочно и ведёт исключительно к нейробиологической потере.</string>
     <string name="sabotage_return">ВЕРНУТЬСЯ К ПУЛЬТУ</string>
+
+    <!-- Evening close. -->
+    <string name="closing_header">ЗАКРЫТИЕ СМЕНЫ</string>
+    <string name="closing_indicators_label">ИНДИКАТОРЫ ДНЯ</string>
+    <string name="closing_productivity">ПРОДУКТИВНОСТЬ</string>
+    <string name="closing_pride">ГОРДОСТЬ</string>
+    <string name="closing_integrity">ЦЕЛОСТНОСТЬ</string>
+    <string name="closing_defect_label">КЛАССИФИКАЦИЯ НУЛЕВОГО РЕЗУЛЬТАТА</string>
+    <string name="closing_defect_hint">Ядро не зафиксировано. Выберите тип отклонения.</string>
+    <string name="closing_defect_kind_defect">ДЕФЕКТ</string>
+    <string name="closing_defect_kind_waste">ПОТЕРЯ</string>
+    <string name="closing_submit">ЗАФИКСИРОВАТЬ ЗАКРЫТИЕ СМЕНЫ</string>
+
+    <!-- Virtues. -->
+    <string name="virtue_rationality">РАЗУМНОСТЬ</string>
+    <string name="virtue_independence">НЕЗАВИСИМОСТЬ</string>
+    <string name="virtue_honesty">ЧЕСТНОСТЬ</string>
+    <string name="virtue_justice">СПРАВЕДЛИВОСТЬ</string>
+
+    <!-- Sunday audit. -->
+    <string name="audit_header">АУДИТ PDCA · НЕДЕЛЯ</string>
+    <string name="audit_loading">СБОР МЕТРИК…</string>
+    <string name="audit_metrics_label">МЕТРИКИ ЗА 7 ДНЕЙ</string>
+    <string name="audit_metric_core_hours">ЧАСЫ ЯДРА</string>
+    <string name="audit_metric_days_approved">ДНЕЙ С APPROVED</string>
+    <string name="audit_metric_defects">ДЕФЕКТЫ</string>
+    <string name="audit_metric_wastes">ПОТЕРИ</string>
+    <string name="audit_metric_mvd_days">ДНИ MVD</string>
+    <string name="audit_metric_virtues">СУММА ДОБРОДЕТЕЛЕЙ</string>
+    <string name="audit_bottleneck_label">УЗКОЕ МЕСТО НА СЛЕДУЮЩУЮ НЕДЕЛЮ</string>
+    <string name="audit_submit">ЗАФИКСИРОВАТЬ</string>
+    <string name="audit_open_history">ОТКРЫТЬ ИСТОРИЮ</string>
+
+    <!-- Weekday lock. -->
+    <string name="weekday_lock_title">ДОСТУП К ИСТОРИИ — ВОСКРЕСЕНЬЕ</string>
+    <string name="weekday_lock_body">Прошлое объективно не существует и не подлежит изменению. Существует только текущий производственный цикл.</string>
+    <string name="weekday_lock_return">ВЕРНУТЬСЯ</string>
+
+    <!-- Notification. -->
+    <string name="notification_evening_title">ТРЕБУЕТСЯ ЗАКРЫТИЕ СМЕНЫ</string>
+    <string name="notification_evening_body">Зафиксируйте состояние Ядра и добродетели.</string>
 </resources>

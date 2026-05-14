@@ -12,22 +12,39 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import com.avangard.app.core.common.Clock
+import com.avangard.app.core.domain.model.AccessPolicy
 import com.avangard.app.navigation.AvangardNavHost
+import com.avangard.app.navigation.NavRoute
 import com.avangard.app.ui.theme.IsaColors
 import com.avangard.app.ui.theme.MachineTheme
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject lateinit var clock: Clock
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContent { AvangardApp() }
+        val deepLink = intent?.getStringExtra(EXTRA_START_DESTINATION)
+        val start = deepLink ?: defaultStart()
+        setContent { AvangardApp(start) }
+    }
+
+    private fun defaultStart(): String =
+        if (AccessPolicy.isHistoryUnlocked(clock.today())) NavRoute.SundayAudit.route
+        else NavRoute.OperatorPulpit.route
+
+    companion object {
+        const val EXTRA_START_DESTINATION = "start_destination"
     }
 }
 
 @Composable
-private fun AvangardApp() {
+private fun AvangardApp(startDestination: String) {
     MachineTheme {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
@@ -35,7 +52,7 @@ private fun AvangardApp() {
             contentWindowInsets = WindowInsets.systemBars,
         ) { padding ->
             Box(Modifier.padding(padding)) {
-                AvangardNavHost()
+                AvangardNavHost(startDestination = startDestination)
             }
         }
     }

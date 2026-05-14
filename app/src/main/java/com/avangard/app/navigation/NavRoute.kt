@@ -7,4 +7,8 @@ sealed interface NavRoute {
     data object AuthorisationModal : NavRoute { override val route = "pulpit/authorise" }
     data object EarnedPride : NavRoute { override val route = "pulpit/earned-pride" }
     data object Sabotage : NavRoute { override val route = "sabotage" }
+    data object EveningClose : NavRoute { override val route = "closing" }
+    data object SundayAudit : NavRoute { override val route = "audit" }
+    data object HistoryGrid : NavRoute { override val route = "history" }
+    data object WeekdayLock : NavRoute { override val route = "weekday-lock" }
 }
