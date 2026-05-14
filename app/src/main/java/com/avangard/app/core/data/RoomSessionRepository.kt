@@ -2,8 +2,10 @@ package com.avangard.app.core.data
 
 import com.avangard.app.core.database.dao.DailySessionDao
 import com.avangard.app.core.database.dao.FocusSessionDao
+import com.avangard.app.core.database.dao.HabitLogDao
 import com.avangard.app.core.database.entity.DailySessionEntity
 import com.avangard.app.core.database.entity.FocusSessionEntity
+import com.avangard.app.core.database.entity.HabitLogEntity
 import com.avangard.app.core.domain.model.Bottleneck
 import com.avangard.app.core.domain.model.CoreStatus
 import com.avangard.app.core.domain.model.DailySession
@@ -24,6 +26,7 @@ import kotlinx.coroutines.flow.map
 class RoomSessionRepository @Inject constructor(
     private val dailyDao: DailySessionDao,
     private val focusDao: FocusSessionDao,
+    private val habitLogDao: HabitLogDao,
     private val clock: Clock,
 ) : SessionRepository {
 
@@ -86,7 +89,21 @@ class RoomSessionRepository @Inject constructor(
             Habit.Reading -> current.copy(infra05Status = code)
         }
         dailyDao.upsert(updated)
-        // habit_log bridge lands in commit 6 — for now the daily_session row is the source of truth.
+        // habit_log bridge: write-through so the Sunday HistoryGrid (which reads
+        // habit_log) stays in sync without re-querying the structured ledger.
+        if (habit != Habit.Generations) {
+            if (status == InfraStatus.NotDone) {
+                habitLogDao.delete(dateEpoch, habit.code)
+            } else {
+                habitLogDao.insert(
+                    HabitLogEntity(
+                        dateEpoch = dateEpoch,
+                        habitCode = habit.code,
+                        completedAt = recordedAt,
+                    )
+                )
+            }
+        }
     }
 
     override suspend fun closeEvening(

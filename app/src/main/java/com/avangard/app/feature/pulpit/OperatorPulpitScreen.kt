@@ -1,8 +1,10 @@
 package com.avangard.app.feature.pulpit
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -44,11 +46,13 @@ import java.time.format.DateTimeFormatter
 
 private val pulpitDateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OperatorPulpitScreen(
     onOpenAuthorisation: () -> Unit,
     onOpenSabotage: () -> Unit,
     onOpenEveningClose: () -> Unit,
+    onOpenSettings: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: OperatorPulpitViewModel = hiltViewModel(),
 ) {
@@ -74,6 +78,7 @@ fun OperatorPulpitScreen(
         onRequestApproveCore = viewModel::onRequestApproveCore,
         onSabotageClicked = viewModel::onSabotageClicked,
         onCloseShiftClicked = viewModel::onCloseShiftClicked,
+        onSettingsLongPress = onOpenSettings,
         modifier = modifier,
     )
 }
@@ -89,6 +94,7 @@ internal fun OperatorPulpitContent(
     onRequestApproveCore: () -> Unit,
     onSabotageClicked: () -> Unit,
     onCloseShiftClicked: () -> Unit,
+    onSettingsLongPress: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -104,6 +110,7 @@ internal fun OperatorPulpitContent(
             mvdActive = state?.session?.mvdActive == true,
             onToggleMvd = onToggleMvd,
             onSabotageClicked = onSabotageClicked,
+            onSettingsLongPress = onSettingsLongPress,
         )
 
         CoreCard(
@@ -155,16 +162,25 @@ private fun HeaderStrip(
     mvdActive: Boolean,
     onToggleMvd: () -> Unit,
     onSabotageClicked: () -> Unit,
+    onSettingsLongPress: () -> Unit,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
+        val interactionSource = remember { MutableInteractionSource() }
         Text(
             text = today.format(pulpitDateFormatter),
             color = IsaColors.Lattice,
             style = MaterialTheme.typography.labelMedium,
+            modifier = Modifier
+                .combinedClickable(
+                    interactionSource = interactionSource,
+                    indication = null,
+                    onClick = {},
+                    onLongClick = onSettingsLongPress,
+                ),
         )
         MvdToggle(active = mvdActive, onClick = onToggleMvd)
         SabotageChip(onClick = onSabotageClicked)

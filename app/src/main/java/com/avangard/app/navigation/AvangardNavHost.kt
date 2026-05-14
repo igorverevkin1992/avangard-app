@@ -14,6 +14,7 @@ import com.avangard.app.feature.pulpit.AuthorisationModalScreen
 import com.avangard.app.feature.pulpit.EarnedPrideScreen
 import com.avangard.app.feature.pulpit.OperatorPulpitScreen
 import com.avangard.app.feature.sabotage.SabotageProtocolScreen
+import com.avangard.app.feature.settings.SettingsScreen
 
 @Composable
 fun AvangardNavHost(startDestination: String = NavRoute.OperatorPulpit.route) {
@@ -24,7 +25,11 @@ fun AvangardNavHost(startDestination: String = NavRoute.OperatorPulpit.route) {
                 onOpenAuthorisation = { navController.navigate(NavRoute.AuthorisationModal.route) },
                 onOpenSabotage = { navController.navigate(NavRoute.Sabotage.route) },
                 onOpenEveningClose = { navController.navigate(NavRoute.EveningClose.route) },
+                onOpenSettings = { navController.navigate(NavRoute.Settings.route) },
             )
+        }
+        composable(NavRoute.Settings.route) {
+            SettingsScreen(onReturn = { navController.popBackStack() })
         }
         composable(NavRoute.AuthorisationModal.route) {
             AuthorisationModalScreen(

@@ -79,4 +79,14 @@
     <!-- Notification. -->
     <string name="notification_evening_title">ТРЕБУЕТСЯ ЗАКРЫТИЕ СМЕНЫ</string>
     <string name="notification_evening_body">Зафиксируйте состояние Ядра и добродетели.</string>
+
+    <!-- Settings (long-press on date strip to reach). -->
+    <string name="settings_header">КОНФИГ</string>
+    <string name="settings_wipe_label">ЛОКАЛЬНАЯ БАЗА</string>
+    <string name="settings_wipe_request">СТЕРЕТЬ ВСЁ</string>
+    <string name="settings_wipe_confirm">ПОДТВЕРДИТЬ СТИРАНИЕ</string>
+    <string name="settings_wipe_cancel">ОТМЕНА</string>
+    <string name="settings_wipe_confirm_message">Все сессии, фокусы и привычки будут удалены без возможности восстановления.</string>
+    <string name="settings_wipe_in_progress">Стирание базы…</string>
+    <string name="settings_return">ВЕРНУТЬСЯ К ПУЛЬТУ</string>
 </resources>
