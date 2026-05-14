@@ -6,6 +6,12 @@ import android.content.Intent
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
+/**
+ * Intentionally minimal. The receiver exists for one reason: re-arm the
+ * single 21:00 evening-close alarm after device reboot, when the system
+ * forgets all previously scheduled AlarmManager entries. Any other startup
+ * logic belongs in [com.avangard.app.AvangardApplication.onCreate].
+ */
 @AndroidEntryPoint
 class BootCompletedReceiver : BroadcastReceiver() {
 
@@ -15,7 +21,6 @@ class BootCompletedReceiver : BroadcastReceiver() {
         when (intent.action) {
             Intent.ACTION_BOOT_COMPLETED,
             Intent.ACTION_LOCKED_BOOT_COMPLETED,
-            "android.intent.action.QUICKBOOT_POWERON",
             -> scheduler.ensureScheduled()
         }
     }

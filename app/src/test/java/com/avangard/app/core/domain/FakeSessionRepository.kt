@@ -71,10 +71,6 @@ class FakeSessionRepository(
         }
     }
 
-    override suspend fun failCore(dateEpoch: Long, kind: DefectKind, recordedAt: Long) {
-        mutate(dateEpoch) { it.copy(coreStatus = CoreStatus.Failed(kind)) }
-    }
-
     override suspend fun setInfraStatus(
         dateEpoch: Long,
         habit: Habit,
@@ -123,6 +119,9 @@ class FakeSessionRepository(
 
     override fun observeFocusForDay(dateEpoch: Long): Flow<List<FocusSession>> =
         focus.map { list -> list.filter { it.dateEpoch == dateEpoch } }
+
+    override fun observeFocusRange(fromEpoch: Long, toEpoch: Long): Flow<List<FocusSession>> =
+        focus.map { list -> list.filter { it.dateEpoch in fromEpoch..toEpoch } }
 
     override suspend fun sumFocusDurationFor(dateEpoch: Long, habit: Habit): Long =
         focus.value

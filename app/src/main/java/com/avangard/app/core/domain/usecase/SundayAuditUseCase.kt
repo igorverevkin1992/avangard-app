@@ -6,6 +6,7 @@ import com.avangard.app.core.common.toStartOfDayEpoch
 import com.avangard.app.core.domain.model.CoreStatus
 import com.avangard.app.core.domain.model.DailySession
 import com.avangard.app.core.domain.model.DefectKind
+import com.avangard.app.core.domain.model.FocusSession
 import com.avangard.app.core.domain.model.Habit
 import com.avangard.app.core.domain.model.InfraStatus
 import com.avangard.app.core.domain.repository.SessionRepository
@@ -14,8 +15,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 
 /**
- * Aggregate of the previous 7 days (Sun ↔ Sat) including today, computed when
- * the operator opens the Sunday audit.
+ * Aggregate of the previous 7 days (today + 6 prior) computed reactively from
+ * both the daily ledger and the focus event log. A new focus session anywhere
+ * in the window re-emits the view — the previous flow{} variant only sampled
+ * focus_session once and went stale.
  */
 data class SundayAuditView(
     val coreHoursMillis: Long,
@@ -39,11 +42,6 @@ data class SundayAuditView(
         val justice: Int,
     )
 
-    /**
-     * True when the week shows zero activity in every dimension — used by the
-     * Sunday audit screen to swap the all-zero metrics table for an explicit
-     * "no data yet" hint.
-     */
     fun isEmpty(): Boolean =
         coreHoursMillis == 0L &&
             daysApproved == 0 &&
@@ -64,26 +62,21 @@ class SundayAuditUseCase @Inject constructor(
     operator fun invoke(): Flow<SundayAuditView> {
         val today = clock.today().toStartOfDayEpoch(clock.zone())
         val weekStart = today - 6 * DAY_MILLIS
-        val sessions = repository.observeRange(weekStart, today + DAY_MILLIS - 1)
-        val perHabitFlows: List<Flow<Pair<Habit, Long>>> = Habit.entries
-            .filter { it == Habit.Generations }
-            .map { habit ->
-                kotlinx.coroutines.flow.flow {
-                    var total = 0L
-                    var cursor = weekStart
-                    while (cursor <= today) {
-                        total += repository.sumFocusDurationFor(cursor, habit)
-                        cursor += DAY_MILLIS
-                    }
-                    emit(habit to total)
-                }
-            }
-        return combine(sessions, perHabitFlows.first()) { weekSessions, (_, coreMillis) ->
-            buildView(weekSessions, coreMillis)
-        }
+        val weekEnd = today + DAY_MILLIS - 1
+        return combine(
+            repository.observeRange(weekStart, weekEnd),
+            repository.observeFocusRange(weekStart, weekEnd),
+        ) { sessions, focus -> buildView(sessions, focus) }
     }
 
-    private fun buildView(weekSessions: List<DailySession>, coreMillis: Long): SundayAuditView {
+    private fun buildView(
+        weekSessions: List<DailySession>,
+        focus: List<FocusSession>,
+    ): SundayAuditView {
+        val coreHoursMillis = focus
+            .filter { it.habit == Habit.Generations && it.endedAt != null }
+            .sumOf { (it.endedAt!! - it.startedAt) }
+
         val daysApproved = weekSessions.count { it.coreStatus is CoreStatus.Approved }
         val defectCount = weekSessions.count {
             val cs = it.coreStatus
@@ -111,7 +104,7 @@ class SundayAuditUseCase @Inject constructor(
             justice = weekSessions.sumOf { it.virtues?.justice ?: 0 },
         )
         return SundayAuditView(
-            coreHoursMillis = coreMillis,
+            coreHoursMillis = coreHoursMillis,
             daysApproved = daysApproved,
             defectCount = defectCount,
             wasteCount = wasteCount,

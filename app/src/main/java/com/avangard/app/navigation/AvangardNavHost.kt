@@ -74,9 +74,6 @@ fun AvangardNavHost(startDestination: String = NavRoute.OperatorPulpit.route) {
                 HabitTrackerScreen()
             }
         }
-        composable(NavRoute.WeekdayLock.route) {
-            WeekdayLockScreen(onReturn = { navController.popBackStack() })
-        }
     }
 }
 

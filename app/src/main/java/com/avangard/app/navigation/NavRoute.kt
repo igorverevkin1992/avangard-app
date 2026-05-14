@@ -10,6 +10,5 @@ sealed interface NavRoute {
     data object EveningClose : NavRoute { override val route = "closing" }
     data object SundayAudit : NavRoute { override val route = "audit" }
     data object HistoryGrid : NavRoute { override val route = "history" }
-    data object WeekdayLock : NavRoute { override val route = "weekday-lock" }
     data object Settings : NavRoute { override val route = "settings" }
 }

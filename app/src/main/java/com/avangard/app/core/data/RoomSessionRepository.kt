@@ -90,18 +90,6 @@ class RoomSessionRepository @Inject constructor(
         }
     }
 
-    override suspend fun failCore(dateEpoch: Long, kind: DefectKind, recordedAt: Long) {
-        database.withTransaction {
-            val current = dailyDao.ensureRow(dateEpoch)
-            dailyDao.upsert(
-                current.copy(
-                    coreStatus = CORE_FAILED,
-                    coreDefectKind = if (kind == DefectKind.Defect) 0 else 1,
-                )
-            )
-        }
-    }
-
     override suspend fun setInfraStatus(
         dateEpoch: Long,
         habit: Habit,
@@ -180,6 +168,9 @@ class RoomSessionRepository @Inject constructor(
 
     override fun observeFocusForDay(dateEpoch: Long): Flow<List<FocusSession>> =
         focusDao.observeForDay(dateEpoch).map { list -> list.mapNotNull { it.toDomain() } }
+
+    override fun observeFocusRange(fromEpoch: Long, toEpoch: Long): Flow<List<FocusSession>> =
+        focusDao.observeRange(fromEpoch, toEpoch).map { list -> list.mapNotNull { it.toDomain() } }
 
     override suspend fun sumFocusDurationFor(dateEpoch: Long, habit: Habit): Long =
         focusDao.sumDurationByDayAndCode(dateEpoch, habit.code)

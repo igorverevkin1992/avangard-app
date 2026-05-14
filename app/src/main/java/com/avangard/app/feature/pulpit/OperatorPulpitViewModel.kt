@@ -68,7 +68,7 @@ class OperatorPulpitViewModel @Inject constructor(
     val state: StateFlow<PulpitState?> = combine(
         observeSession(),
         observeActiveFocus(),
-        tickerFlow(),
+        tickerFlow(clock),
         transientError,
     ) { session, focus, now, error ->
         PulpitState(
