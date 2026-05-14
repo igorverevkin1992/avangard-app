@@ -2,6 +2,40 @@
 <resources>
     <string name="app_name">АВАНГАРД</string>
 
-    <!-- v3.0 reset: only habit-tracker strings survive. -->
-    <string name="action_open_habits">ПРИВЫЧКИ</string>
+    <!-- Pulpit header. -->
+    <string name="pulpit_mvd_on">РЕЖИМ MVD: ВКЛ</string>
+    <string name="pulpit_mvd_off">РЕЖИМ MVD: ВЫКЛ</string>
+    <string name="pulpit_sabotage">САБОТАЖ</string>
+
+    <!-- Pulpit cards. -->
+    <string name="pulpit_flash_start">ВСПЫШКА</string>
+    <string name="pulpit_flash_stop">ЗАВЕРШИТЬ</string>
+    <string name="pulpit_save_shot">СОХРАНИТЬ ШОТ</string>
+    <string name="pulpit_mark_standard">STANDARD</string>
+    <string name="pulpit_mark_mvd">MVD</string>
+    <string name="pulpit_hostage_banner">ЗАБЛОКИРОВАНО ДО ПЕРВОГО ЯДРА</string>
+    <string name="pulpit_close_shift">ЗАКРЫТЬ СМЕНУ</string>
+
+    <!-- Authorisation modal. -->
+    <string name="auth_title">ОСОЗНАННАЯ АВТОРИЗАЦИЯ</string>
+    <string name="auth_question">Присутствует ли в этом результате мой инженерный расчёт, или это слепой автоматизм?</string>
+    <string name="auth_prompt_label">ПРОМПТ / ШОТ</string>
+    <string name="auth_checkbox_label">ПОДТВЕРЖДАЮ ИНЖЕНЕРНЫЙ РАСЧЁТ</string>
+    <string name="auth_submit">ПОДТВЕРДИТЬ И СОХРАНИТЬ</string>
+    <string name="auth_cancel">ОТМЕНА</string>
+
+    <!-- Earned Pride. -->
+    <string name="earned_pride_line_1">ФАКТ УСТАНОВЛЕН.</string>
+    <string name="earned_pride_line_2">РЕСУРС КОНВЕРТИРОВАН В КАПИТАЛ.</string>
+    <string name="earned_pride_axiom">A = A</string>
+
+    <!-- Sabotage protocol. -->
+    <string name="sabotage_header">ПРОТОКОЛ САБОТАЖА</string>
+    <string name="sabotage_substitution_title">ИМПУЛЬС ПОДМЕНЫ</string>
+    <string name="sabotage_substitution_body">Потребление не является производством. Иллюзия работы не производит объективной ценности. Изучение инструмента без его применения есть потеря времени. Вернуться к Ядру.</string>
+    <string name="sabotage_defect_title">РЕАКЦИЯ НА БРАК</string>
+    <string name="sabotage_defect_body">Артефакт машины — это математическая погрешность весов модели, а не личное оскорбление оператора. Брак подлежит инженерному алгоритмическому исправлению. Эмоции не меняют пиксели.</string>
+    <string name="sabotage_comparison_title">СОЦИАЛЬНОЕ СРАВНЕНИЕ</string>
+    <string name="sabotage_comparison_body">Чужой результат есть закономерное следствие чужого вложенного времени. Сравнение несопоставимых переменных логически ошибочно и ведёт исключительно к нейробиологической потере.</string>
+    <string name="sabotage_return">ВЕРНУТЬСЯ К ПУЛЬТУ</string>
 </resources>
