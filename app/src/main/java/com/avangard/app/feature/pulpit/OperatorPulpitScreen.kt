@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalFoundationApi::class)
+
 package com.avangard.app.feature.pulpit
 
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -46,7 +48,6 @@ import java.time.format.DateTimeFormatter
 
 private val pulpitDateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OperatorPulpitScreen(
     onOpenAuthorisation: () -> Unit,
