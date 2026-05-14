@@ -112,7 +112,8 @@ class OperatorPulpitViewModelTest {
     @Test
     fun `Infra start rejection surfaces a transient error on state`() = runTest(dispatcher) {
         viewModel.onStartFocus(Habit.Sport) // Core idle → InfraLocked
-        advanceUntilIdle()
+        // Don't advanceUntilIdle — the 3s transient-error clear would otherwise
+        // run on the virtual clock and wipe the error before we observe it.
         val state = viewModel.state.filterNotNull().first()
         assertEquals(SessionError.InfraLocked, state.transientError)
     }
