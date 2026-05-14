@@ -69,10 +69,12 @@ class SundayAuditUseCase @Inject constructor(
     private fun buildView(weekSessions: List<DailySession>, coreMillis: Long): SundayAuditView {
         val daysApproved = weekSessions.count { it.coreStatus is CoreStatus.Approved }
         val defectCount = weekSessions.count {
-            it.coreStatus is CoreStatus.Failed && it.coreStatus.kind == DefectKind.Defect
+            val cs = it.coreStatus
+            cs is CoreStatus.Failed && cs.kind == DefectKind.Defect
         }
         val wasteCount = weekSessions.count {
-            it.coreStatus is CoreStatus.Failed && it.coreStatus.kind == DefectKind.Waste
+            val cs = it.coreStatus
+            cs is CoreStatus.Failed && cs.kind == DefectKind.Waste
         }
         val mvdDays = weekSessions.count { it.mvdActive }
 
