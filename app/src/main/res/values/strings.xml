@@ -80,6 +80,14 @@
     <string name="notification_evening_title">ТРЕБУЕТСЯ ЗАКРЫТИЕ СМЕНЫ</string>
     <string name="notification_evening_body">Зафиксируйте состояние Ядра и добродетели.</string>
 
+    <!-- Permission banners on the pulpit. -->
+    <string name="permission_notifications_title">УВЕДОМЛЕНИЯ ВЫКЛЮЧЕНЫ</string>
+    <string name="permission_notifications_body">Без разрешения системы вечернее напоминание о закрытии смены не будет показано.</string>
+    <string name="permission_exact_alarm_title">ТОЧНЫЕ АЛАРМЫ ВЫКЛЮЧЕНЫ</string>
+    <string name="permission_exact_alarm_body">Без точного будильника напоминание в 21:00 может срабатывать с задержкой до десятков минут.</string>
+    <string name="permission_grant">РАЗРЕШИТЬ</string>
+    <string name="permission_open_settings">НАСТРОЙКИ</string>
+
     <!-- Pulpit transient error banner. -->
     <string name="error_infra_locked">Заблокировано до первого Ядра</string>
     <string name="error_another_focus_active">Сессия уже идёт</string>

@@ -37,10 +37,12 @@ import com.avangard.app.core.domain.model.DailySession
 import com.avangard.app.core.domain.model.Habit
 import com.avangard.app.core.domain.model.InfraStatus
 import com.avangard.app.core.ui.components.CoreTimerDisplay
+import com.avangard.app.core.ui.components.ExactAlarmPermissionBanner
 import com.avangard.app.core.ui.components.FlashButton
 import com.avangard.app.core.ui.components.HardButton
 import com.avangard.app.core.ui.components.HardButtonVariant
 import com.avangard.app.core.ui.components.LabelStrip
+import com.avangard.app.core.ui.components.NotificationPermissionBanner
 import com.avangard.app.core.ui.components.PulpitPanel
 import com.avangard.app.core.ui.components.StatusBadge
 import com.avangard.app.core.ui.components.StatusBadgeKind
@@ -117,6 +119,9 @@ internal fun OperatorPulpitContent(
             onSabotageClicked = onSabotageClicked,
             onSettingsLongPress = onSettingsLongPress,
         )
+
+        NotificationPermissionBanner()
+        ExactAlarmPermissionBanner()
 
         if (transientError != null) {
             Text(
