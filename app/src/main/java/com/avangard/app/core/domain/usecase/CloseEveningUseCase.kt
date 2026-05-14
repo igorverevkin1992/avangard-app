@@ -23,7 +23,9 @@ class CloseEveningUseCase @Inject constructor(
         if (session?.eveningClosed == true) {
             return DomainResult.Err(SessionError.EveningClosedAlready)
         }
-        if (session?.coreStatus is CoreStatus.Idle && defectKindWhenIdle == null) {
+        // No row yet = no Core progress today = treat as Idle.
+        val coreStatus = session?.coreStatus ?: CoreStatus.Idle
+        if (coreStatus is CoreStatus.Idle && defectKindWhenIdle == null) {
             return DomainResult.Err(SessionError.MissingDefectKind)
         }
         repository.closeEvening(
