@@ -63,14 +63,16 @@ fun AvangardNavHost(startDestination: String = NavRoute.OperatorPulpit.route) {
             )
         }
         composable(NavRoute.SundayAudit.route) {
-            HistoryGate {
+            HistoryGate(onLockedReturn = { navController.popBackStack() }) {
                 SundayAuditScreen(
                     onOpenHistory = { navController.navigate(NavRoute.HistoryGrid.route) },
                 )
             }
         }
         composable(NavRoute.HistoryGrid.route) {
-            HistoryGate { HabitTrackerScreen() }
+            HistoryGate(onLockedReturn = { navController.popBackStack() }) {
+                HabitTrackerScreen()
+            }
         }
         composable(NavRoute.WeekdayLock.route) {
             WeekdayLockScreen(onReturn = { navController.popBackStack() })
@@ -79,7 +81,10 @@ fun AvangardNavHost(startDestination: String = NavRoute.OperatorPulpit.route) {
 }
 
 @Composable
-private fun HistoryGate(content: @Composable () -> Unit) {
+private fun HistoryGate(
+    onLockedReturn: () -> Unit,
+    content: @Composable () -> Unit,
+) {
     val viewModel = hiltViewModel<HistoryGateViewModel>()
-    if (viewModel.isUnlocked()) content() else WeekdayLockScreen(onReturn = { /* user uses system back */ })
+    if (viewModel.isUnlocked()) content() else WeekdayLockScreen(onReturn = onLockedReturn)
 }

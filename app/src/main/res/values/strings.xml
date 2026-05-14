@@ -80,6 +80,29 @@
     <string name="notification_evening_title">ТРЕБУЕТСЯ ЗАКРЫТИЕ СМЕНЫ</string>
     <string name="notification_evening_body">Зафиксируйте состояние Ядра и добродетели.</string>
 
+    <!-- Pulpit transient error banner. -->
+    <string name="error_infra_locked">Заблокировано до первого Ядра</string>
+    <string name="error_another_focus_active">Сессия уже идёт</string>
+    <string name="error_already_approved">Ядро уже зафиксировано</string>
+    <string name="error_not_authorised">Чекбокс авторизации не активирован</string>
+    <string name="error_prompt_empty">Промпт не указан</string>
+    <string name="error_missing_defect_kind">Выберите тип отклонения</string>
+    <string name="error_evening_closed_already">Смена уже закрыта</string>
+    <string name="error_history_locked">История доступна в воскресенье</string>
+
+    <!-- Sunday audit empty state. -->
+    <string name="audit_empty_state">ДАННЫЕ ОТСУТСТВУЮТ. ЗАЛОЖИТЕ ПЕРВУЮ НЕДЕЛЮ.</string>
+
+    <!-- Accessibility content descriptions. -->
+    <string name="a11y_pulpit_date">Дата текущей смены. Долгое нажатие — конфиг.</string>
+    <string name="a11y_flash_start">Запустить фокус-сессию: %1$s</string>
+    <string name="a11y_flash_stop">Завершить активную фокус-сессию</string>
+    <string name="a11y_save_shot">Сохранить шот Ядра — открыть осознанную авторизацию</string>
+    <string name="a11y_sabotage">Открыть протокол саботажа</string>
+    <string name="a11y_mvd_on">MVD-режим активен. Нажмите чтобы выключить.</string>
+    <string name="a11y_mvd_off">MVD-режим выключен. Нажмите чтобы активировать.</string>
+    <string name="a11y_infra_locked">%1$s заблокировано до утверждения Ядра</string>
+
     <!-- Settings (long-press on date strip to reach). -->
     <string name="settings_header">КОНФИГ</string>
     <string name="settings_wipe_label">ЛОКАЛЬНАЯ БАЗА</string>

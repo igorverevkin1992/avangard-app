@@ -5,6 +5,7 @@ import com.avangard.app.core.domain.FakeClock
 import com.avangard.app.core.domain.FakeSessionRepository
 import com.avangard.app.core.domain.model.Habit
 import com.avangard.app.core.domain.model.InfraStatus
+import com.avangard.app.core.domain.model.SessionError
 import com.avangard.app.core.domain.usecase.EndFocusUseCase
 import com.avangard.app.core.domain.usecase.ObserveActiveFocusUseCase
 import com.avangard.app.core.domain.usecase.ObserveDailySessionUseCase
@@ -106,5 +107,13 @@ class OperatorPulpitViewModelTest {
         advanceUntilIdle()
         val today = clock.today().toStartOfDayEpoch(clock.zone())
         assertTrue(repository.findForDate(today)!!.mvdActive)
+    }
+
+    @Test
+    fun `Infra start rejection surfaces a transient error on state`() = runTest(dispatcher) {
+        viewModel.onStartFocus(Habit.Sport) // Core idle → InfraLocked
+        advanceUntilIdle()
+        val state = viewModel.state.filterNotNull().first()
+        assertEquals(SessionError.InfraLocked, state.transientError)
     }
 }

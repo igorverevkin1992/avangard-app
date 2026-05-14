@@ -74,14 +74,22 @@ internal fun SundayAuditContent(
         )
 
         val view = state.view
-        if (view == null) {
-            Text(
+        when {
+            view == null -> Text(
                 text = stringResource(R.string.audit_loading),
                 color = IsaColors.Lattice,
                 style = MaterialTheme.typography.bodyMedium,
             )
-        } else {
-            MetricsTable(view = view)
+            view.isEmpty() -> Text(
+                text = stringResource(R.string.audit_empty_state),
+                color = IsaColors.Lattice,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(width = 1.dp, color = IsaColors.Steel)
+                    .padding(16.dp),
+            )
+            else -> MetricsTable(view = view)
         }
 
         PulpitPanel(label = stringResource(R.string.audit_bottleneck_label)) {

@@ -27,6 +27,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.avangard.app.R
@@ -72,6 +74,7 @@ fun OperatorPulpitScreen(
     OperatorPulpitContent(
         today = state?.today ?: LocalDate.now(),
         state = state,
+        transientError = state?.transientError,
         onStartFocus = viewModel::onStartFocus,
         onStopFocus = viewModel::onStopFocus,
         onToggleMvd = viewModel::onToggleMvd,
@@ -88,6 +91,7 @@ fun OperatorPulpitScreen(
 internal fun OperatorPulpitContent(
     today: LocalDate,
     state: PulpitState?,
+    transientError: com.avangard.app.core.domain.model.SessionError?,
     onStartFocus: (Habit) -> Unit,
     onStopFocus: () -> Unit,
     onToggleMvd: () -> Unit,
@@ -113,6 +117,18 @@ internal fun OperatorPulpitContent(
             onSabotageClicked = onSabotageClicked,
             onSettingsLongPress = onSettingsLongPress,
         )
+
+        if (transientError != null) {
+            Text(
+                text = sessionErrorMessage(transientError),
+                color = IsaColors.Signal,
+                style = MaterialTheme.typography.labelLarge,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(width = 1.dp, color = IsaColors.Signal)
+                    .padding(horizontal = 10.dp, vertical = 8.dp),
+            )
+        }
 
         CoreCard(
             state = state,
@@ -171,11 +187,13 @@ private fun HeaderStrip(
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         val interactionSource = remember { MutableInteractionSource() }
+        val dateA11y = stringResource(R.string.a11y_pulpit_date)
         Text(
             text = today.format(pulpitDateFormatter),
             color = IsaColors.Lattice,
             style = MaterialTheme.typography.labelMedium,
             modifier = Modifier
+                .semantics { contentDescription = dateA11y }
                 .combinedClickable(
                     interactionSource = interactionSource,
                     indication = null,
@@ -192,11 +210,13 @@ private fun HeaderStrip(
 private fun MvdToggle(active: Boolean, onClick: () -> Unit) {
     val color = if (active) IsaColors.Approve else IsaColors.Lattice
     val interactionSource = remember { MutableInteractionSource() }
+    val a11y = stringResource(if (active) R.string.a11y_mvd_on else R.string.a11y_mvd_off)
     Text(
         text = stringResource(if (active) R.string.pulpit_mvd_on else R.string.pulpit_mvd_off),
         color = color,
         style = MaterialTheme.typography.labelLarge,
         modifier = Modifier
+            .semantics { contentDescription = a11y }
             .border(width = 1.dp, color = color)
             .clickable(
                 interactionSource = interactionSource,
@@ -210,11 +230,13 @@ private fun MvdToggle(active: Boolean, onClick: () -> Unit) {
 @Composable
 private fun SabotageChip(onClick: () -> Unit) {
     val interactionSource = remember { MutableInteractionSource() }
+    val a11y = stringResource(R.string.a11y_sabotage)
     Text(
         text = stringResource(R.string.pulpit_sabotage),
         color = IsaColors.Signal,
         style = MaterialTheme.typography.labelLarge,
         modifier = Modifier
+            .semantics { contentDescription = a11y }
             .border(width = 1.dp, color = IsaColors.Signal)
             .clickable(
                 interactionSource = interactionSource,
@@ -296,12 +318,14 @@ private fun InfraCard(
             trailing = { StatusBadge(kind = badge) },
         )
         if (locked) {
+            val a11yLocked = stringResource(R.string.a11y_infra_locked, habit.displayName)
             Text(
                 text = stringResource(R.string.pulpit_hostage_banner),
                 color = IsaColors.Signal,
                 style = MaterialTheme.typography.labelMedium,
                 modifier = Modifier
                     .fillMaxWidth()
+                    .semantics { contentDescription = a11yLocked }
                     .border(width = 1.dp, color = IsaColors.Signal)
                     .padding(8.dp),
             )

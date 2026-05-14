@@ -38,6 +38,23 @@ data class SundayAuditView(
         val honesty: Int,
         val justice: Int,
     )
+
+    /**
+     * True when the week shows zero activity in every dimension — used by the
+     * Sunday audit screen to swap the all-zero metrics table for an explicit
+     * "no data yet" hint.
+     */
+    fun isEmpty(): Boolean =
+        coreHoursMillis == 0L &&
+            daysApproved == 0 &&
+            defectCount == 0 &&
+            wasteCount == 0 &&
+            mvdDays == 0 &&
+            virtueSums.rationality == 0 &&
+            virtueSums.independence == 0 &&
+            virtueSums.honesty == 0 &&
+            virtueSums.justice == 0 &&
+            infraBreakdown.values.all { it.standard == 0 && it.mvd == 0 }
 }
 
 class SundayAuditUseCase @Inject constructor(
