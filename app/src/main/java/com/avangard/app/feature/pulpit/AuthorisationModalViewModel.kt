@@ -10,11 +10,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.launch
 
 data class AuthorisationModalState(
@@ -38,7 +38,7 @@ class AuthorisationModalViewModel @Inject constructor(
 ) : ViewModel() {
 
     // The two user-typed fields survive process death — Android kills the app
-    // while the operator is mid-prompt, the prompt comes back on relaunch.
+    // mid-prompt, the prompt comes back on relaunch.
     private val promptFlow: StateFlow<String> =
         savedState.getStateFlow(KEY_PROMPT, "")
     private val authorisedFlow: StateFlow<Boolean> =
@@ -49,6 +49,9 @@ class AuthorisationModalViewModel @Inject constructor(
     private val submitting = MutableStateFlow(false)
     private val error = MutableStateFlow<SessionError?>(null)
 
+    // Eagerly so state.value is always the live combined value, including
+    // updates triggered by the on*Change handlers — submit() reads it without
+    // worrying about whether a UI subscriber happens to be active.
     val state: StateFlow<AuthorisationModalState> = combine(
         promptFlow,
         authorisedFlow,
@@ -63,7 +66,7 @@ class AuthorisationModalViewModel @Inject constructor(
         )
     }.stateIn(
         scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
+        started = SharingStarted.Eagerly,
         initialValue = AuthorisationModalState(
             prompt = promptFlow.value,
             authorised = authorisedFlow.value,
@@ -84,12 +87,17 @@ class AuthorisationModalViewModel @Inject constructor(
     }
 
     fun submit() {
-        val current = state.value
-        if (!current.canSubmit) return
+        // Read source flows directly — defensive against any stale state.value.
+        val currentPrompt = promptFlow.value
+        val currentAuthorised = authorisedFlow.value
+        if (submitting.value) return
+        if (!currentAuthorised) return
+        if (currentPrompt.trim().isEmpty()) return
+
         submitting.value = true
         error.value = null
         viewModelScope.launch {
-            when (val result = approveCore(prompt = current.prompt, authorised = current.authorised)) {
+            when (val result = approveCore(prompt = currentPrompt, authorised = currentAuthorised)) {
                 is DomainResult.Ok -> {
                     submitting.value = false
                     _effects.send(AuthorisationEffect.Submitted)
