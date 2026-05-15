@@ -26,8 +26,10 @@ class AvangardApplication : Application() {
         super.onCreate()
         initCrashReporting()
         presenter.ensureChannel()
-        scheduler.ensureScheduled()
-        applicationScope.launch { preferences.incrementAppLaunchAndMaybeVacuum() }
+        applicationScope.launch {
+            preferences.incrementAppLaunchAndMaybeVacuum()
+            scheduler.ensureScheduled()
+        }
     }
 
     /**

@@ -5,6 +5,10 @@ import android.content.Context
 import android.content.Intent
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 /**
  * Intentionally minimal. The receiver exists for one reason: re-arm the
@@ -21,7 +25,16 @@ class BootCompletedReceiver : BroadcastReceiver() {
         when (intent.action) {
             Intent.ACTION_BOOT_COMPLETED,
             Intent.ACTION_LOCKED_BOOT_COMPLETED,
-            -> scheduler.ensureScheduled()
+            -> {
+                val pending = goAsync()
+                CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+                    try {
+                        scheduler.ensureScheduled()
+                    } finally {
+                        pending.finish()
+                    }
+                }
+            }
         }
     }
 }

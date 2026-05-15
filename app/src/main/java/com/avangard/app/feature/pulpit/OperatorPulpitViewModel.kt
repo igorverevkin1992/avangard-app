@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.avangard.app.core.common.Clock
 import com.avangard.app.core.common.DomainResult
+import com.avangard.app.core.data.UserPreferencesRepository
 import com.avangard.app.core.domain.model.DailySession
 import com.avangard.app.core.domain.model.FocusSession
 import com.avangard.app.core.domain.model.Habit
@@ -15,6 +16,7 @@ import com.avangard.app.core.domain.usecase.ObserveDailySessionUseCase
 import com.avangard.app.core.domain.usecase.SetInfraStatusUseCase
 import com.avangard.app.core.domain.usecase.StartFocusUseCase
 import com.avangard.app.core.domain.usecase.ToggleMvdUseCase
+import com.avangard.app.core.ui.components.DEFAULT_COLD_START_THRESHOLD_MS
 import com.avangard.app.core.ui.components.tickerFlow
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.LocalDate
@@ -26,6 +28,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -36,6 +39,7 @@ data class PulpitState(
     val activeFocus: FocusSession?,
     val now: Long,
     val transientError: SessionError? = null,
+    val coldStartThresholdMs: Long = DEFAULT_COLD_START_THRESHOLD_MS,
 ) {
     val isCoreUnlocked: Boolean get() = session.isCoreUnlocked
     val activeFocusElapsedMs: Long get() = activeFocus?.durationMillis(now) ?: 0L
@@ -53,6 +57,7 @@ class OperatorPulpitViewModel @Inject constructor(
     private val clock: Clock,
     observeSession: ObserveDailySessionUseCase,
     observeActiveFocus: ObserveActiveFocusUseCase,
+    preferences: UserPreferencesRepository,
     private val startFocus: StartFocusUseCase,
     private val endFocus: EndFocusUseCase,
     private val toggleMvd: ToggleMvdUseCase,
@@ -65,18 +70,30 @@ class OperatorPulpitViewModel @Inject constructor(
     private val transientError = MutableStateFlow<SessionError?>(null)
     private var transientErrorClearJob: Job? = null
 
+    private data class Inputs(
+        val session: DailySession,
+        val focus: FocusSession?,
+        val now: Long,
+        val error: SessionError?,
+        val thresholdMs: Long,
+    )
+
     val state: StateFlow<PulpitState?> = combine(
         observeSession(),
         observeActiveFocus(),
         tickerFlow(clock),
         transientError,
-    ) { session, focus, now, error ->
+        preferences.flow.map { it.coldStartThresholdMs },
+    ) { session, focus, now, error, threshold ->
+        Inputs(session, focus, now, error, threshold)
+    }.map { i ->
         PulpitState(
             today = clock.today(),
-            session = session,
-            activeFocus = focus,
-            now = now,
-            transientError = error,
+            session = i.session,
+            activeFocus = i.focus,
+            now = i.now,
+            transientError = i.error,
+            coldStartThresholdMs = i.thresholdMs,
         )
     }.stateIn(
         scope = viewModelScope,
@@ -116,7 +133,6 @@ class OperatorPulpitViewModel @Inject constructor(
         viewModelScope.launch { _effects.send(PulpitEffect.OpenEveningClose) }
     }
 
-    /** Make a SessionError visible on the pulpit for [ERROR_HOLD_MS] and then clear it. */
     private fun raise(error: SessionError) {
         transientError.value = error
         transientErrorClearJob?.cancel()

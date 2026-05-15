@@ -113,6 +113,12 @@
 
     <!-- Settings (long-press on date strip to reach). -->
     <string name="settings_header">КОНФИГ</string>
+    <string name="settings_evening_close_label">ВЕЧЕРНИЙ СИГНАЛ</string>
+    <string name="settings_evening_close_hint">Время напоминания о закрытии смены.</string>
+    <string name="settings_hour_label">ЧАС</string>
+    <string name="settings_minute_label">МИНУТА</string>
+    <string name="settings_cold_start_label">ПОРОГ ХОЛОДНОГО ЗАПУСКА</string>
+    <string name="settings_cold_start_hint">После какого времени Flash-таймер переключает цвет.</string>
     <string name="settings_wipe_label">ЛОКАЛЬНАЯ БАЗА</string>
     <string name="settings_wipe_request">СТЕРЕТЬ ВСЁ</string>
     <string name="settings_wipe_confirm">ПОДТВЕРДИТЬ СТИРАНИЕ</string>

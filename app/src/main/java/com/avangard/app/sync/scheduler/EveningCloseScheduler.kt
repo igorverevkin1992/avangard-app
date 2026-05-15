@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import com.avangard.app.core.common.Clock
+import com.avangard.app.core.data.UserPreferencesRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -13,22 +14,24 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * The single alarm v3 keeps: an idempotent 21:00 nudge to close the
- * operational day. Re-arms itself daily from EveningCloseReceiver.
+ * The single alarm v3 keeps: an idempotent evening-close nudge at the time
+ * configured in UserPreferences (default 21:00). Re-arms itself daily from
+ * EveningCloseReceiver and after any preference change in SettingsViewModel.
  */
 @Singleton
 class EveningCloseScheduler @Inject constructor(
     @ApplicationContext private val context: Context,
     private val clock: Clock,
+    private val preferences: UserPreferencesRepository,
 ) {
     private val alarmManager =
         context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-    fun ensureScheduled() {
-        val triggerAt = nextTriggerEpochMs()
+    suspend fun ensureScheduled() {
+        val prefs = preferences.snapshot()
+        val triggerAt = nextTriggerEpochMs(prefs.eveningCloseHour, prefs.eveningCloseMinute)
         val pending = pendingIntent()
-        val exact = canScheduleExact()
-        if (exact) {
+        if (canScheduleExact()) {
             alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pending)
         } else {
             alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pending)
@@ -40,14 +43,13 @@ class EveningCloseScheduler @Inject constructor(
             alarmManager.canScheduleExactAlarms()
         } else true
 
-    private fun nextTriggerEpochMs(): Long {
+    private fun nextTriggerEpochMs(hour: Int, minute: Int): Long {
         val now = clock.localTime()
         val today = clock.today()
-        val target = LocalTime.of(21, 0)
-        // At 21:00:00.000 sharp `isBefore` is false → trigger shifts to tomorrow.
-        // This is intentional: it avoids re-firing the alarm in the same minute
-        // the receiver re-arms itself (the call site of ensureScheduled is the
-        // receiver's onReceive immediately after presenting the notification).
+        val target = LocalTime.of(hour, minute)
+        // At HH:mm:00.000 sharp `isBefore` is false → trigger shifts to tomorrow.
+        // This is intentional: prevents the receiver from re-firing the alarm in
+        // the same minute it just presented the notification.
         val date = if (now.isBefore(target)) today else today.plusDays(1)
         return LocalDateTime.of(date, target).atZone(clock.zone()).toEpochSecond() * 1000L
     }

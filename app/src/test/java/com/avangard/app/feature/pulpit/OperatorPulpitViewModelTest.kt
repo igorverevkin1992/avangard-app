@@ -1,6 +1,8 @@
 package com.avangard.app.feature.pulpit
 
 import com.avangard.app.core.common.toStartOfDayEpoch
+import com.avangard.app.core.data.UserPreferences
+import com.avangard.app.core.data.UserPreferencesRepository
 import com.avangard.app.core.domain.FakeClock
 import com.avangard.app.core.domain.FakeSessionRepository
 import com.avangard.app.core.domain.model.Habit
@@ -12,8 +14,12 @@ import com.avangard.app.core.domain.usecase.ObserveDailySessionUseCase
 import com.avangard.app.core.domain.usecase.SetInfraStatusUseCase
 import com.avangard.app.core.domain.usecase.StartFocusUseCase
 import com.avangard.app.core.domain.usecase.ToggleMvdUseCase
+import io.mockk.coEvery
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -42,10 +48,15 @@ class OperatorPulpitViewModelTest {
         Dispatchers.setMain(dispatcher)
         clock = FakeClock()
         repository = FakeSessionRepository(clock)
+        val preferences = mockk<UserPreferencesRepository>(relaxed = true) {
+            every { flow } returns MutableStateFlow(UserPreferences())
+            coEvery { snapshot() } returns UserPreferences()
+        }
         viewModel = OperatorPulpitViewModel(
             clock = clock,
             observeSession = ObserveDailySessionUseCase(repository),
             observeActiveFocus = ObserveActiveFocusUseCase(repository),
+            preferences = preferences,
             startFocus = StartFocusUseCase(repository, clock),
             endFocus = EndFocusUseCase(repository, clock),
             toggleMvd = ToggleMvdUseCase(repository, clock),

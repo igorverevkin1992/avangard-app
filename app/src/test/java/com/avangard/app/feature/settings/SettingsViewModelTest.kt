@@ -1,12 +1,20 @@
 package com.avangard.app.feature.settings
 
 import com.avangard.app.core.common.toStartOfDayEpoch
+import com.avangard.app.core.data.UserPreferences
+import com.avangard.app.core.data.UserPreferencesRepository
 import com.avangard.app.core.domain.FakeClock
 import com.avangard.app.core.domain.FakeHabitRepository
 import com.avangard.app.core.domain.FakeSessionRepository
 import com.avangard.app.core.domain.model.Habit
+import com.avangard.app.sync.scheduler.EveningCloseScheduler
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -26,6 +34,8 @@ class SettingsViewModelTest {
     private lateinit var sessions: FakeSessionRepository
     private lateinit var habits: FakeHabitRepository
     private lateinit var clock: FakeClock
+    private lateinit var preferences: UserPreferencesRepository
+    private lateinit var scheduler: EveningCloseScheduler
     private lateinit var viewModel: SettingsViewModel
 
     @Before
@@ -34,7 +44,17 @@ class SettingsViewModelTest {
         clock = FakeClock()
         sessions = FakeSessionRepository(clock)
         habits = FakeHabitRepository()
-        viewModel = SettingsViewModel(sessions = sessions, habits = habits)
+        preferences = mockk(relaxed = true) {
+            every { flow } returns MutableStateFlow(UserPreferences())
+            coEvery { snapshot() } returns UserPreferences()
+        }
+        scheduler = mockk(relaxed = true)
+        viewModel = SettingsViewModel(
+            sessions = sessions,
+            habits = habits,
+            preferences = preferences,
+            scheduler = scheduler,
+        )
     }
 
     @After
@@ -61,11 +81,30 @@ class SettingsViewModelTest {
         advanceUntilIdle()
 
         assertNull(sessions.findForDate(today))
-        // FakeHabitRepository.wipe also clears its store; observe via toggle round-trip.
-        habits.toggle(clock.today(), Habit.Sport, clock.nowEpochMillis())
-        // Toggle back on after wipe → toggling once produces a fresh mark, so habit is present.
-        // We don't need to assert further than wipe non-throwing + state reset:
         assertFalse(viewModel.state.value.confirmingWipe)
         assertFalse(viewModel.state.value.wipeInProgress)
+    }
+
+    @Test
+    fun `changing evening close re-arms the scheduler`() = runTest(dispatcher) {
+        viewModel.onEveningCloseChanged(22, 30)
+        advanceUntilIdle()
+        coVerify { preferences.setEveningClose(22, 30) }
+        coVerify { scheduler.ensureScheduled() }
+    }
+
+    @Test
+    fun `out-of-range evening close is ignored`() = runTest(dispatcher) {
+        viewModel.onEveningCloseChanged(25, 0)
+        advanceUntilIdle()
+        // preferences.setEveningClose must not be called with invalid args.
+        coVerify(exactly = 0) { preferences.setEveningClose(any(), any()) }
+    }
+
+    @Test
+    fun `cold-start threshold change persists in minutes`() = runTest(dispatcher) {
+        viewModel.onColdStartThresholdChanged(7)
+        advanceUntilIdle()
+        coVerify { preferences.setColdStartThresholdMs(7 * 60L * 1000) }
     }
 }

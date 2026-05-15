@@ -37,6 +37,7 @@ import com.avangard.app.core.domain.model.DailySession
 import com.avangard.app.core.domain.model.Habit
 import com.avangard.app.core.domain.model.InfraStatus
 import com.avangard.app.core.ui.components.CoreTimerDisplay
+import com.avangard.app.core.ui.components.DEFAULT_COLD_START_THRESHOLD_MS
 import com.avangard.app.core.ui.components.ExactAlarmPermissionBanner
 import com.avangard.app.core.ui.components.FlashButton
 import com.avangard.app.core.ui.components.HardButton
@@ -278,6 +279,7 @@ private fun CoreCard(
         )
         CoreTimerDisplay(
             elapsedMillis = if (activeOnCore) state?.activeFocusElapsedMs ?: 0L else 0L,
+            thresholdMs = state?.coldStartThresholdMs ?: DEFAULT_COLD_START_THRESHOLD_MS,
         )
         FlashButton(
             label = stringResource(
