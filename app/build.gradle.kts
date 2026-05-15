@@ -19,6 +19,13 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables { useSupportLibrary = true }
+
+        // Sentry DSN — load from local.properties or env, default empty.
+        // Without DSN the SDK is initialised to no-op (release builds skip init).
+        val sentryDsn: String = providers.gradleProperty("sentry.dsn").orNull
+            ?: System.getenv("SENTRY_DSN")
+            ?: ""
+        buildConfigField("String", "SENTRY_DSN", "\"$sentryDsn\"")
     }
 
     buildTypes {
@@ -91,6 +98,8 @@ dependencies {
     ksp(libs.androidx.room.compiler)
 
     implementation(libs.androidx.datastore.preferences)
+
+    implementation(libs.sentry.android.core)
 
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
