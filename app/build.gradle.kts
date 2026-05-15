@@ -103,6 +103,7 @@ dependencies {
     testImplementation(libs.turbine)
     testImplementation(libs.mockk)
     testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.test.core)
     testImplementation(libs.androidx.room.testing)
 
     androidTestImplementation(libs.androidx.test.junit)
