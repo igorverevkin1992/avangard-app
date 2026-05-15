@@ -1,11 +1,9 @@
 package com.avangard.app.core.data.di
 
 import com.avangard.app.core.data.RoomHabitRepository
-import com.avangard.app.core.data.RoomReportRepository
+import com.avangard.app.core.data.RoomSessionRepository
 import com.avangard.app.core.domain.repository.HabitRepository
-import com.avangard.app.core.domain.repository.ReportRepository
-import com.avangard.app.core.domain.repository.WidgetRefresher
-import com.avangard.app.widget.AvangardWidgetRefresher
+import com.avangard.app.core.domain.repository.SessionRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -18,13 +16,9 @@ abstract class RepositoryModule {
 
     @Binds
     @Singleton
-    abstract fun bindReportRepository(impl: RoomReportRepository): ReportRepository
-
-    @Binds
-    @Singleton
     abstract fun bindHabitRepository(impl: RoomHabitRepository): HabitRepository
 
     @Binds
     @Singleton
-    abstract fun bindWidgetRefresher(impl: AvangardWidgetRefresher): WidgetRefresher
+    abstract fun bindSessionRepository(impl: RoomSessionRepository): SessionRepository
 }

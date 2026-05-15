@@ -35,7 +35,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.avangard.app.core.domain.model.Habit
 import com.avangard.app.core.domain.model.HabitMonthlyView
-import com.avangard.app.ui.theme.MachineColors
+import com.avangard.app.ui.theme.IsaColors
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -63,7 +63,7 @@ internal fun HabitTrackerContent(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(MachineColors.Anthracite)
+            .background(IsaColors.Graphite)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
@@ -96,7 +96,7 @@ private fun MonthSelector(year: Int, month: Int, onSelect: (Int) -> Unit) {
     ) {
         months.forEachIndexed { index, label ->
             val active = (index + 1) == month
-            val color = if (active) MachineColors.AtlasRed else MachineColors.WarmGray
+            val color = if (active) IsaColors.Signal else IsaColors.Lattice
             val interactionSource = remember(label) { MutableInteractionSource() }
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -124,7 +124,7 @@ private fun MonthSelector(year: Int, month: Int, onSelect: (Int) -> Unit) {
     }
     Text(
         text = "$year",
-        color = MachineColors.WarmGray,
+        color = IsaColors.Lattice,
         style = MaterialTheme.typography.labelSmall,
     )
 }
@@ -142,17 +142,17 @@ private fun AggregateRow(view: HabitMonthlyView?) {
             val total = view?.daysInMonth ?: 0
             Column(
                 modifier = Modifier
-                    .border(width = 1.dp, color = MachineColors.WarmGray)
+                    .border(width = 1.dp, color = IsaColors.Lattice)
                     .padding(8.dp),
             ) {
                 Text(
                     text = "${habit.code}·${habit.shortLabel}",
-                    color = MachineColors.ReardenCopper,
+                    color = IsaColors.Approve,
                     style = MaterialTheme.typography.labelMedium,
                 )
                 Text(
                     text = if (total == 0) "—" else "$count/$total",
-                    color = MachineColors.Ivory,
+                    color = IsaColors.LiveMetal,
                     style = MaterialTheme.typography.labelLarge,
                 )
             }
@@ -170,14 +170,14 @@ private fun ColumnHeader() {
     ) {
         Text(
             text = "ДАТА",
-            color = MachineColors.WarmGray,
+            color = IsaColors.Lattice,
             style = MaterialTheme.typography.labelSmall,
             modifier = Modifier.width(DATE_COL_WIDTH.dp),
         )
         Habit.entries.forEach { habit ->
             Text(
                 text = habit.code,
-                color = MachineColors.WarmGray,
+                color = IsaColors.Lattice,
                 style = MaterialTheme.typography.labelSmall,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.weight(1f),
@@ -224,8 +224,8 @@ private fun DayRow(
     view: HabitMonthlyView?,
     onToggle: (LocalDate, Habit) -> Unit,
 ) {
-    val rowBg = if (isToday) MachineColors.AtlasRed else Color.Transparent
-    val dateColor = if (isToday) MachineColors.Ivory else MachineColors.WarmGray
+    val rowBg = if (isToday) IsaColors.Signal else Color.Transparent
+    val dateColor = if (isToday) IsaColors.LiveMetal else IsaColors.Lattice
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -267,8 +267,8 @@ private fun HabitCell(isOn: Boolean, onClick: () -> Unit, modifier: Modifier = M
         Box(
             modifier = Modifier
                 .size(22.dp)
-                .border(width = 1.dp, color = MachineColors.SteelEdge)
-                .background(if (isOn) MachineColors.ReardenCopper else Color.Transparent),
+                .border(width = 1.dp, color = IsaColors.Steel)
+                .background(if (isOn) IsaColors.Approve else Color.Transparent),
         )
     }
 }

@@ -3,9 +3,9 @@ package com.avangard.app.core.database.di
 import android.content.Context
 import androidx.room.Room
 import com.avangard.app.core.database.AppDatabase
-import com.avangard.app.core.database.dao.DailyLogDao
+import com.avangard.app.core.database.dao.DailySessionDao
+import com.avangard.app.core.database.dao.FocusSessionDao
 import com.avangard.app.core.database.dao.HabitLogDao
-import com.avangard.app.core.database.dao.SystemMetricDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -21,15 +21,20 @@ object DatabaseModule {
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): AppDatabase =
         Room.databaseBuilder(context, AppDatabase::class.java, AppDatabase.DB_NAME)
-            .addMigrations(AppDatabase.MIGRATION_1_2)
+            .addMigrations(
+                AppDatabase.MIGRATION_1_2,
+                AppDatabase.MIGRATION_2_3,
+                AppDatabase.MIGRATION_3_4,
+                AppDatabase.MIGRATION_4_5,
+            )
             .build()
 
     @Provides
-    fun provideDailyLogDao(db: AppDatabase): DailyLogDao = db.dailyLogDao()
-
-    @Provides
-    fun provideSystemMetricDao(db: AppDatabase): SystemMetricDao = db.systemMetricDao()
-
-    @Provides
     fun provideHabitLogDao(db: AppDatabase): HabitLogDao = db.habitLogDao()
+
+    @Provides
+    fun provideDailySessionDao(db: AppDatabase): DailySessionDao = db.dailySessionDao()
+
+    @Provides
+    fun provideFocusSessionDao(db: AppDatabase): FocusSessionDao = db.focusSessionDao()
 }

@@ -1,84 +1,123 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">АВАНГАРД</string>
-    <string name="dashboard_target_label">АРТЕФАКТ ДНЯ</string>
-    <string name="dashboard_target_empty">НЕ УТВЕРЖДЕН</string>
-    <string name="dashboard_progress_label">ВЫРАБОТКА</string>
-    <string name="dashboard_streak_label">КОНТУР ИНТЕГРИТИ</string>
-    <string name="dashboard_streak_value">%d ДНЕЙ</string>
-    <string name="widget_artifact_label">АРТЕФАКТ ДНЯ</string>
-    <string name="widget_state_pending">НЕ УТВЕРЖДЁН</string>
-    <string name="widget_state_in_progress">В РАБОТЕ</string>
-    <string name="widget_state_completed">СОЗДАН</string>
-    <string name="widget_state_failed">ПРОВАЛ</string>
-    <string name="widget_label">Avangard</string>
-    <string name="toggle_focus_mode">РЕЖИМ ИСПОЛНЕНИЯ</string>
-    <string name="toggle_silence">РЕЖИМ ТИШИНЫ</string>
-    <string name="report_morning_directive">УТВЕРДИТЕ АРТЕФАКТ ДНЯ</string>
-    <string name="report_evening_directive">ПОДТВЕРДИТЕ СОЗДАНИЕ АРТЕФАКТА</string>
-    <string name="failure_analysis_header">АНАЛИЗ ОТКАЗА</string>
-    <string name="notification_evening_due">Требуется вечерний рапорт</string>
-    <string name="notification_artifact_capture">Зафиксируйте артефакты</string>
-    <string name="notification_deadline_breach">СРЕЗ СТАТУСА</string>
 
-    <string name="action_open_morning_report">УТВЕРДИТЬ АРТЕФАКТ</string>
-    <string name="action_open_evening_report">ВЕЧЕРНИЙ РАПОРТ</string>
-    <string name="action_open_habits">ПРИВЫЧКИ</string>
-    <string name="action_open_analytics">ЖУРНАЛ</string>
-    <string name="action_open_settings">КОНФИГ</string>
-    <string name="action_confirm">ПОДТВЕРДИТЬ</string>
-    <string name="action_close_shift">ЗАКРЫТЬ СМЕНУ</string>
+    <!-- Pulpit header. -->
+    <string name="pulpit_mvd_on">РЕЖИМ MVD: ВКЛ</string>
+    <string name="pulpit_mvd_off">РЕЖИМ MVD: ВЫКЛ</string>
+    <string name="pulpit_sabotage">САБОТАЖ</string>
 
-    <string name="analytics_recorded">ВСЕГО</string>
-    <string name="analytics_completed">СОЗДАНО</string>
-    <string name="analytics_rate">ВЫПОЛНЕНИЕ</string>
-    <string name="journal_col_date">ДАТА</string>
-    <string name="journal_col_status">СТАТУС</string>
-    <string name="journal_col_artifact">АРТЕФАКТ</string>
-    <string name="journal_col_failure">СБОЙ</string>
-    <string name="journal_empty">ЗАПИСИ ОТСУТСТВУЮТ</string>
+    <!-- Pulpit cards. -->
+    <string name="pulpit_flash_start">ВСПЫШКА</string>
+    <string name="pulpit_flash_stop">ЗАВЕРШИТЬ</string>
+    <string name="pulpit_save_shot">СОХРАНИТЬ ШОТ</string>
+    <string name="pulpit_mark_standard">STANDARD</string>
+    <string name="pulpit_mark_mvd">MVD</string>
+    <string name="pulpit_hostage_banner">ЗАБЛОКИРОВАНО ДО ПЕРВОГО ЯДРА</string>
+    <string name="pulpit_close_shift">ЗАКРЫТЬ СМЕНУ</string>
 
-    <string name="settings_header">КОНФИГУРАЦИЯ</string>
-    <string name="settings_permissions">РАЗРЕШЕНИЯ СИСТЕМЫ</string>
-    <string name="settings_perm_notifications">Уведомления</string>
-    <string name="settings_perm_exact_alarms">Точный будильник</string>
-    <string name="settings_data">ЛОКАЛЬНАЯ БАЗА</string>
+    <!-- Authorisation modal. -->
+    <string name="auth_title">ОСОЗНАННАЯ АВТОРИЗАЦИЯ</string>
+    <string name="auth_question">Присутствует ли в этом результате мой инженерный расчёт, или это слепой автоматизм?</string>
+    <string name="auth_prompt_label">ПРОМПТ / ШОТ</string>
+    <string name="auth_checkbox_label">ПОДТВЕРЖДАЮ ИНЖЕНЕРНЫЙ РАСЧЁТ</string>
+    <string name="auth_submit">ПОДТВЕРДИТЬ И СОХРАНИТЬ</string>
+    <string name="auth_cancel">ОТМЕНА</string>
+
+    <!-- Earned Pride. -->
+    <string name="earned_pride_line_1">ФАКТ УСТАНОВЛЕН.</string>
+    <string name="earned_pride_line_2">РЕСУРС КОНВЕРТИРОВАН В КАПИТАЛ.</string>
+    <string name="earned_pride_axiom">A = A</string>
+
+    <!-- Sabotage protocol. -->
+    <string name="sabotage_header">ПРОТОКОЛ САБОТАЖА</string>
+    <string name="sabotage_substitution_title">ИМПУЛЬС ПОДМЕНЫ</string>
+    <string name="sabotage_substitution_body">Потребление не является производством. Иллюзия работы не производит объективной ценности. Изучение инструмента без его применения есть потеря времени. Вернуться к Ядру.</string>
+    <string name="sabotage_defect_title">РЕАКЦИЯ НА БРАК</string>
+    <string name="sabotage_defect_body">Артефакт машины — это математическая погрешность весов модели, а не личное оскорбление оператора. Брак подлежит инженерному алгоритмическому исправлению. Эмоции не меняют пиксели.</string>
+    <string name="sabotage_comparison_title">СОЦИАЛЬНОЕ СРАВНЕНИЕ</string>
+    <string name="sabotage_comparison_body">Чужой результат есть закономерное следствие чужого вложенного времени. Сравнение несопоставимых переменных логически ошибочно и ведёт исключительно к нейробиологической потере.</string>
+    <string name="sabotage_return">ВЕРНУТЬСЯ К ПУЛЬТУ</string>
+
+    <!-- Evening close. -->
+    <string name="closing_header">ЗАКРЫТИЕ СМЕНЫ</string>
+    <string name="closing_indicators_label">ИНДИКАТОРЫ ДНЯ</string>
+    <string name="closing_productivity">ПРОДУКТИВНОСТЬ</string>
+    <string name="closing_pride">ГОРДОСТЬ</string>
+    <string name="closing_integrity">ЦЕЛОСТНОСТЬ</string>
+    <string name="closing_defect_label">КЛАССИФИКАЦИЯ НУЛЕВОГО РЕЗУЛЬТАТА</string>
+    <string name="closing_defect_hint">Ядро не зафиксировано. Выберите тип отклонения.</string>
+    <string name="closing_defect_kind_defect">ДЕФЕКТ</string>
+    <string name="closing_defect_kind_waste">ПОТЕРЯ</string>
+    <string name="closing_submit">ЗАФИКСИРОВАТЬ ЗАКРЫТИЕ СМЕНЫ</string>
+
+    <!-- Virtues. -->
+    <string name="virtue_rationality">РАЗУМНОСТЬ</string>
+    <string name="virtue_independence">НЕЗАВИСИМОСТЬ</string>
+    <string name="virtue_honesty">ЧЕСТНОСТЬ</string>
+    <string name="virtue_justice">СПРАВЕДЛИВОСТЬ</string>
+
+    <!-- Sunday audit. -->
+    <string name="audit_header">АУДИТ PDCA · НЕДЕЛЯ</string>
+    <string name="audit_loading">СБОР МЕТРИК…</string>
+    <string name="audit_metrics_label">МЕТРИКИ ЗА 7 ДНЕЙ</string>
+    <string name="audit_metric_core_hours">ЧАСЫ ЯДРА</string>
+    <string name="audit_metric_days_approved">ДНЕЙ С APPROVED</string>
+    <string name="audit_metric_defects">ДЕФЕКТЫ</string>
+    <string name="audit_metric_wastes">ПОТЕРИ</string>
+    <string name="audit_metric_mvd_days">ДНИ MVD</string>
+    <string name="audit_metric_virtues">СУММА ДОБРОДЕТЕЛЕЙ</string>
+    <string name="audit_bottleneck_label">УЗКОЕ МЕСТО НА СЛЕДУЮЩУЮ НЕДЕЛЮ</string>
+    <string name="audit_submit">ЗАФИКСИРОВАТЬ</string>
+    <string name="audit_open_history">ОТКРЫТЬ ИСТОРИЮ</string>
+
+    <!-- Weekday lock. -->
+    <string name="weekday_lock_title">ДОСТУП К ИСТОРИИ — ВОСКРЕСЕНЬЕ</string>
+    <string name="weekday_lock_body">Прошлое объективно не существует и не подлежит изменению. Существует только текущий производственный цикл.</string>
+    <string name="weekday_lock_return">ВЕРНУТЬСЯ</string>
+
+    <!-- Notification. -->
+    <string name="notification_evening_title">ТРЕБУЕТСЯ ЗАКРЫТИЕ СМЕНЫ</string>
+    <string name="notification_evening_body">Зафиксируйте состояние Ядра и добродетели.</string>
+
+    <!-- Permission banners on the pulpit. -->
+    <string name="permission_notifications_title">УВЕДОМЛЕНИЯ ВЫКЛЮЧЕНЫ</string>
+    <string name="permission_notifications_body">Без разрешения системы вечернее напоминание о закрытии смены не будет показано.</string>
+    <string name="permission_exact_alarm_title">ТОЧНЫЕ АЛАРМЫ ВЫКЛЮЧЕНЫ</string>
+    <string name="permission_exact_alarm_body">Без точного будильника напоминание в 21:00 может срабатывать с задержкой до десятков минут.</string>
+    <string name="permission_grant">РАЗРЕШИТЬ</string>
+    <string name="permission_open_settings">НАСТРОЙКИ</string>
+
+    <!-- Pulpit transient error banner. -->
+    <string name="error_infra_locked">Заблокировано до первого Ядра</string>
+    <string name="error_another_focus_active">Сессия уже идёт</string>
+    <string name="error_already_approved">Ядро уже зафиксировано</string>
+    <string name="error_not_authorised">Чекбокс авторизации не активирован</string>
+    <string name="error_prompt_empty">Промпт не указан</string>
+    <string name="error_missing_defect_kind">Выберите тип отклонения</string>
+    <string name="error_evening_closed_already">Смена уже закрыта</string>
+    <string name="error_history_locked">История доступна в воскресенье</string>
+
+    <!-- Sunday audit empty state. -->
+    <string name="audit_empty_state">ДАННЫЕ ОТСУТСТВУЮТ. ЗАЛОЖИТЕ ПЕРВУЮ НЕДЕЛЮ.</string>
+
+    <!-- Accessibility content descriptions. -->
+    <string name="a11y_pulpit_date">Дата текущей смены. Долгое нажатие — конфиг.</string>
+    <string name="a11y_flash_start">Запустить фокус-сессию: %1$s</string>
+    <string name="a11y_flash_stop">Завершить активную фокус-сессию</string>
+    <string name="a11y_save_shot">Сохранить шот Ядра — открыть осознанную авторизацию</string>
+    <string name="a11y_sabotage">Открыть протокол саботажа</string>
+    <string name="a11y_mvd_on">MVD-режим активен. Нажмите чтобы выключить.</string>
+    <string name="a11y_mvd_off">MVD-режим выключен. Нажмите чтобы активировать.</string>
+    <string name="a11y_infra_locked">%1$s заблокировано до утверждения Ядра</string>
+
+    <!-- Settings (long-press on date strip to reach). -->
+    <string name="settings_header">КОНФИГ</string>
+    <string name="settings_wipe_label">ЛОКАЛЬНАЯ БАЗА</string>
     <string name="settings_wipe_request">СТЕРЕТЬ ВСЁ</string>
     <string name="settings_wipe_confirm">ПОДТВЕРДИТЬ СТИРАНИЕ</string>
     <string name="settings_wipe_cancel">ОТМЕНА</string>
-    <string name="settings_wipe_confirm_message">Все рапорты будут удалены без возможности восстановления.</string>
+    <string name="settings_wipe_confirm_message">Все сессии, фокусы и привычки будут удалены без возможности восстановления.</string>
     <string name="settings_wipe_in_progress">Стирание базы…</string>
-
-    <string name="morning_artifact_field">АРТЕФАКТ ДНЯ</string>
-    <string name="morning_artifact_hint">существительное или совершённый глагол</string>
-    <string name="morning_waste_label">ОТСЕЧЕНИЕ ПРОЦЕССОВ</string>
-    <string name="morning_waste_email">Проверка почты до 12:00</string>
-    <string name="morning_waste_meetings">Встречи без повестки</string>
-    <string name="morning_waste_messengers">Мессенджеры</string>
-
-    <string name="evening_status_label">СТАТУС АРТЕФАКТА</string>
-    <string name="evening_status_completed">СОЗДАН</string>
-    <string name="evening_status_failed">ПРОВАЛ</string>
-    <string name="evening_waste_label">УНИЧТОЖЕНО МИКРОЗАДАЧ</string>
-    <string name="evening_failure_cause_label">ЗОНА КОНТРОЛЯ (мин. 20 символов)</string>
-    <string name="evening_failure_action_label">КОРРЕКТИРУЮЩЕЕ ДЕЙСТВИЕ (мин. 20 символов)</string>
-
-    <string name="error_time_slot">Вне регламентного слота</string>
-    <string name="error_artifact_empty">Артефакт не указан</string>
-    <string name="error_artifact_too_long">Превышение длины артефакта</string>
-    <string name="error_artifact_invalid_shape">Требуется конкретный артефакт</string>
-    <string name="error_already_initialized">Смена уже открыта</string>
-    <string name="error_not_initialized">Смена не открыта</string>
-    <string name="error_failure_cause_short">Зона контроля короче 20 символов</string>
-    <string name="error_corrective_action_short">Корректирующее действие короче 20 символов</string>
-    <string name="error_unblocking_action_short">Разблокирующее действие короче 20 символов</string>
-
-    <string name="midday_directive">СРЕЗ СТАТУСА. ЗАФИКСИРУЙТЕ ПОЛОЖЕНИЕ</string>
-    <string name="midday_shift_closed_title">СМЕНА НЕ ОТКРЫТА</string>
-    <string name="midday_shift_closed_body">УТВЕРДИТЕ АРТЕФАКТ ДНЯ В УТРЕННЕМ ОКНЕ. БЕЗ АРТЕФАКТА КОНТРОЛЬНАЯ ТОЧКА НЕ ФИКСИРУЕТСЯ.</string>
-    <string name="midday_status_label">КОНТУР ИСПОЛНЕНИЯ</string>
-    <string name="midday_status_in_progress">В РАБОТЕ</string>
-    <string name="midday_status_blocked">ЗАБЛОКИРОВАН</string>
-    <string name="midday_action_label">РАЗБЛОКИРУЮЩЕЕ ДЕЙСТВИЕ (мин. 20 символов)</string>
-    <string name="midday_action_lock_in">ЗАФИКСИРОВАТЬ</string>
+    <string name="settings_return">ВЕРНУТЬСЯ К ПУЛЬТУ</string>
 </resources>

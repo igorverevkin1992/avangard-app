@@ -67,18 +67,18 @@ val MachineTypography = Typography(
         fontFamily = DisplayFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 14.sp,
-        letterSpacing = 0.5.sp,
+        letterSpacing = 0.sp,
     ),
     labelLarge = TextStyle(
         fontFamily = DisplayFamily,
         fontWeight = FontWeight.Bold,
         fontSize = 14.sp,
-        letterSpacing = 2.sp,
+        letterSpacing = 1.sp,
     ),
     labelMedium = TextStyle(
         fontFamily = MonoFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 12.sp,
-        letterSpacing = 1.sp,
+        letterSpacing = 0.sp,
     ),
 )

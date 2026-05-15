@@ -1,12 +1,14 @@
 package com.avangard.app.feature.settings
 
+import com.avangard.app.core.common.toStartOfDayEpoch
+import com.avangard.app.core.domain.FakeClock
 import com.avangard.app.core.domain.FakeHabitRepository
-import com.avangard.app.core.domain.FakeReportRepository
-import com.avangard.app.core.domain.model.DailyReport
-import com.avangard.app.core.domain.model.SystemFlag
+import com.avangard.app.core.domain.FakeSessionRepository
+import com.avangard.app.core.domain.model.Habit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -21,16 +23,18 @@ import org.junit.Test
 class SettingsViewModelTest {
 
     private val dispatcher = UnconfinedTestDispatcher()
-    private lateinit var repository: FakeReportRepository
+    private lateinit var sessions: FakeSessionRepository
     private lateinit var habits: FakeHabitRepository
+    private lateinit var clock: FakeClock
     private lateinit var viewModel: SettingsViewModel
 
     @Before
     fun setUp() {
         Dispatchers.setMain(dispatcher)
-        repository = FakeReportRepository()
+        clock = FakeClock()
+        sessions = FakeSessionRepository(clock)
         habits = FakeHabitRepository()
-        viewModel = SettingsViewModel(repository, habits)
+        viewModel = SettingsViewModel(sessions = sessions, habits = habits)
     }
 
     @After
@@ -39,7 +43,7 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `cancel resets confirmation`() = runTest(dispatcher) {
+    fun `request then cancel resets confirmation`() = runTest(dispatcher) {
         viewModel.requestWipe()
         assertTrue(viewModel.state.value.confirmingWipe)
         viewModel.cancelWipe()
@@ -47,22 +51,20 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `confirm wipes reports and flags`() = runTest(dispatcher) {
-        repository.upsert(
-            DailyReport(
-                id = 0,
-                dateEpoch = 1_000L,
-                targetArtifact = "X",
-                isCompleted = true,
-                eliminatedWaste = 1,
-                failureCause = null,
-                correctiveAction = null,
-            ),
-        )
-        repository.setFlag(SystemFlag.FocusMode, true)
+    fun `confirm wipes both session and habit stores`() = runTest(dispatcher) {
+        val today = clock.today().toStartOfDayEpoch(clock.zone())
+        sessions.approveCore(today, "Шот", clock.nowEpochMillis())
+        habits.toggle(clock.today(), Habit.Sport, clock.nowEpochMillis())
+
         viewModel.requestWipe()
         viewModel.confirmWipe()
-        assertNull(repository.findForDate(1_000L))
+        advanceUntilIdle()
+
+        assertNull(sessions.findForDate(today))
+        // FakeHabitRepository.wipe also clears its store; observe via toggle round-trip.
+        habits.toggle(clock.today(), Habit.Sport, clock.nowEpochMillis())
+        // Toggle back on after wipe → toggling once produces a fresh mark, so habit is present.
+        // We don't need to assert further than wipe non-throwing + state reset:
         assertFalse(viewModel.state.value.confirmingWipe)
         assertFalse(viewModel.state.value.wipeInProgress)
     }

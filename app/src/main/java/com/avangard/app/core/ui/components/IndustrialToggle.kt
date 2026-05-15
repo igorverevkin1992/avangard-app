@@ -20,7 +20,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
-import com.avangard.app.ui.theme.MachineColors
+import com.avangard.app.ui.theme.IsaColors
 
 /**
  * Hardware-style toggle: no ripple, no shadows. Mirrors the state shift of a
@@ -33,8 +33,8 @@ fun IndustrialToggle(
     onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val activeColor = MachineColors.ReardenCopper
-    val inactiveColor = MachineColors.WarmGray
+    val activeColor = IsaColors.Approve
+    val inactiveColor = IsaColors.Lattice
     val color = if (checked) activeColor else inactiveColor
     val knobOffset by animateFloatAsState(
         targetValue = if (checked) 1f else 0f,

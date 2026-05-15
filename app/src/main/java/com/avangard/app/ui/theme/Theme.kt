@@ -4,24 +4,24 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 
-private val MachineColorScheme = darkColorScheme(
-    primary = MachineColors.ReardenCopper,
-    onPrimary = MachineColors.Anthracite,
-    secondary = MachineColors.BlueprintCyan,
-    onSecondary = MachineColors.Anthracite,
-    error = MachineColors.AtlasRed,
-    onError = MachineColors.Ivory,
-    background = MachineColors.Anthracite,
-    onBackground = MachineColors.Ivory,
-    surface = MachineColors.Anthracite,
-    onSurface = MachineColors.Ivory,
-    outline = MachineColors.WarmGray,
+private val IsaColorScheme = darkColorScheme(
+    primary = IsaColors.Approve,
+    onPrimary = IsaColors.Carbon,
+    secondary = IsaColors.LiveMetal,
+    onSecondary = IsaColors.Carbon,
+    error = IsaColors.Signal,
+    onError = IsaColors.LiveMetal,
+    background = IsaColors.Graphite,
+    onBackground = IsaColors.LiveMetal,
+    surface = IsaColors.Graphite,
+    onSurface = IsaColors.LiveMetal,
+    outline = IsaColors.Steel,
 )
 
 @Composable
 fun MachineTheme(content: @Composable () -> Unit) {
     MaterialTheme(
-        colorScheme = MachineColorScheme,
+        colorScheme = IsaColorScheme,
         typography = MachineTypography,
         content = content,
     )

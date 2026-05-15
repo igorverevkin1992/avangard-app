@@ -1,0 +1,116 @@
+package com.avangard.app.core.domain.usecase
+
+import com.avangard.app.core.common.Clock
+import com.avangard.app.core.common.DAY_MILLIS
+import com.avangard.app.core.common.toStartOfDayEpoch
+import com.avangard.app.core.domain.model.CoreStatus
+import com.avangard.app.core.domain.model.DailySession
+import com.avangard.app.core.domain.model.DefectKind
+import com.avangard.app.core.domain.model.FocusSession
+import com.avangard.app.core.domain.model.Habit
+import com.avangard.app.core.domain.model.InfraStatus
+import com.avangard.app.core.domain.repository.SessionRepository
+import javax.inject.Inject
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+
+/**
+ * Aggregate of the previous 7 days (today + 6 prior) computed reactively from
+ * both the daily ledger and the focus event log. A new focus session anywhere
+ * in the window re-emits the view — the previous flow{} variant only sampled
+ * focus_session once and went stale.
+ */
+data class SundayAuditView(
+    val coreHoursMillis: Long,
+    val daysApproved: Int,
+    val defectCount: Int,
+    val wasteCount: Int,
+    val mvdDays: Int,
+    val infraBreakdown: Map<Habit, InfraBreakdown>,
+    val virtueSums: VirtueSums,
+) {
+    data class InfraBreakdown(
+        val standard: Int,
+        val mvd: Int,
+        val notDone: Int,
+    )
+
+    data class VirtueSums(
+        val rationality: Int,
+        val independence: Int,
+        val honesty: Int,
+        val justice: Int,
+    )
+
+    fun isEmpty(): Boolean =
+        coreHoursMillis == 0L &&
+            daysApproved == 0 &&
+            defectCount == 0 &&
+            wasteCount == 0 &&
+            mvdDays == 0 &&
+            virtueSums.rationality == 0 &&
+            virtueSums.independence == 0 &&
+            virtueSums.honesty == 0 &&
+            virtueSums.justice == 0 &&
+            infraBreakdown.values.all { it.standard == 0 && it.mvd == 0 }
+}
+
+class SundayAuditUseCase @Inject constructor(
+    private val repository: SessionRepository,
+    private val clock: Clock,
+) {
+    operator fun invoke(): Flow<SundayAuditView> {
+        val today = clock.today().toStartOfDayEpoch(clock.zone())
+        val weekStart = today - 6 * DAY_MILLIS
+        val weekEnd = today + DAY_MILLIS - 1
+        return combine(
+            repository.observeRange(weekStart, weekEnd),
+            repository.observeFocusRange(weekStart, weekEnd),
+        ) { sessions, focus -> buildView(sessions, focus) }
+    }
+
+    private fun buildView(
+        weekSessions: List<DailySession>,
+        focus: List<FocusSession>,
+    ): SundayAuditView {
+        val coreHoursMillis = focus
+            .filter { it.habit == Habit.Generations && it.endedAt != null }
+            .sumOf { (it.endedAt!! - it.startedAt) }
+
+        val daysApproved = weekSessions.count { it.coreStatus is CoreStatus.Approved }
+        val defectCount = weekSessions.count {
+            val cs = it.coreStatus
+            cs is CoreStatus.Failed && cs.kind == DefectKind.Defect
+        }
+        val wasteCount = weekSessions.count {
+            val cs = it.coreStatus
+            cs is CoreStatus.Failed && cs.kind == DefectKind.Waste
+        }
+        val mvdDays = weekSessions.count { it.mvdActive }
+
+        val infraBreakdown = listOf(Habit.Spanish, Habit.Sport, Habit.Watching, Habit.Reading)
+            .associateWith { habit ->
+                val statuses = weekSessions.map { it.infraStatus(habit) }
+                SundayAuditView.InfraBreakdown(
+                    standard = statuses.count { it == InfraStatus.Standard },
+                    mvd = statuses.count { it == InfraStatus.Mvd },
+                    notDone = statuses.count { it == InfraStatus.NotDone },
+                )
+            }
+        val virtueSums = SundayAuditView.VirtueSums(
+            rationality = weekSessions.sumOf { it.virtues?.rationality ?: 0 },
+            independence = weekSessions.sumOf { it.virtues?.independence ?: 0 },
+            honesty = weekSessions.sumOf { it.virtues?.honesty ?: 0 },
+            justice = weekSessions.sumOf { it.virtues?.justice ?: 0 },
+        )
+        return SundayAuditView(
+            coreHoursMillis = coreHoursMillis,
+            daysApproved = daysApproved,
+            defectCount = defectCount,
+            wasteCount = wasteCount,
+            mvdDays = mvdDays,
+            infraBreakdown = infraBreakdown,
+            virtueSums = virtueSums,
+        )
+    }
+}
