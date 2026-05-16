@@ -103,6 +103,16 @@
     <string name="audit_empty_state">ДАННЫЕ ОТСУТСТВУЮТ. ЗАЛОЖИТЕ ПЕРВУЮ НЕДЕЛЮ.</string>
 
     <!-- Accessibility content descriptions. -->
+    <string name="a11y_state_checked">установлен</string>
+    <string name="a11y_state_unchecked">не установлен</string>
+    <string name="a11y_state_on">включено</string>
+    <string name="a11y_state_off">выключено</string>
+    <string name="a11y_status_idle">статус Idle — действий не выполнено</string>
+    <string name="a11y_status_standard">статус Standard — стандартная отметка</string>
+    <string name="a11y_status_mvd">статус MVD — минимально-достаточное действие</string>
+    <string name="a11y_status_approved">статус Approved — Ядро зафиксировано</string>
+    <string name="a11y_status_fail">статус Fail — Ядро провалено</string>
+    <string name="a11y_status_locked">заблокировано до утверждения Ядра</string>
     <string name="a11y_pulpit_date">Дата текущей смены. Долгое нажатие — конфиг.</string>
     <string name="a11y_flash_start">Запустить фокус-сессию: %1$s</string>
     <string name="a11y_flash_stop">Завершить активную фокус-сессию</string>

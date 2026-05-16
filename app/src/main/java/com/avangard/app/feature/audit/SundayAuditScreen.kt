@@ -21,6 +21,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.avangard.app.R
@@ -71,6 +73,7 @@ internal fun SundayAuditContent(
             text = stringResource(R.string.audit_header),
             color = IsaColors.LiveMetal,
             style = MaterialTheme.typography.headlineLarge,
+            modifier = Modifier.semantics { heading() },
         )
 
         val view = state.view

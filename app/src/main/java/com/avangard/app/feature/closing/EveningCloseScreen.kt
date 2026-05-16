@@ -23,6 +23,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -72,6 +77,7 @@ internal fun EveningCloseContent(
             text = stringResource(R.string.closing_header),
             color = IsaColors.LiveMetal,
             style = MaterialTheme.typography.headlineLarge,
+            modifier = Modifier.semantics { heading() },
         )
 
         PulpitPanel(label = stringResource(R.string.closing_indicators_label)) {
@@ -198,6 +204,10 @@ private fun RowScope.VirtueOption(
         textAlign = TextAlign.Center,
         modifier = Modifier
             .weight(1f)
+            .semantics(mergeDescendants = true) {
+                role = Role.RadioButton
+                this.selected = selected
+            }
             .border(width = if (selected) 2.dp else 1.dp, color = tint)
             .clickable(
                 interactionSource = interactionSource,

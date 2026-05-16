@@ -19,6 +19,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
@@ -53,6 +55,7 @@ fun AuthorisationModalScreen(
             text = stringResource(R.string.auth_title),
             color = IsaColors.LiveMetal,
             style = MaterialTheme.typography.headlineLarge,
+            modifier = Modifier.semantics { heading() },
         )
         Text(
             text = stringResource(R.string.auth_question),
