@@ -409,7 +409,7 @@ private fun Stepper(
                 if (next != value) onChange(next)
             })
             Text(
-                text = "%02d".format(value),
+                text = "%02d".format(java.util.Locale.US, value),
                 color = IsaColors.LiveMetal,
                 style = MaterialTheme.typography.headlineLarge,
                 textAlign = TextAlign.Center,

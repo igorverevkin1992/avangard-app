@@ -44,5 +44,5 @@ private fun format(millis: Long): String {
     val h = totalSeconds / 3600
     val m = (totalSeconds % 3600) / 60
     val s = totalSeconds % 60
-    return "%02d:%02d:%02d".format(h, m, s)
+    return "%02d:%02d:%02d".format(java.util.Locale.US, h, m, s)
 }

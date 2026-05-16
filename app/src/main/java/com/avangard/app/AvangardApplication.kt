@@ -50,8 +50,18 @@ class AvangardApplication : Application() {
             options.isAnrEnabled = true
             options.isEnableUserInteractionTracing = false
             options.beforeSend = SentryOptions.BeforeSendCallback { event, _ ->
+                // Hard PII stripping: user (auto-captured identifiers) and
+                // request (URLs / headers) are obvious. Also clear tags, which
+                // Sentry auto-populates from contexts, and drop HTTP and
+                // navigation breadcrumbs that could leak deep-link URIs or
+                // form values. Stack traces are unaffected.
                 event.user = null
                 event.request = null
+                event.tags?.clear()
+                event.breadcrumbs?.removeAll { breadcrumb ->
+                    val category = breadcrumb.category?.lowercase()
+                    category == "http" || category == "navigation" || category == "ui.click"
+                }
                 event
             }
         }

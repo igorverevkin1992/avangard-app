@@ -181,5 +181,5 @@ private fun formatHours(millis: Long): String {
     val totalSeconds = millis / 1000
     val h = totalSeconds / 3600
     val m = (totalSeconds % 3600) / 60
-    return "%02d:%02d".format(h, m)
+    return "%02d:%02d".format(java.util.Locale.US, h, m)
 }

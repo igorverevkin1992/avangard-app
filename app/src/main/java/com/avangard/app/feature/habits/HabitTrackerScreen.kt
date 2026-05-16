@@ -115,7 +115,7 @@ private fun MonthSelector(year: Int, month: Int, onSelect: (Int) -> Unit) {
                     style = MaterialTheme.typography.labelMedium,
                 )
                 Text(
-                    text = "%02d/12".format(index + 1),
+                    text = "%02d/12".format(java.util.Locale.US, index + 1),
                     color = color,
                     style = MaterialTheme.typography.labelSmall,
                 )
@@ -234,7 +234,7 @@ private fun DayRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            text = "%02d.%02d".format(date.dayOfMonth, date.monthValue),
+            text = "%02d.%02d".format(java.util.Locale.US, date.dayOfMonth, date.monthValue),
             color = dateColor,
             style = MaterialTheme.typography.labelMedium.copy(fontSize = 13.sp),
             modifier = Modifier
