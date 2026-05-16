@@ -44,7 +44,10 @@ class SettingsViewModel @Inject constructor(
         )
     }.stateIn(
         scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
+        // Eagerly so state.value is always the live combined value, including
+        // mutations from request/cancel/confirmWipe — tests read state.value
+        // directly without spinning up a collector.
+        started = SharingStarted.Eagerly,
         initialValue = SettingsState(),
     )
 
