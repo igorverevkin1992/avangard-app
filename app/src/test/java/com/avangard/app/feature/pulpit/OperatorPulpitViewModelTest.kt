@@ -131,9 +131,11 @@ class OperatorPulpitViewModelTest {
 
     @Test
     fun `onStopFocus ends active focus even when state has detached`() = runTest(dispatcher) {
+        // Core must be approved before Sport can be started (Hostage Logic),
+        // and Generations would be rejected as AlreadyApproved after approve.
         val today = clock.today().toStartOfDayEpoch(clock.zone())
         repository.approveCore(today, "Шот", clock.nowEpochMillis())
-        viewModel.onStartFocus(Habit.Generations)
+        viewModel.onStartFocus(Habit.Sport)
         advanceUntilIdle()
         assertNotNull(repository.findActiveFocus())
 
