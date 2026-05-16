@@ -5,13 +5,11 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import com.avangard.app.MainActivity
 import com.avangard.app.core.common.Clock
 import com.avangard.app.core.common.toStartOfDayEpoch
 import com.avangard.app.core.data.UserPreferencesRepository
 import com.avangard.app.core.domain.model.CoreStatus
 import com.avangard.app.core.domain.repository.SessionRepository
-import com.avangard.app.navigation.NavRoute
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -71,14 +69,12 @@ class EveningCloseScheduler @Inject constructor(
 
     private fun scheduleAt(triggerAt: Long) {
         val operation = pendingIntent()
+        // Temporarily reverted from setAlarmClock to setExactAndAllowWhileIdle
+        // while a fresh-install startup crash is being isolated. The
+        // lockscreen alarm-chip becomes non-functional, but the broadcast
+        // still fires at target time. Restore once the trigger is found.
         if (canScheduleExact()) {
-            // setAlarmClock surfaces a system alarm-chip on the lockscreen.
-            // showIntent must launch an Activity (the chip tap opens it),
-            // separate from the broadcast that actually fires the alarm.
-            alarmManager.setAlarmClock(
-                AlarmManager.AlarmClockInfo(triggerAt, lockscreenChipIntent()),
-                operation,
-            )
+            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, operation)
         } else {
             alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, operation)
         }
@@ -123,28 +119,9 @@ class EveningCloseScheduler @Inject constructor(
         )
     }
 
-    /**
-     * Activity intent used as the lockscreen chip target. Tapping the chip
-     * jumps straight into the EveningClose modal rather than re-firing the
-     * broadcast.
-     */
-    private fun lockscreenChipIntent(): PendingIntent {
-        val intent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            putExtra(MainActivity.EXTRA_START_DESTINATION, NavRoute.EveningClose.route)
-        }
-        return PendingIntent.getActivity(
-            context,
-            SHOW_REQUEST_CODE,
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-        )
-    }
-
     companion object {
         const val ACTION_FIRE = "com.avangard.app.alarm.EVENING_CLOSE"
         private const val REQUEST_CODE = 4001
-        private const val SHOW_REQUEST_CODE = 4002
         // 5s lets the boot path settle (DataStore warm, Hilt graph resolved)
         // before the AlarmManager broadcast lands.
         private const val FIRE_IMMEDIATELY_BUFFER_MS = 5_000L

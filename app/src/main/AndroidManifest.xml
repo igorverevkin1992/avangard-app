@@ -7,8 +7,17 @@
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <!--
+        v3.4 foreground service + Quick Settings tile are temporarily
+        unbound from the manifest while investigating a fresh-install
+        startup crash. The Kotlin classes (FlashForegroundService,
+        FlashTileService, AndroidFocusServiceController) remain in the
+        source tree; only their system entry points are disabled so the
+        process can come up clean and we can re-enable them one at a
+        time once the trigger is identified.
+    -->
+    <!-- <uses-permission android:name="android.permission.FOREGROUND_SERVICE" /> -->
+    <!-- <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" /> -->
 
     <application
         android:name=".AvangardApplication"
@@ -48,6 +57,12 @@
             </intent-filter>
         </receiver>
 
+        <!--
+            v3.4 ongoing-notification service. Disabled in manifest while
+            diagnosing fresh-install startup crash; re-enable once
+            isolated.
+        -->
+        <!--
         <service
             android:name=".sync.service.FlashForegroundService"
             android:exported="false"
@@ -67,6 +82,7 @@
                 <action android:name="android.service.quicksettings.action.QS_TILE" />
             </intent-filter>
         </service>
+        -->
     </application>
 
 </manifest>

@@ -1,6 +1,7 @@
 package com.avangard.app.sync.service
 
 import android.content.Context
+import android.util.Log
 import com.avangard.app.core.domain.usecase.FocusServiceController
 import dagger.Binds
 import dagger.Module
@@ -15,7 +16,17 @@ class AndroidFocusServiceController @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : FocusServiceController {
     override fun start() {
-        FlashForegroundService.start(context)
+        // The FlashForegroundService manifest entry is temporarily disabled
+        // (see AndroidManifest.xml) while a fresh-install startup crash is
+        // isolated. Without the entry, startForegroundService throws
+        // SecurityException at runtime. Guard with try/catch and log so
+        // the use-case stays happy; the focus row is the source of truth
+        // for the pulpit timer regardless.
+        try {
+            FlashForegroundService.start(context)
+        } catch (e: Throwable) {
+            Log.w("FocusService", "FlashForegroundService unavailable", e)
+        }
     }
 }
 
