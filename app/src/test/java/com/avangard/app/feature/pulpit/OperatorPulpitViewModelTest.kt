@@ -128,4 +128,21 @@ class OperatorPulpitViewModelTest {
         val state = viewModel.state.filterNotNull().first()
         assertEquals(SessionError.InfraLocked, state.transientError)
     }
+
+    @Test
+    fun `onStopFocus ends active focus even when state has detached`() = runTest(dispatcher) {
+        val today = clock.today().toStartOfDayEpoch(clock.zone())
+        repository.approveCore(today, "Шот", clock.nowEpochMillis())
+        viewModel.onStartFocus(Habit.Generations)
+        advanceUntilIdle()
+        assertNotNull(repository.findActiveFocus())
+
+        // No subscriber on state — WhileSubscribed(5s) means state.value is
+        // back to its initialValue=null. onStopFocus must still close the
+        // session by reading the source flow directly.
+        viewModel.onStopFocus()
+        advanceUntilIdle()
+
+        assertEquals(null, repository.findActiveFocus())
+    }
 }

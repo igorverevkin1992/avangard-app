@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
@@ -56,7 +57,7 @@ sealed interface PulpitEffect {
 class OperatorPulpitViewModel @Inject constructor(
     private val clock: Clock,
     observeSession: ObserveDailySessionUseCase,
-    observeActiveFocus: ObserveActiveFocusUseCase,
+    private val observeActiveFocus: ObserveActiveFocusUseCase,
     preferences: UserPreferencesRepository,
     private val startFocus: StartFocusUseCase,
     private val endFocus: EndFocusUseCase,
@@ -108,8 +109,12 @@ class OperatorPulpitViewModel @Inject constructor(
         }
     }
 
+    // Read the source flow directly: state uses WhileSubscribed(5s), so after
+    // a brief UI detachment state.value collapses to initialValue=null and
+    // onStopFocus() would silently no-op despite an active focus on disk.
     fun onStopFocus() = viewModelScope.launch {
-        state.value?.activeFocus?.let { endFocus(it.id) }
+        val id = observeActiveFocus().first()?.id ?: return@launch
+        endFocus(id)
     }
 
     fun onToggleMvd() = viewModelScope.launch { toggleMvd() }
