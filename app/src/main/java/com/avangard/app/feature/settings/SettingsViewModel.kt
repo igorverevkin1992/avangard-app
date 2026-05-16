@@ -1,7 +1,9 @@
 package com.avangard.app.feature.settings
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.avangard.app.core.common.Clock
 import com.avangard.app.core.common.DomainResult
 import com.avangard.app.core.data.UserPreferences
 import com.avangard.app.core.data.UserPreferencesRepository
@@ -31,6 +33,7 @@ sealed interface BackupStatus {
     sealed interface ImportFailed : BackupStatus {
         data object NotJson : ImportFailed
         data class UnsupportedSchema(val version: Int) : ImportFailed
+        data object CorruptedSnapshot : ImportFailed
         data object ReadFailed : ImportFailed
     }
 }
@@ -76,7 +79,12 @@ class SettingsViewModel @Inject constructor(
     private val scheduler: EveningCloseScheduler,
     private val exportBackup: ExportBackupUseCase,
     private val importBackup: ImportBackupUseCase,
+    private val clock: Clock,
 ) : ViewModel() {
+
+    /** Backup filename uses the injected Clock so timezone-sensitive paths
+     *  agree with the rest of the app (Pulpit, scheduler, etc.). */
+    fun proposedBackupFileName(): String = "avangard-${clock.today()}.json"
 
     private val wipeFlags = MutableStateFlow(WipeFlags())
     private val backupState = MutableStateFlow(BackupFlags())
@@ -146,7 +154,10 @@ class SettingsViewModel @Inject constructor(
             val bytes = exportBackup()
             backupState.value = backupState.value.copy(status = BackupStatus.ExportSucceeded)
             bytes
-        } catch (_: Throwable) {
+        } catch (e: Throwable) {
+            // Log to Logcat — Sentry's breadcrumb integration mirrors these
+            // automatically, so an opt-in release will see the stack trace.
+            Log.e(LOG_TAG, "backup export failed", e)
             backupState.value = backupState.value.copy(status = BackupStatus.ExportFailed)
             null
         }
@@ -191,6 +202,8 @@ class SettingsViewModel @Inject constructor(
                         is BackupImportError.NotJson -> BackupStatus.ImportFailed.NotJson
                         is BackupImportError.UnsupportedSchema ->
                             BackupStatus.ImportFailed.UnsupportedSchema(e.version)
+                        is BackupImportError.CorruptedSnapshot ->
+                            BackupStatus.ImportFailed.CorruptedSnapshot
                     }
                 }
             )
@@ -230,6 +243,7 @@ class SettingsViewModel @Inject constructor(
     }
 
     companion object {
+        private const val LOG_TAG = "SettingsViewModel"
         val COLD_START_OPTIONS_MINUTES = listOf(3, 5, 7, 10)
         const val DEFAULT_COLD_START_MINUTES =
             (DEFAULT_COLD_START_THRESHOLD_MS / 1000 / 60).toInt()

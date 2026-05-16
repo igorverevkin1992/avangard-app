@@ -136,6 +136,7 @@
     <string name="settings_backup_export_failed">Не удалось записать копию.</string>
     <string name="settings_backup_import_not_json">Файл не является валидным JSON-снимком.</string>
     <string name="settings_backup_import_unsupported">Несовместимая схема копии (версия %1$d).</string>
+    <string name="settings_backup_import_corrupted">Снимок нарушает целостность базы и был отклонён. Исходные данные сохранены.</string>
     <string name="settings_backup_import_read_failed">Не удалось прочитать файл копии.</string>
     <string name="settings_restore_confirm">ПОДТВЕРДИТЬ ВОССТАНОВЛЕНИЕ</string>
     <string name="settings_restore_cancel">ОТМЕНА</string>

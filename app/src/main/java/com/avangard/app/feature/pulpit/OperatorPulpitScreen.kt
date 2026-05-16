@@ -75,7 +75,7 @@ fun OperatorPulpitScreen(
     }
 
     OperatorPulpitContent(
-        today = state?.today ?: LocalDate.now(),
+        today = state?.today ?: viewModel.initialToday,
         state = state,
         transientError = state?.transientError,
         onStartFocus = viewModel::onStartFocus,

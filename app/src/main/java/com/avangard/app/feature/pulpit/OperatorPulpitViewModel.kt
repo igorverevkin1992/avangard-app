@@ -68,6 +68,11 @@ class OperatorPulpitViewModel @Inject constructor(
     private val _effects = Channel<PulpitEffect>(Channel.BUFFERED)
     val effects = _effects.receiveAsFlow()
 
+    /** Stable fallback for the first frame, before the combined state emits.
+     *  Uses the injected Clock so the value agrees with the configured zone
+     *  rather than the system default. */
+    val initialToday: LocalDate = clock.today()
+
     private val transientError = MutableStateFlow<SessionError?>(null)
     private var transientErrorClearJob: Job? = null
 

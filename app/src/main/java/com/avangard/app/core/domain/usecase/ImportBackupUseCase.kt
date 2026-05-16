@@ -1,5 +1,7 @@
 package com.avangard.app.core.domain.usecase
 
+import android.database.sqlite.SQLiteConstraintException
+import android.util.Log
 import com.avangard.app.core.common.DomainResult
 import com.avangard.app.core.domain.model.BackupBundle
 import com.avangard.app.core.domain.repository.BackupRepository
@@ -10,6 +12,11 @@ import kotlinx.serialization.json.Json
 sealed interface BackupImportError {
     data object NotJson : BackupImportError
     data class UnsupportedSchema(val version: Int) : BackupImportError
+    // Snapshot decoded fine but a DB invariant rejected it (e.g. two
+    // focus_session rows with ended_at IS NULL hit uniq_focus_active).
+    // RoomBackupRepository wraps restore in withTransaction so the original
+    // store is intact after rollback — surfacing this is safe.
+    data object CorruptedSnapshot : BackupImportError
 }
 
 /**
@@ -34,7 +41,16 @@ class ImportBackupUseCase @Inject constructor(
         if (bundle.schemaVersion != BackupBundle.SCHEMA_VERSION) {
             return DomainResult.Err(BackupImportError.UnsupportedSchema(bundle.schemaVersion))
         }
-        repository.restore(bundle)
-        return DomainResult.Ok(Unit)
+        return try {
+            repository.restore(bundle)
+            DomainResult.Ok(Unit)
+        } catch (e: SQLiteConstraintException) {
+            Log.e(LOG_TAG, "snapshot violated a DB invariant during restore", e)
+            DomainResult.Err(BackupImportError.CorruptedSnapshot)
+        }
+    }
+
+    private companion object {
+        const val LOG_TAG = "ImportBackup"
     }
 }

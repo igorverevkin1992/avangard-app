@@ -67,6 +67,7 @@ class SettingsViewModelTest {
             scheduler = scheduler,
             exportBackup = exportBackup,
             importBackup = importBackup,
+            clock = clock,
         )
     }
 
@@ -180,6 +181,28 @@ class SettingsViewModelTest {
         advanceUntilIdle()
 
         assertEquals(BackupStatus.ImportFailed.NotJson, viewModel.state.value.backupStatus)
+    }
+
+    @Test
+    fun `commitImport surfaces CorruptedSnapshot when DB invariants reject`() = runTest(dispatcher) {
+        val bytes = "{}".toByteArray()
+        coEvery { importBackup.invoke(bytes) } returns
+            DomainResult.Err(BackupImportError.CorruptedSnapshot)
+
+        viewModel.stageImport(bytes)
+        viewModel.commitImport()
+        advanceUntilIdle()
+
+        assertEquals(
+            BackupStatus.ImportFailed.CorruptedSnapshot,
+            viewModel.state.value.backupStatus,
+        )
+    }
+
+    @Test
+    fun `proposedBackupFileName reflects clock today`() {
+        // FakeClock default is 2026-05-07.
+        assertEquals("avangard-2026-05-07.json", viewModel.proposedBackupFileName())
     }
 
     @Test

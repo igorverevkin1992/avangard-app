@@ -1,8 +1,10 @@
 package com.avangard.app.core.domain.usecase
 
+import android.database.sqlite.SQLiteConstraintException
 import com.avangard.app.core.common.DomainResult
 import com.avangard.app.core.domain.model.BackupBundle
 import com.avangard.app.core.domain.repository.BackupRepository
+import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
@@ -10,7 +12,10 @@ import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class ImportBackupUseCaseTest {
 
     private val json = Json {
@@ -68,5 +73,28 @@ class ImportBackupUseCaseTest {
             result,
         )
         coVerify(exactly = 0) { repository.restore(any()) }
+    }
+
+    @Test
+    fun `repository SQLiteConstraintException maps to CorruptedSnapshot`() = runBlocking {
+        // Simulates the partial unique index on focus_session firing during a
+        // restore that contained two rows with ended_at IS NULL. The
+        // withTransaction rollback inside RoomBackupRepository preserves the
+        // original DB, so the use case must surface a clean error.
+        val bundle = BackupBundle(
+            exportedAt = 1_700_000_000_000,
+            dailySessions = emptyList(),
+            focusSessions = emptyList(),
+            habitLogs = emptyList(),
+        )
+        val bytes = json.encodeToString(BackupBundle.serializer(), bundle).toByteArray()
+        val repository = mockk<BackupRepository> {
+            coEvery { restore(any()) } throws SQLiteConstraintException("uniq_focus_active")
+        }
+        val useCase = ImportBackupUseCase(repository, json)
+
+        val result = useCase(bytes)
+
+        assertEquals(DomainResult.Err(BackupImportError.CorruptedSnapshot), result)
     }
 }

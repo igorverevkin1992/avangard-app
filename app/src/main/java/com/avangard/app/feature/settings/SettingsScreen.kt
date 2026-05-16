@@ -36,7 +36,6 @@ import com.avangard.app.core.ui.components.HardButton
 import com.avangard.app.core.ui.components.HardButtonVariant
 import com.avangard.app.core.ui.components.PulpitPanel
 import com.avangard.app.ui.theme.IsaColors
-import java.time.LocalDate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -93,7 +92,7 @@ fun SettingsScreen(
         onRequestWipe = viewModel::requestWipe,
         onConfirmWipe = viewModel::confirmWipe,
         onCancelWipe = viewModel::cancelWipe,
-        onExportClick = { exportLauncher.launch(defaultBackupFileName()) },
+        onExportClick = { exportLauncher.launch(viewModel.proposedBackupFileName()) },
         onImportClick = { importLauncher.launch(arrayOf("application/json")) },
         onConfirmImport = viewModel::commitImport,
         onCancelImport = viewModel::cancelImport,
@@ -102,9 +101,6 @@ fun SettingsScreen(
         modifier = modifier,
     )
 }
-
-private fun defaultBackupFileName(): String =
-    "avangard-${LocalDate.now()}.json"
 
 @Composable
 internal fun SettingsContent(
@@ -284,6 +280,8 @@ private fun BackupStatusLine(
             stringResource(R.string.settings_backup_import_not_json) to IsaColors.Signal
         is BackupStatus.ImportFailed.UnsupportedSchema ->
             stringResource(R.string.settings_backup_import_unsupported, status.version) to IsaColors.Signal
+        BackupStatus.ImportFailed.CorruptedSnapshot ->
+            stringResource(R.string.settings_backup_import_corrupted) to IsaColors.Signal
         BackupStatus.ImportFailed.ReadFailed ->
             stringResource(R.string.settings_backup_import_read_failed) to IsaColors.Signal
     }
