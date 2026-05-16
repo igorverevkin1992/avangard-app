@@ -35,4 +35,7 @@ interface FocusSessionDao {
 
     @Query("DELETE FROM focus_session")
     suspend fun deleteAll()
+
+    @Query("SELECT * FROM focus_session ORDER BY started_at ASC")
+    suspend fun getAll(): List<FocusSessionEntity>
 }

@@ -2,10 +2,14 @@ package com.avangard.app.feature.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.avangard.app.core.common.DomainResult
 import com.avangard.app.core.data.UserPreferences
 import com.avangard.app.core.data.UserPreferencesRepository
 import com.avangard.app.core.domain.repository.HabitRepository
 import com.avangard.app.core.domain.repository.SessionRepository
+import com.avangard.app.core.domain.usecase.BackupImportError
+import com.avangard.app.core.domain.usecase.ExportBackupUseCase
+import com.avangard.app.core.domain.usecase.ImportBackupUseCase
 import com.avangard.app.core.ui.components.DEFAULT_COLD_START_THRESHOLD_MS
 import com.avangard.app.sync.scheduler.EveningCloseScheduler
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,11 +21,52 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+sealed interface BackupStatus {
+    data object Idle : BackupStatus
+    data object Exporting : BackupStatus
+    data object Importing : BackupStatus
+    data object ExportSucceeded : BackupStatus
+    data object ImportSucceeded : BackupStatus
+    data object ExportFailed : BackupStatus
+    sealed interface ImportFailed : BackupStatus {
+        data object NotJson : ImportFailed
+        data class UnsupportedSchema(val version: Int) : ImportFailed
+        data object ReadFailed : ImportFailed
+    }
+}
+
 data class SettingsState(
     val preferences: UserPreferences = UserPreferences(),
     val confirmingWipe: Boolean = false,
     val wipeInProgress: Boolean = false,
-)
+    val pendingImportBytes: ByteArray? = null,
+    val backupStatus: BackupStatus = BackupStatus.Idle,
+) {
+    // ByteArray breaks data-class equals; keep generated equals/hashCode honest.
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is SettingsState) return false
+        if (preferences != other.preferences) return false
+        if (confirmingWipe != other.confirmingWipe) return false
+        if (wipeInProgress != other.wipeInProgress) return false
+        if (backupStatus != other.backupStatus) return false
+        return when {
+            pendingImportBytes == null && other.pendingImportBytes == null -> true
+            pendingImportBytes != null && other.pendingImportBytes != null ->
+                pendingImportBytes.contentEquals(other.pendingImportBytes)
+            else -> false
+        }
+    }
+
+    override fun hashCode(): Int {
+        var result = preferences.hashCode()
+        result = 31 * result + confirmingWipe.hashCode()
+        result = 31 * result + wipeInProgress.hashCode()
+        result = 31 * result + (pendingImportBytes?.contentHashCode() ?: 0)
+        result = 31 * result + backupStatus.hashCode()
+        return result
+    }
+}
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
@@ -29,18 +74,24 @@ class SettingsViewModel @Inject constructor(
     private val habits: HabitRepository,
     private val preferences: UserPreferencesRepository,
     private val scheduler: EveningCloseScheduler,
+    private val exportBackup: ExportBackupUseCase,
+    private val importBackup: ImportBackupUseCase,
 ) : ViewModel() {
 
     private val wipeFlags = MutableStateFlow(WipeFlags())
+    private val backupState = MutableStateFlow(BackupFlags())
 
     val state: StateFlow<SettingsState> = combine(
         preferences.flow,
         wipeFlags,
-    ) { prefs, flags ->
+        backupState,
+    ) { prefs, flags, backup ->
         SettingsState(
             preferences = prefs,
             confirmingWipe = flags.confirming,
             wipeInProgress = flags.inProgress,
+            pendingImportBytes = backup.pendingImportBytes,
+            backupStatus = backup.status,
         )
     }.stateIn(
         scope = viewModelScope,
@@ -85,10 +136,98 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Snapshot the store and return the JSON bytes for the screen to write
+     * into the SAF URI. Surfaces success/failure status in state.
+     */
+    suspend fun prepareExportBytes(): ByteArray? {
+        backupState.value = backupState.value.copy(status = BackupStatus.Exporting)
+        return try {
+            val bytes = exportBackup()
+            backupState.value = backupState.value.copy(status = BackupStatus.ExportSucceeded)
+            bytes
+        } catch (_: Throwable) {
+            backupState.value = backupState.value.copy(status = BackupStatus.ExportFailed)
+            null
+        }
+    }
+
+    fun onExportWriteFailed() {
+        backupState.value = backupState.value.copy(status = BackupStatus.ExportFailed)
+    }
+
+    /**
+     * Stash bytes read from the SAF URI and request a confirmation. Restore
+     * is destructive so the screen must show a confirm dialog before
+     * commitImport().
+     */
+    fun stageImport(bytes: ByteArray) {
+        backupState.value = BackupFlags(pendingImportBytes = bytes, status = BackupStatus.Idle)
+    }
+
+    fun onImportReadFailed() {
+        backupState.value = backupState.value.copy(
+            pendingImportBytes = null,
+            status = BackupStatus.ImportFailed.ReadFailed,
+        )
+    }
+
+    fun cancelImport() {
+        backupState.value = backupState.value.copy(pendingImportBytes = null)
+    }
+
+    fun commitImport() {
+        val bytes = backupState.value.pendingImportBytes ?: return
+        backupState.value = backupState.value.copy(
+            pendingImportBytes = null,
+            status = BackupStatus.Importing,
+        )
+        viewModelScope.launch {
+            val result = importBackup(bytes)
+            backupState.value = backupState.value.copy(
+                status = when (result) {
+                    is DomainResult.Ok -> BackupStatus.ImportSucceeded
+                    is DomainResult.Err -> when (val e = result.error) {
+                        is BackupImportError.NotJson -> BackupStatus.ImportFailed.NotJson
+                        is BackupImportError.UnsupportedSchema ->
+                            BackupStatus.ImportFailed.UnsupportedSchema(e.version)
+                    }
+                }
+            )
+        }
+    }
+
+    fun acknowledgeBackupStatus() {
+        backupState.value = backupState.value.copy(status = BackupStatus.Idle)
+    }
+
     private data class WipeFlags(
         val confirming: Boolean = false,
         val inProgress: Boolean = false,
     )
+
+    private data class BackupFlags(
+        val pendingImportBytes: ByteArray? = null,
+        val status: BackupStatus = BackupStatus.Idle,
+    ) {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is BackupFlags) return false
+            if (status != other.status) return false
+            return when {
+                pendingImportBytes == null && other.pendingImportBytes == null -> true
+                pendingImportBytes != null && other.pendingImportBytes != null ->
+                    pendingImportBytes.contentEquals(other.pendingImportBytes)
+                else -> false
+            }
+        }
+
+        override fun hashCode(): Int {
+            var result = pendingImportBytes?.contentHashCode() ?: 0
+            result = 31 * result + status.hashCode()
+            return result
+        }
+    }
 
     companion object {
         val COLD_START_OPTIONS_MINUTES = listOf(3, 5, 7, 10)

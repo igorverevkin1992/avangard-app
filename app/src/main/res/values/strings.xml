@@ -125,5 +125,20 @@
     <string name="settings_wipe_cancel">ОТМЕНА</string>
     <string name="settings_wipe_confirm_message">Все сессии, фокусы и привычки будут удалены без возможности восстановления.</string>
     <string name="settings_wipe_in_progress">Стирание базы…</string>
+    <string name="settings_backup_label">КОПИЯ БАЗЫ</string>
+    <string name="settings_backup_hint">Экспорт в JSON через системный выбор хранилища. Поддерживает Drive, Files, OneDrive, локальный диск.</string>
+    <string name="settings_backup_export">ЭКСПОРТ КОПИИ</string>
+    <string name="settings_backup_import">ВОССТАНОВИТЬ ИЗ КОПИИ</string>
+    <string name="settings_backup_exporting">Снятие копии…</string>
+    <string name="settings_backup_importing">Восстановление…</string>
+    <string name="settings_backup_export_ok">Копия сохранена.</string>
+    <string name="settings_backup_import_ok">База восстановлена из копии.</string>
+    <string name="settings_backup_export_failed">Не удалось записать копию.</string>
+    <string name="settings_backup_import_not_json">Файл не является валидным JSON-снимком.</string>
+    <string name="settings_backup_import_unsupported">Несовместимая схема копии (версия %1$d).</string>
+    <string name="settings_backup_import_read_failed">Не удалось прочитать файл копии.</string>
+    <string name="settings_restore_confirm">ПОДТВЕРДИТЬ ВОССТАНОВЛЕНИЕ</string>
+    <string name="settings_restore_cancel">ОТМЕНА</string>
+    <string name="settings_restore_confirm_message">Все текущие данные будут замещены содержимым копии. Это необратимо.</string>
     <string name="settings_return">ВЕРНУТЬСЯ К ПУЛЬТУ</string>
 </resources>
