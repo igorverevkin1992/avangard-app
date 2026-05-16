@@ -94,6 +94,7 @@ class SimpleNotificationPresenter @Inject constructor(
         return NotificationCompat.Builder(context, FOCUS_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_avangard)
             .setContentTitle(context.getString(R.string.focus_notification_placeholder_title))
+            .setContentText(context.getString(R.string.focus_notification_body))
             .setOngoing(true)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .build()

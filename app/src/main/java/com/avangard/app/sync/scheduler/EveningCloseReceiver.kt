@@ -24,8 +24,12 @@ class EveningCloseReceiver : BroadcastReceiver() {
         val pending = goAsync()
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             try {
-                // Re-arm first so any presenter failure can't break the schedule.
-                scheduler.ensureScheduled()
+                // Re-arm for tomorrow first so any presenter failure can't
+                // break the schedule. Using scheduleNextAfterFire (not
+                // ensureScheduled) breaks the loop where the fire-immediately
+                // heuristic would re-trigger us in ~5s while the shift is
+                // still unclosed.
+                scheduler.scheduleNextAfterFire()
                 presenter.presentEveningClose()
             } finally {
                 pending.finish()

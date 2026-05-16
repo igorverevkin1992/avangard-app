@@ -33,7 +33,10 @@ class FlashForegroundService : Service() {
     @Inject lateinit var presenter: SimpleNotificationPresenter
     @Inject lateinit var sessions: SessionRepository
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    // Default rather than Main: the Room flow already emits off-thread but
+    // NotificationManagerCompat.notify is happy off-Main, so the whole loop
+    // can stay off the UI thread.
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private var watch: Job? = null
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -62,7 +65,10 @@ class FlashForegroundService : Service() {
                 )
             }
         }
-        return START_STICKY
+        // NOT_STICKY: when stopSelf fires (focus gone), we don't want the
+        // platform to re-spawn the service with a null intent and post a
+        // placeholder for a session that no longer exists.
+        return START_NOT_STICKY
     }
 
     override fun onDestroy() {

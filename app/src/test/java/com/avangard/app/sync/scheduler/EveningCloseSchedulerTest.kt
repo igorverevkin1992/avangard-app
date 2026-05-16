@@ -121,4 +121,21 @@ class EveningCloseSchedulerTest {
             .atZone(clock.zone()).toEpochSecond() * 1000L
         assertEquals(expected, scheduled.triggerAtTime)
     }
+
+    @Test
+    fun `scheduleNextAfterFire always defers to tomorrow even with unclosed shift`() = runBlocking {
+        // This is the receiver-only path. The fire-immediately heuristic
+        // would otherwise loop: receiver re-arms in ~5s with shift still
+        // unclosed, re-fires, re-arms, etc.
+        val today = clock.today().toStartOfDayEpoch(clock.zone())
+        sessions.approveCore(today, "Шот", clock.nowEpochMillis())
+        clock.time = LocalTime.of(21, 5)
+
+        scheduler.scheduleNextAfterFire()
+
+        val scheduled = shadowOf(alarmManager).nextScheduledAlarm!!
+        val expected = clock.today().plusDays(1).atTime(LocalTime.of(21, 0))
+            .atZone(clock.zone()).toEpochSecond() * 1000L
+        assertEquals(expected, scheduled.triggerAtTime)
+    }
 }

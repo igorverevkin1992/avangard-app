@@ -5,11 +5,13 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import com.avangard.app.MainActivity
 import com.avangard.app.core.common.Clock
 import com.avangard.app.core.common.toStartOfDayEpoch
 import com.avangard.app.core.data.UserPreferencesRepository
 import com.avangard.app.core.domain.model.CoreStatus
 import com.avangard.app.core.domain.repository.SessionRepository
+import com.avangard.app.navigation.NavRoute
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -30,6 +32,12 @@ import javax.inject.Singleton
  *     alarm by the system, exempt from Doze deferrals) with
  *     `setExactAndAllowWhileIdle` as fallback when exact permission is
  *     missing.
+ *
+ *  v3.5 splits the post-fire path into [scheduleNextAfterFire] so the
+ *  receiver can re-arm for tomorrow without re-engaging the
+ *  fire-immediately branch — that previously created a loop where the
+ *  receiver's re-arm immediately re-fired the alarm while the shift was
+ *  still unclosed.
  */
 @Singleton
 class EveningCloseScheduler @Inject constructor(
@@ -44,17 +52,35 @@ class EveningCloseScheduler @Inject constructor(
     suspend fun ensureScheduled() {
         val prefs = preferences.snapshot()
         val triggerAt = nextTriggerEpochMs(prefs.eveningCloseHour, prefs.eveningCloseMinute)
-        val pending = pendingIntent()
+        scheduleAt(triggerAt)
+    }
+
+    /**
+     * Receiver-only path: today's alarm just fired, so move directly to
+     * tomorrow's target without consulting the fire-immediately heuristic.
+     * Calling [ensureScheduled] here would loop — `now >= target` is still
+     * true and the shift typically isn't closed yet.
+     */
+    suspend fun scheduleNextAfterFire() {
+        val prefs = preferences.snapshot()
+        val target = LocalTime.of(prefs.eveningCloseHour, prefs.eveningCloseMinute)
+        val triggerAt = LocalDateTime.of(clock.today().plusDays(1), target)
+            .atZone(clock.zone()).toEpochSecond() * 1000L
+        scheduleAt(triggerAt)
+    }
+
+    private fun scheduleAt(triggerAt: Long) {
+        val operation = pendingIntent()
         if (canScheduleExact()) {
-            // setAlarmClock survives Doze and timezone-change retiming.
-            // showIntent is the same notification-tap path, so the alarm
-            // chip in the lockscreen routes back into the app.
+            // setAlarmClock surfaces a system alarm-chip on the lockscreen.
+            // showIntent must launch an Activity (the chip tap opens it),
+            // separate from the broadcast that actually fires the alarm.
             alarmManager.setAlarmClock(
-                AlarmManager.AlarmClockInfo(triggerAt, pending),
-                pending,
+                AlarmManager.AlarmClockInfo(triggerAt, lockscreenChipIntent()),
+                operation,
             )
         } else {
-            alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pending)
+            alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, operation)
         }
     }
 
@@ -97,9 +123,28 @@ class EveningCloseScheduler @Inject constructor(
         )
     }
 
+    /**
+     * Activity intent used as the lockscreen chip target. Tapping the chip
+     * jumps straight into the EveningClose modal rather than re-firing the
+     * broadcast.
+     */
+    private fun lockscreenChipIntent(): PendingIntent {
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra(MainActivity.EXTRA_START_DESTINATION, NavRoute.EveningClose.route)
+        }
+        return PendingIntent.getActivity(
+            context,
+            SHOW_REQUEST_CODE,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+    }
+
     companion object {
         const val ACTION_FIRE = "com.avangard.app.alarm.EVENING_CLOSE"
         private const val REQUEST_CODE = 4001
+        private const val SHOW_REQUEST_CODE = 4002
         // 5s lets the boot path settle (DataStore warm, Hilt graph resolved)
         // before the AlarmManager broadcast lands.
         private const val FIRE_IMMEDIATELY_BUFFER_MS = 5_000L

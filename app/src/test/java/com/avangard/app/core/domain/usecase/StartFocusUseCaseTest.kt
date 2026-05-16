@@ -11,7 +11,12 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+// Robolectric so the focus-service failure-swallow case can call Log.w
+// without hitting "not mocked" on android.util.Log.
+@RunWith(RobolectricTestRunner::class)
 class StartFocusUseCaseTest {
 
     private lateinit var repository: FakeSessionRepository
@@ -61,6 +66,21 @@ class StartFocusUseCaseTest {
         val result = useCase(Habit.Sport)
         assertEquals(DomainResult.Err(SessionError.InfraLocked), result)
         assertEquals(0, focusService.starts)
+    }
+
+    @Test
+    fun `start succeeds even when focus service throws`() = runTest {
+        // The persisted row is the source of truth; a failed
+        // startForegroundService (e.g. background restriction edge case)
+        // must not roll back the Ok return — the pulpit recovers state from
+        // the row on next foreground.
+        val throwingService = object : FocusServiceController {
+            override fun start(): Unit = throw IllegalStateException("background restriction")
+        }
+        val resilient = StartFocusUseCase(repository, clock, throwingService)
+        val result = resilient(Habit.Generations)
+        assertTrue(result is DomainResult.Ok)
+        assertEquals(Habit.Generations, repository.findActiveFocus()?.habit)
     }
 
     @Test
