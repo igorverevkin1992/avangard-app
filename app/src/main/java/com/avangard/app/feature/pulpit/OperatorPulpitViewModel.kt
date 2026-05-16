@@ -41,13 +41,11 @@ data class PulpitState(
     val today: LocalDate,
     val session: DailySession,
     val activeFocus: FocusSession?,
-    val now: Long,
     val transientError: SessionError? = null,
     val coldStartThresholdMs: Long = DEFAULT_COLD_START_THRESHOLD_MS,
     val shouldNudgeEveningClose: Boolean = false,
 ) {
     val isCoreUnlocked: Boolean get() = session.isCoreUnlocked
-    val activeFocusElapsedMs: Long get() = activeFocus?.durationMillis(now) ?: 0L
     fun isFocusActiveOn(habit: Habit): Boolean = activeFocus?.habit == habit
 }
 
@@ -83,25 +81,27 @@ class OperatorPulpitViewModel @Inject constructor(
     private data class Inputs(
         val session: DailySession,
         val focus: FocusSession?,
-        val now: Long,
         val error: SessionError?,
         val prefs: UserPreferences,
     )
 
+    // PulpitState is split from the 1Hz ticker so the screen-wide recomp only
+    // happens when something the user can act on actually changes. The current
+    // wall-clock millis are exposed separately via [nowMs] and collected only
+    // inside the CoreTimerDisplay subtree.
     val state: StateFlow<PulpitState?> = combine(
         observeSession(),
         observeActiveFocus(),
         tickerFlow(clock),
         transientError,
         preferences.flow,
-    ) { session, focus, now, error, prefs ->
-        Inputs(session, focus, now, error, prefs)
+    ) { session, focus, _, error, prefs ->
+        Inputs(session, focus, error, prefs)
     }.map { i ->
         PulpitState(
             today = clock.today(),
             session = i.session,
             activeFocus = i.focus,
-            now = i.now,
             transientError = i.error,
             coldStartThresholdMs = i.prefs.coldStartThresholdMs,
             shouldNudgeEveningClose = computeEveningNudge(i.session, i.prefs),
@@ -110,6 +110,14 @@ class OperatorPulpitViewModel @Inject constructor(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = null,
+    )
+
+    /** 1 Hz ticker exposed as a StateFlow so only the timer-rendering
+     *  subtree collects it; the rest of the pulpit doesn't recomp on tick. */
+    val nowMs: StateFlow<Long> = tickerFlow(clock).stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = clock.nowEpochMillis(),
     )
 
     private fun computeEveningNudge(session: DailySession, prefs: UserPreferences): Boolean {

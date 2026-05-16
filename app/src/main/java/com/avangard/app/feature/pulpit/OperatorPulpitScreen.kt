@@ -77,6 +77,7 @@ fun OperatorPulpitScreen(
     OperatorPulpitContent(
         today = state?.today ?: viewModel.initialToday,
         state = state,
+        nowMsFlow = viewModel.nowMs,
         transientError = state?.transientError,
         onStartFocus = viewModel::onStartFocus,
         onStopFocus = viewModel::onStopFocus,
@@ -94,6 +95,7 @@ fun OperatorPulpitScreen(
 internal fun OperatorPulpitContent(
     today: LocalDate,
     state: PulpitState?,
+    nowMsFlow: kotlinx.coroutines.flow.StateFlow<Long>,
     transientError: com.avangard.app.core.domain.model.SessionError?,
     onStartFocus: (Habit) -> Unit,
     onStopFocus: () -> Unit,
@@ -155,6 +157,7 @@ internal fun OperatorPulpitContent(
 
         CoreCard(
             state = state,
+            nowMsFlow = nowMsFlow,
             onStartFocus = { onStartFocus(Habit.Generations) },
             onStopFocus = onStopFocus,
             onRequestApproveCore = onRequestApproveCore,
@@ -273,6 +276,7 @@ private fun SabotageChip(onClick: () -> Unit) {
 @Composable
 private fun CoreCard(
     state: PulpitState?,
+    nowMsFlow: kotlinx.coroutines.flow.StateFlow<Long>,
     onStartFocus: () -> Unit,
     onStopFocus: () -> Unit,
     onRequestApproveCore: () -> Unit,
@@ -286,6 +290,12 @@ private fun CoreCard(
         isFailed -> StatusBadgeKind.Fail
         else -> StatusBadgeKind.Idle
     }
+    // Collect the ticker only here so the 1Hz tick scopes its recomp to the
+    // CoreTimerDisplay subtree; sibling InfraCards never recompose on tick.
+    val nowMs by nowMsFlow.collectAsState()
+    val elapsedMs = if (activeOnCore) {
+        state?.activeFocus?.durationMillis(nowMs) ?: 0L
+    } else 0L
     PulpitPanel(
         borderColor = if (isApproved) IsaColors.Approve else IsaColors.Steel,
     ) {
@@ -295,7 +305,7 @@ private fun CoreCard(
             trailing = { StatusBadge(kind = badge) },
         )
         CoreTimerDisplay(
-            elapsedMillis = if (activeOnCore) state?.activeFocusElapsedMs ?: 0L else 0L,
+            elapsedMillis = elapsedMs,
             thresholdMs = state?.coldStartThresholdMs ?: DEFAULT_COLD_START_THRESHOLD_MS,
         )
         FlashButton(
