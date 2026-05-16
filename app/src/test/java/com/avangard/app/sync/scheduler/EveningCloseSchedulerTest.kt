@@ -63,7 +63,7 @@ class EveningCloseSchedulerTest {
         clock.time = LocalTime.of(8, 0)
         scheduler.ensureScheduled()
 
-        val scheduled = shadowOf(alarmManager).nextScheduledAlarm
+        val scheduled = shadowOf(alarmManager).nextScheduledAlarm!!
         val expected = clock.today().atTime(LocalTime.of(21, 0))
             .atZone(clock.zone()).toEpochSecond() * 1000L
         assertEquals(expected, scheduled.triggerAtTime)
@@ -79,7 +79,7 @@ class EveningCloseSchedulerTest {
 
         scheduler.ensureScheduled()
 
-        val scheduled = shadowOf(alarmManager).nextScheduledAlarm
+        val scheduled = shadowOf(alarmManager).nextScheduledAlarm!!
         val now = clock.nowEpochMillis()
         // 5s fire-immediately buffer; allow generous tolerance.
         assertTrue(
@@ -96,7 +96,7 @@ class EveningCloseSchedulerTest {
 
         scheduler.ensureScheduled()
 
-        val scheduled = shadowOf(alarmManager).nextScheduledAlarm
+        val scheduled = shadowOf(alarmManager).nextScheduledAlarm!!
         val expected = clock.today().plusDays(1).atTime(LocalTime.of(21, 0))
             .atZone(clock.zone()).toEpochSecond() * 1000L
         assertEquals(expected, scheduled.triggerAtTime)
@@ -116,7 +116,7 @@ class EveningCloseSchedulerTest {
 
         scheduler.ensureScheduled()
 
-        val scheduled = shadowOf(alarmManager).nextScheduledAlarm
+        val scheduled = shadowOf(alarmManager).nextScheduledAlarm!!
         val expected = clock.today().plusDays(1).atTime(LocalTime.of(21, 0))
             .atZone(clock.zone()).toEpochSecond() * 1000L
         assertEquals(expected, scheduled.triggerAtTime)
