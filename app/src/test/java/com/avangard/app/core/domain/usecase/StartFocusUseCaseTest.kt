@@ -16,13 +16,24 @@ class StartFocusUseCaseTest {
 
     private lateinit var repository: FakeSessionRepository
     private lateinit var clock: FakeClock
+    private lateinit var focusService: RecordingFocusService
     private lateinit var useCase: StartFocusUseCase
 
     @Before
     fun setUp() {
         clock = FakeClock()
         repository = FakeSessionRepository(clock)
-        useCase = StartFocusUseCase(repository, clock)
+        focusService = RecordingFocusService()
+        useCase = StartFocusUseCase(repository, clock, focusService)
+    }
+
+    private class RecordingFocusService : FocusServiceController {
+        var starts: Int = 0
+            private set
+
+        override fun start() {
+            starts++
+        }
     }
 
     @Test
@@ -31,6 +42,25 @@ class StartFocusUseCaseTest {
         assertTrue(result is DomainResult.Ok)
         val active = repository.findActiveFocus()
         assertEquals(Habit.Generations, active?.habit)
+        // Side effect: the ongoing-notification service was poked exactly once.
+        assertEquals(1, focusService.starts)
+    }
+
+    @Test
+    fun `successful Infra start also pokes the focus service`() = runTest {
+        val today = clock.today().toStartOfDayEpoch(clock.zone())
+        repository.approveCore(today, "Шот", clock.nowEpochMillis())
+
+        val result = useCase(Habit.Sport)
+        assertTrue(result is DomainResult.Ok)
+        assertEquals(1, focusService.starts)
+    }
+
+    @Test
+    fun `rejected start does not poke the focus service`() = runTest {
+        val result = useCase(Habit.Sport)
+        assertEquals(DomainResult.Err(SessionError.InfraLocked), result)
+        assertEquals(0, focusService.starts)
     }
 
     @Test

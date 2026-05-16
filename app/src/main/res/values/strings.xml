@@ -80,6 +80,9 @@
     <!-- Notification. -->
     <string name="notification_evening_title">ТРЕБУЕТСЯ ЗАКРЫТИЕ СМЕНЫ</string>
     <string name="notification_evening_body">Зафиксируйте состояние Ядра и добродетели.</string>
+    <string name="focus_notification_title">ВСПЫШКА · %1$s</string>
+    <string name="focus_notification_body">Активная фокус-сессия. Тап — пульт.</string>
+    <string name="focus_notification_placeholder_title">ВСПЫШКА</string>
 
     <!-- Permission banners on the pulpit. -->
     <string name="permission_notifications_title">УВЕДОМЛЕНИЯ ВЫКЛЮЧЕНЫ</string>

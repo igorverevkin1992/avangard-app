@@ -12,6 +12,7 @@ import javax.inject.Inject
 class StartFocusUseCase @Inject constructor(
     private val repository: SessionRepository,
     private val clock: Clock,
+    private val focusService: FocusServiceController,
 ) {
     suspend operator fun invoke(habit: Habit): DomainResult<Long, SessionError> {
         // Pre-flight check first — surfaces a clean error when the conflict is
@@ -35,6 +36,10 @@ class StartFocusUseCase @Inject constructor(
         }
         return try {
             val id = repository.startFocus(today, habit, clock.nowEpochMillis())
+            // Bring up the ongoing-notification companion. The service tears
+            // itself down once observeActiveFocus emits null again, so
+            // EndFocusUseCase doesn't need a symmetric stop.
+            focusService.start()
             DomainResult.Ok(id)
         } catch (_: IllegalStateException) {
             // Partial unique index uniq_focus_active fired between the pre-flight

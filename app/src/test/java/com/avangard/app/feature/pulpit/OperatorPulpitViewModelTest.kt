@@ -9,6 +9,7 @@ import com.avangard.app.core.domain.model.Habit
 import com.avangard.app.core.domain.model.InfraStatus
 import com.avangard.app.core.domain.model.SessionError
 import com.avangard.app.core.domain.usecase.EndFocusUseCase
+import com.avangard.app.core.domain.usecase.FocusServiceController
 import com.avangard.app.core.domain.usecase.ObserveActiveFocusUseCase
 import com.avangard.app.core.domain.usecase.ObserveDailySessionUseCase
 import com.avangard.app.core.domain.usecase.SetInfraStatusUseCase
@@ -57,7 +58,7 @@ class OperatorPulpitViewModelTest {
             observeSession = ObserveDailySessionUseCase(repository),
             observeActiveFocus = ObserveActiveFocusUseCase(repository),
             preferences = preferences,
-            startFocus = StartFocusUseCase(repository, clock),
+            startFocus = StartFocusUseCase(repository, clock, NoopFocusService),
             endFocus = EndFocusUseCase(repository, clock),
             toggleMvd = ToggleMvdUseCase(repository, clock),
             setInfraStatus = SetInfraStatusUseCase(repository, clock),
@@ -192,5 +193,9 @@ class OperatorPulpitViewModelTest {
 
         val state = viewModel.state.filterNotNull().first()
         org.junit.Assert.assertFalse(state.shouldNudgeEveningClose)
+    }
+
+    private object NoopFocusService : FocusServiceController {
+        override fun start() = Unit
     }
 }
