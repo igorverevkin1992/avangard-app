@@ -84,6 +84,11 @@
     <string name="focus_notification_body">Активная фокус-сессия. Тап — пульт.</string>
     <string name="focus_notification_placeholder_title">ВСПЫШКА</string>
 
+    <!-- Quick Settings Tile. -->
+    <string name="tile_flash_label">ВСПЫШКА</string>
+    <string name="tile_flash_active">АКТИВНА ВСПЫШКА</string>
+    <string name="tile_flash_idle">ЗАПУСТИТЬ ВСПЫШКУ</string>
+
     <!-- Permission banners on the pulpit. -->
     <string name="permission_notifications_title">УВЕДОМЛЕНИЯ ВЫКЛЮЧЕНЫ</string>
     <string name="permission_notifications_body">Без разрешения системы вечернее напоминание о закрытии смены не будет показано.</string>
