@@ -147,4 +147,50 @@ class OperatorPulpitViewModelTest {
 
         assertEquals(null, repository.findActiveFocus())
     }
+
+    @Test
+    fun `nudge flag is false before target time on approved shift`() = runTest(dispatcher) {
+        val today = clock.today().toStartOfDayEpoch(clock.zone())
+        repository.approveCore(today, "Шот", clock.nowEpochMillis())
+        clock.time = java.time.LocalTime.of(15, 0)
+
+        val state = viewModel.state.filterNotNull().first()
+        org.junit.Assert.assertFalse(state.shouldNudgeEveningClose)
+    }
+
+    @Test
+    fun `nudge flag is true after target time on unclosed approved shift`() = runTest(dispatcher) {
+        val today = clock.today().toStartOfDayEpoch(clock.zone())
+        repository.approveCore(today, "Шот", clock.nowEpochMillis())
+        clock.time = java.time.LocalTime.of(21, 1)
+
+        val state = viewModel.state.filterNotNull().first()
+        assertTrue(state.shouldNudgeEveningClose)
+    }
+
+    @Test
+    fun `nudge flag is false on Idle core regardless of time`() = runTest(dispatcher) {
+        // No approve — coreStatus stays Idle. User hasn't started the shift,
+        // so the nudge would be noise.
+        clock.time = java.time.LocalTime.of(22, 0)
+
+        val state = viewModel.state.filterNotNull().first()
+        org.junit.Assert.assertFalse(state.shouldNudgeEveningClose)
+    }
+
+    @Test
+    fun `nudge flag is false after closeEvening`() = runTest(dispatcher) {
+        val today = clock.today().toStartOfDayEpoch(clock.zone())
+        repository.approveCore(today, "Шот", clock.nowEpochMillis())
+        repository.closeEvening(
+            dateEpoch = today,
+            virtues = com.avangard.app.core.domain.model.VirtueScores(0, 0, 0, 0),
+            defectKind = null,
+            recordedAt = clock.nowEpochMillis(),
+        )
+        clock.time = java.time.LocalTime.of(21, 1)
+
+        val state = viewModel.state.filterNotNull().first()
+        org.junit.Assert.assertFalse(state.shouldNudgeEveningClose)
+    }
 }

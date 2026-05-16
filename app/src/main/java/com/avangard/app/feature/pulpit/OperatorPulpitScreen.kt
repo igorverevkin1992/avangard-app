@@ -124,6 +124,23 @@ internal fun OperatorPulpitContent(
         NotificationPermissionBanner()
         ExactAlarmPermissionBanner()
 
+        if (state?.shouldNudgeEveningClose == true) {
+            Text(
+                text = stringResource(R.string.pulpit_evening_nudge),
+                color = IsaColors.Signal,
+                style = MaterialTheme.typography.labelLarge,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(width = 2.dp, color = IsaColors.Signal)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = onCloseShiftClicked,
+                    )
+                    .padding(horizontal = 10.dp, vertical = 10.dp),
+            )
+        }
+
         if (transientError != null) {
             Text(
                 text = sessionErrorMessage(transientError),

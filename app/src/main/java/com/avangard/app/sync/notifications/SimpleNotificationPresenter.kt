@@ -5,6 +5,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.avangard.app.MainActivity
@@ -56,8 +57,13 @@ class SimpleNotificationPresenter @Inject constructor(
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
             .build()
-        runCatching {
+        try {
             NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, notification)
+        } catch (e: SecurityException) {
+            // POST_NOTIFICATIONS denied on Android 13+. The in-app banner
+            // in OperatorPulpit handles the fallback nudge; Sentry sees the
+            // logged warning via its breadcrumb integration.
+            Log.w(LOG_TAG, "evening close notification denied", e)
         }
     }
 
@@ -65,5 +71,6 @@ class SimpleNotificationPresenter @Inject constructor(
         const val CHANNEL_ID = "channel.evening_close"
         private const val NOTIFICATION_ID = 1003
         private const val EVENING_REQUEST_CODE = 5001
+        private const val LOG_TAG = "NotifPresenter"
     }
 }

@@ -4,7 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.avangard.app.core.common.Clock
 import com.avangard.app.core.common.DomainResult
+import com.avangard.app.core.data.UserPreferences
 import com.avangard.app.core.data.UserPreferencesRepository
+import com.avangard.app.core.domain.model.CoreStatus
 import com.avangard.app.core.domain.model.DailySession
 import com.avangard.app.core.domain.model.FocusSession
 import com.avangard.app.core.domain.model.Habit
@@ -20,6 +22,7 @@ import com.avangard.app.core.ui.components.DEFAULT_COLD_START_THRESHOLD_MS
 import com.avangard.app.core.ui.components.tickerFlow
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.LocalDate
+import java.time.LocalTime
 import javax.inject.Inject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -41,6 +44,7 @@ data class PulpitState(
     val now: Long,
     val transientError: SessionError? = null,
     val coldStartThresholdMs: Long = DEFAULT_COLD_START_THRESHOLD_MS,
+    val shouldNudgeEveningClose: Boolean = false,
 ) {
     val isCoreUnlocked: Boolean get() = session.isCoreUnlocked
     val activeFocusElapsedMs: Long get() = activeFocus?.durationMillis(now) ?: 0L
@@ -81,7 +85,7 @@ class OperatorPulpitViewModel @Inject constructor(
         val focus: FocusSession?,
         val now: Long,
         val error: SessionError?,
-        val thresholdMs: Long,
+        val prefs: UserPreferences,
     )
 
     val state: StateFlow<PulpitState?> = combine(
@@ -89,9 +93,9 @@ class OperatorPulpitViewModel @Inject constructor(
         observeActiveFocus(),
         tickerFlow(clock),
         transientError,
-        preferences.flow.map { it.coldStartThresholdMs },
-    ) { session, focus, now, error, threshold ->
-        Inputs(session, focus, now, error, threshold)
+        preferences.flow,
+    ) { session, focus, now, error, prefs ->
+        Inputs(session, focus, now, error, prefs)
     }.map { i ->
         PulpitState(
             today = clock.today(),
@@ -99,13 +103,21 @@ class OperatorPulpitViewModel @Inject constructor(
             activeFocus = i.focus,
             now = i.now,
             transientError = i.error,
-            coldStartThresholdMs = i.thresholdMs,
+            coldStartThresholdMs = i.prefs.coldStartThresholdMs,
+            shouldNudgeEveningClose = computeEveningNudge(i.session, i.prefs),
         )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = null,
     )
+
+    private fun computeEveningNudge(session: DailySession, prefs: UserPreferences): Boolean {
+        if (session.eveningClosed) return false
+        if (session.coreStatus is CoreStatus.Idle) return false
+        val target = LocalTime.of(prefs.eveningCloseHour, prefs.eveningCloseMinute)
+        return !clock.localTime().isBefore(target)
+    }
 
     fun onStartFocus(habit: Habit) = viewModelScope.launch {
         when (val r = startFocus(habit)) {

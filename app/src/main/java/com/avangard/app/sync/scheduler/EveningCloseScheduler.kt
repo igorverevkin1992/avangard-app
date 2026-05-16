@@ -6,7 +6,10 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import com.avangard.app.core.common.Clock
+import com.avangard.app.core.common.toStartOfDayEpoch
 import com.avangard.app.core.data.UserPreferencesRepository
+import com.avangard.app.core.domain.model.CoreStatus
+import com.avangard.app.core.domain.repository.SessionRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -17,12 +20,23 @@ import javax.inject.Singleton
  * The single alarm v3 keeps: an idempotent evening-close nudge at the time
  * configured in UserPreferences (default 21:00). Re-arms itself daily from
  * EveningCloseReceiver and after any preference change in SettingsViewModel.
+ *
+ * Two reliability guarantees added in v3.4:
+ *
+ *  1. **No silent miss after reboot.** If the device booted after today's
+ *     target and today's shift is not yet closed, schedule a near-immediate
+ *     fire instead of pushing to tomorrow.
+ *  2. **Doze precision.** Prefer `setAlarmClock` (treated as a user-visible
+ *     alarm by the system, exempt from Doze deferrals) with
+ *     `setExactAndAllowWhileIdle` as fallback when exact permission is
+ *     missing.
  */
 @Singleton
 class EveningCloseScheduler @Inject constructor(
     @ApplicationContext private val context: Context,
     private val clock: Clock,
     private val preferences: UserPreferencesRepository,
+    private val sessions: SessionRepository,
 ) {
     private val alarmManager =
         context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
@@ -32,7 +46,13 @@ class EveningCloseScheduler @Inject constructor(
         val triggerAt = nextTriggerEpochMs(prefs.eveningCloseHour, prefs.eveningCloseMinute)
         val pending = pendingIntent()
         if (canScheduleExact()) {
-            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pending)
+            // setAlarmClock survives Doze and timezone-change retiming.
+            // showIntent is the same notification-tap path, so the alarm
+            // chip in the lockscreen routes back into the app.
+            alarmManager.setAlarmClock(
+                AlarmManager.AlarmClockInfo(triggerAt, pending),
+                pending,
+            )
         } else {
             alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pending)
         }
@@ -43,15 +63,26 @@ class EveningCloseScheduler @Inject constructor(
             alarmManager.canScheduleExactAlarms()
         } else true
 
-    private fun nextTriggerEpochMs(hour: Int, minute: Int): Long {
+    private suspend fun nextTriggerEpochMs(hour: Int, minute: Int): Long {
         val now = clock.localTime()
         val today = clock.today()
         val target = LocalTime.of(hour, minute)
-        // At HH:mm:00.000 sharp `isBefore` is false → trigger shifts to tomorrow.
-        // This is intentional: prevents the receiver from re-firing the alarm in
-        // the same minute it just presented the notification.
-        val date = if (now.isBefore(target)) today else today.plusDays(1)
-        return LocalDateTime.of(date, target).atZone(clock.zone()).toEpochSecond() * 1000L
+        if (now.isBefore(target)) {
+            return LocalDateTime.of(today, target).atZone(clock.zone()).toEpochSecond() * 1000L
+        }
+        // Today's slot has already passed. Two branches:
+        //   - shift not yet closed AND core actually started → fire shortly,
+        //     covering the reboot-after-target case.
+        //   - shift already closed OR not started → schedule for tomorrow.
+        val todayEpoch = today.toStartOfDayEpoch(clock.zone())
+        val daily = sessions.findForDate(todayEpoch)
+        val shiftStartedButUnclosed =
+            daily != null && !daily.eveningClosed && daily.coreStatus !is CoreStatus.Idle
+        return if (shiftStartedButUnclosed) {
+            clock.nowEpochMillis() + FIRE_IMMEDIATELY_BUFFER_MS
+        } else {
+            LocalDateTime.of(today.plusDays(1), target).atZone(clock.zone()).toEpochSecond() * 1000L
+        }
     }
 
     private fun pendingIntent(): PendingIntent {
@@ -69,5 +100,8 @@ class EveningCloseScheduler @Inject constructor(
     companion object {
         const val ACTION_FIRE = "com.avangard.app.alarm.EVENING_CLOSE"
         private const val REQUEST_CODE = 4001
+        // 5s lets the boot path settle (DataStore warm, Hilt graph resolved)
+        // before the AlarmManager broadcast lands.
+        private const val FIRE_IMMEDIATELY_BUFFER_MS = 5_000L
     }
 }
