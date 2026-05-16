@@ -131,6 +131,14 @@ class FakeSessionRepository(
             .sumOf { (it.endedAt ?: 0L) - it.startedAt }
 
     override suspend fun startFocus(dateEpoch: Long, habit: Habit, startedAt: Long): Long {
+        // Mirror the partial unique index uniq_focus_active from
+        // MIGRATION_4_5: at most one row with ended_at IS NULL. Without this
+        // check the fake silently accepts concurrent starts that Room would
+        // reject with SQLiteConstraintException → IllegalStateException, and
+        // callers like StartFocusUseCase would lose its catch arm.
+        if (focus.value.any { it.endedAt == null }) {
+            throw IllegalStateException("active focus already exists")
+        }
         val id = sequence++
         focus.value = focus.value + FocusSession(id, dateEpoch, habit, startedAt, null)
         return id

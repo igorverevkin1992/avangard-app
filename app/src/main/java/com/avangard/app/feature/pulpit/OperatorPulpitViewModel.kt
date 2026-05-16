@@ -142,7 +142,12 @@ class OperatorPulpitViewModel @Inject constructor(
         endFocus(id)
     }
 
-    fun onToggleMvd() = viewModelScope.launch { toggleMvd() }
+    fun onToggleMvd() = viewModelScope.launch {
+        when (val r = toggleMvd()) {
+            is DomainResult.Err -> raise(r.error)
+            is DomainResult.Ok -> Unit
+        }
+    }
 
     fun onMarkInfra(habit: Habit, status: InfraStatus) = viewModelScope.launch {
         when (val r = setInfraStatus(habit, status)) {
