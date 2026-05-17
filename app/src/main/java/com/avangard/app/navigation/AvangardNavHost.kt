@@ -1,13 +1,15 @@
 package com.avangard.app.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import com.avangard.app.feature.audit.SundayAuditScreen
 import com.avangard.app.feature.closing.EveningCloseScreen
 import com.avangard.app.feature.habits.HabitTrackerScreen
+import com.avangard.app.feature.library.LibraryPlaceholderScreen
 import com.avangard.app.feature.locked.HistoryGateViewModel
 import com.avangard.app.feature.locked.WeekdayLockScreen
 import com.avangard.app.feature.pulpit.AuthorisationModalScreen
@@ -17,9 +19,16 @@ import com.avangard.app.feature.sabotage.SabotageProtocolScreen
 import com.avangard.app.feature.settings.SettingsScreen
 
 @Composable
-fun AvangardNavHost(startDestination: String = NavRoute.OperatorPulpit.route) {
-    val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = startDestination) {
+fun AvangardNavHost(
+    navController: NavHostController,
+    startDestination: String = NavRoute.OperatorPulpit.route,
+    modifier: Modifier = Modifier,
+) {
+    NavHost(
+        navController = navController,
+        startDestination = startDestination,
+        modifier = modifier,
+    ) {
         composable(NavRoute.OperatorPulpit.route) {
             OperatorPulpitScreen(
                 onOpenAuthorisation = { navController.navigate(NavRoute.AuthorisationModal.route) },
@@ -74,6 +83,11 @@ fun AvangardNavHost(startDestination: String = NavRoute.OperatorPulpit.route) {
             HistoryGate(onLockedReturn = { navController.popBackStack() }) {
                 HabitTrackerScreen()
             }
+        }
+        composable(NavRoute.Library.route) {
+            // Real Library screen lands in v3.6 commit 2; for now a stable
+            // route placeholder so the bottom-nav tab has somewhere to land.
+            LibraryPlaceholderScreen()
         }
     }
 }

@@ -75,6 +75,16 @@
     <string name="audit_submit">ЗАФИКСИРОВАТЬ</string>
     <string name="audit_open_history">ОТКРЫТЬ ИСТОРИЮ</string>
     <string name="audit_open_pulpit">ОТКРЫТЬ ПУЛЬТ</string>
+
+    <!-- Bottom navigation tabs. -->
+    <string name="nav_tab_pulpit">ПУЛЬТ</string>
+    <string name="nav_tab_library">БИБЛИОТЕКА</string>
+    <string name="nav_tab_audit">АУДИТ</string>
+    <string name="nav_tab_history">ИСТОРИЯ</string>
+
+    <!-- Library placeholder (real screens land in v3.6 commit 2). -->
+    <string name="library_placeholder_title">БИБЛИОТЕКА · TODO</string>
+    <string name="library_placeholder_body">Цитата дня и подборки по добродетелям объективизма появятся в следующем релизе.</string>
     <string name="audit_submitted_confirmation">✓ ЗАФИКСИРОВАНО · УЗКОЕ МЕСТО СОХРАНЕНО</string>
     <string name="audit_completed_label">СОСТОЯНИЕ АУДИТА</string>
     <string name="audit_completed_header">АУДИТ ЗАВЕРШЁН</string>

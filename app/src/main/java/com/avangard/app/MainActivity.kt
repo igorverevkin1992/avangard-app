@@ -12,13 +12,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.navigation.compose.rememberNavController
 import com.avangard.app.core.common.Clock
 import com.avangard.app.core.domain.model.AccessPolicy
 import com.avangard.app.navigation.AvangardNavHost
+import com.avangard.app.navigation.AvangardNavigationBar
 import com.avangard.app.navigation.NavRoute
+import com.avangard.app.navigation.shouldShowBottomNav
 import com.avangard.app.ui.theme.IsaColors
 import com.avangard.app.ui.theme.MachineTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -67,13 +71,38 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun AvangardApp(startDestination: String) {
     MachineTheme {
+        val navController = rememberNavController()
+        val showBottomBar = shouldShowBottomNav(navController)
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             containerColor = IsaColors.Graphite,
             contentWindowInsets = WindowInsets.systemBars,
+            bottomBar = {
+                // Modal routes (authorisation, evening close, sabotage, …)
+                // own the full viewport. Tier-1 surfaces render the bar.
+                if (showBottomBar) {
+                    AvangardNavigationBar(navController = navController)
+                }
+            },
         ) { padding ->
+            // Deep links push their start destination onto an already-running
+            // graph if needed; the LaunchedEffect routes to it after the first
+            // composition so the back-stack stays sane.
+            LaunchedEffect(startDestination) {
+                if (startDestination != NavRoute.OperatorPulpit.route &&
+                    navController.currentDestination?.route == NavRoute.OperatorPulpit.route
+                ) {
+                    navController.navigate(startDestination)
+                }
+            }
             Box(Modifier.padding(padding)) {
-                AvangardNavHost(startDestination = startDestination)
+                AvangardNavHost(
+                    navController = navController,
+                    startDestination = if (
+                        startDestination == NavRoute.SundayAudit.route ||
+                        startDestination == NavRoute.OperatorPulpit.route
+                    ) startDestination else NavRoute.OperatorPulpit.route,
+                )
             }
         }
     }

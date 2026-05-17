@@ -11,4 +11,5 @@ sealed interface NavRoute {
     data object SundayAudit : NavRoute { override val route = "audit" }
     data object HistoryGrid : NavRoute { override val route = "history" }
     data object Settings : NavRoute { override val route = "settings" }
+    data object Library : NavRoute { override val route = "library" }
 }
