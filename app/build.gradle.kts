@@ -68,6 +68,12 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
+    // Robolectric needs merged res + assets to read app strings and
+    // bundled JSON datasets (assets/library_quotes.json) from unit tests.
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
+    }
 }
 
 ksp {
