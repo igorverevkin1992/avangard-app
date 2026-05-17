@@ -9,7 +9,11 @@ import androidx.navigation.compose.composable
 import com.avangard.app.feature.audit.SundayAuditScreen
 import com.avangard.app.feature.closing.EveningCloseScreen
 import com.avangard.app.feature.habits.HabitTrackerScreen
-import com.avangard.app.feature.library.LibraryPlaceholderScreen
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+import com.avangard.app.feature.library.LibraryScreen
+import com.avangard.app.feature.library.QuoteDetailScreen
+import com.avangard.app.feature.library.VirtueQuotesScreen
 import com.avangard.app.feature.locked.HistoryGateViewModel
 import com.avangard.app.feature.locked.WeekdayLockScreen
 import com.avangard.app.feature.pulpit.AuthorisationModalScreen
@@ -85,9 +89,35 @@ fun AvangardNavHost(
             }
         }
         composable(NavRoute.Library.route) {
-            // Real Library screen lands in v3.6 commit 2; for now a stable
-            // route placeholder so the bottom-nav tab has somewhere to land.
-            LibraryPlaceholderScreen()
+            LibraryScreen(
+                onOpenVirtue = { virtue ->
+                    navController.navigate(NavRoute.VirtueQuotes.create(virtue.name))
+                },
+                onOpenQuote = { id ->
+                    navController.navigate(NavRoute.QuoteDetail.create(id))
+                },
+            )
+        }
+        composable(
+            route = NavRoute.VirtueQuotes.route,
+            arguments = listOf(
+                navArgument(NavRoute.VirtueQuotes.ARG_VIRTUE) { type = NavType.StringType },
+            ),
+        ) {
+            VirtueQuotesScreen(
+                onBack = { navController.popBackStack() },
+                onOpenQuote = { id ->
+                    navController.navigate(NavRoute.QuoteDetail.create(id))
+                },
+            )
+        }
+        composable(
+            route = NavRoute.QuoteDetail.route,
+            arguments = listOf(
+                navArgument(NavRoute.QuoteDetail.ARG_ID) { type = NavType.StringType },
+            ),
+        ) {
+            QuoteDetailScreen(onBack = { navController.popBackStack() })
         }
     }
 }

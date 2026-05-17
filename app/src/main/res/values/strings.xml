@@ -82,9 +82,15 @@
     <string name="nav_tab_audit">АУДИТ</string>
     <string name="nav_tab_history">ИСТОРИЯ</string>
 
-    <!-- Library placeholder (real screens land in v3.6 commit 2). -->
-    <string name="library_placeholder_title">БИБЛИОТЕКА · TODO</string>
-    <string name="library_placeholder_body">Цитата дня и подборки по добродетелям объективизма появятся в следующем релизе.</string>
+    <!-- Library. -->
+    <string name="library_header">БИБЛИОТЕКА</string>
+    <string name="library_quote_of_day_label">ЦИТАТА ДНЯ</string>
+    <string name="library_virtues_label">ПОДБОРКИ ПО ДОБРОДЕТЕЛЯМ</string>
+    <string name="library_empty_state">ПО ЭТОЙ ДОБРОДЕТЕЛИ ЦИТАТ НЕТ.</string>
+    <string name="library_footer_note">Источник: Айн Рэнд, Леонард Пейкофф. Куратор подборки — оператор.</string>
+    <string name="library_back">НАЗАД</string>
+    <string name="library_share">ПОДЕЛИТЬСЯ</string>
+    <string name="library_quote_not_found">Цитата не найдена. Возможно, обновлён каталог.</string>
     <string name="audit_submitted_confirmation">✓ ЗАФИКСИРОВАНО · УЗКОЕ МЕСТО СОХРАНЕНО</string>
     <string name="audit_completed_label">СОСТОЯНИЕ АУДИТА</string>
     <string name="audit_completed_header">АУДИТ ЗАВЕРШЁН</string>
