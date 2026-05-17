@@ -111,6 +111,12 @@ class FakeSessionRepository(
         mutate(dateEpoch) { it.copy(bottleneckForNextWeek = bottleneck) }
     }
 
+    override suspend fun setJournalEntry(dateEpoch: Long, entry: String?) {
+        // Mirror the Room impl's normalisation: empty/blank becomes null.
+        val normalised = entry?.trim()?.takeIf { it.isNotEmpty() }
+        mutate(dateEpoch) { it.copy(journalEntry = normalised) }
+    }
+
     override fun observeActiveFocus(): Flow<FocusSession?> =
         focus.map { list -> list.firstOrNull { it.endedAt == null } }
 

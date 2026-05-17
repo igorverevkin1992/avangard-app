@@ -40,4 +40,11 @@ data class DailySessionEntity(
 
     /** Stored as Bottleneck.name() string; set only on Sunday audit close. */
     @ColumnInfo(name = "bottleneck_for_next_week") val bottleneckForNextWeek: String? = null,
+
+    /**
+     * Free-text day journal. Capped at 500 chars in the use-case layer
+     * — the column itself is plain TEXT; old rows carry NULL until the
+     * operator writes one.
+     */
+    @ColumnInfo(name = "journal_entry") val journalEntry: String? = null,
 )

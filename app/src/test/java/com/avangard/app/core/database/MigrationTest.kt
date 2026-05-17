@@ -134,6 +134,36 @@ class MigrationTest {
         helper.close()
     }
 
+    @Test
+    fun migration_5_to_6_addsJournalEntryColumn() {
+        val (db, helper) = createV5()
+        // Seed a v5 daily row — column doesn't exist yet.
+        db.execSQL(
+            "INSERT INTO daily_session(date_epoch, mvd_active, core_status) " +
+                "VALUES(1700000000000, 1, 0)"
+        )
+
+        AppDatabase.MIGRATION_5_6.migrate(db)
+
+        // Column exists and pre-existing row reads NULL.
+        db.query("SELECT mvd_active, journal_entry FROM daily_session WHERE date_epoch = 1700000000000").use { c ->
+            assertTrue(c.moveToFirst())
+            assertEquals(1, c.getInt(0))
+            assertTrue("journal_entry must default to NULL for pre-v6 rows", c.isNull(1))
+        }
+
+        // Subsequent insert / update can write the field.
+        db.execSQL(
+            "UPDATE daily_session SET journal_entry = 'итог дня' " +
+                "WHERE date_epoch = 1700000000000"
+        )
+        db.query("SELECT journal_entry FROM daily_session WHERE date_epoch = 1700000000000").use { c ->
+            assertTrue(c.moveToFirst())
+            assertEquals("итог дня", c.getString(0))
+        }
+        helper.close()
+    }
+
     // --- Schema builders ----------------------------------------------------
 
     private fun createV1WithFixture(): Pair<SupportSQLiteDatabase, SupportSQLiteOpenHelper> {
@@ -184,6 +214,18 @@ class MigrationTest {
             applyV3ToV4(db)
         }
         return helper.writableDatabase to helper
+    }
+
+    private fun createV5(): Pair<SupportSQLiteDatabase, SupportSQLiteOpenHelper> {
+        val helper = openWithCallback(5) { db ->
+            createV1Schema(db)
+            applyV1ToV2(db)
+            applyV2ToV3(db)
+            applyV3ToV4(db)
+        }
+        val db = helper.writableDatabase
+        AppDatabase.MIGRATION_4_5.migrate(db)
+        return db to helper
     }
 
     private fun openV1(): SupportSQLiteOpenHelper =

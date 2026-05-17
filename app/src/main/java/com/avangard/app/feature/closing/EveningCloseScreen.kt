@@ -10,8 +10,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -28,6 +31,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -52,6 +56,7 @@ fun EveningCloseScreen(
         state = state,
         onVirtueChange = viewModel::onVirtueChange,
         onDefectKindChange = viewModel::onDefectKindChange,
+        onJournalChange = viewModel::onJournalChange,
         onSubmit = viewModel::submit,
         modifier = modifier,
     )
@@ -62,6 +67,7 @@ internal fun EveningCloseContent(
     state: EveningCloseState,
     onVirtueChange: (Virtue, Int) -> Unit,
     onDefectKindChange: (DefectKind?) -> Unit,
+    onJournalChange: (String) -> Unit,
     onSubmit: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -142,6 +148,13 @@ internal fun EveningCloseContent(
             onChange = { onVirtueChange(Virtue.Justice, it) },
         )
 
+        JournalPanel(
+            draft = state.journalDraft,
+            charCount = state.journalCharCount,
+            limit = state.journalLimit,
+            onChange = onJournalChange,
+        )
+
         HardButton(
             label = stringResource(R.string.closing_submit),
             onClick = onSubmit,
@@ -150,6 +163,51 @@ internal fun EveningCloseContent(
         )
     }
 }
+
+@Composable
+private fun JournalPanel(
+    draft: String,
+    charCount: Int,
+    limit: Int,
+    onChange: (String) -> Unit,
+) {
+    PulpitPanel(label = stringResource(R.string.closing_journal_label)) {
+        Text(
+            text = stringResource(R.string.closing_journal_hint),
+            color = IsaColors.Lattice,
+            style = MaterialTheme.typography.labelMedium,
+        )
+        BasicTextField(
+            value = draft,
+            onValueChange = onChange,
+            textStyle = MaterialTheme.typography.bodyMedium.copy(color = IsaColors.LiveMetal),
+            keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.Sentences,
+            ),
+            decorationBox = { inner ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .border(width = 1.dp, color = IsaColors.Steel)
+                        .padding(horizontal = 10.dp, vertical = 8.dp),
+                ) {
+                    inner()
+                }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 96.dp),
+        )
+        Text(
+            text = stringResource(R.string.closing_journal_counter, charCount, limit),
+            color = IsaColors.Lattice,
+            style = MaterialTheme.typography.labelSmall,
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.End,
+        )
+    }
+}
+
 
 @Composable
 private fun IndicatorRow(label: String, ok: Boolean) {

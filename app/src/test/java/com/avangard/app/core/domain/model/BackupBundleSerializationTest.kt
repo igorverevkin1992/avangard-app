@@ -34,6 +34,7 @@ class BackupBundleSerializationTest {
                     virtHonesty = 4,
                     virtJustice = 3,
                     bottleneckForNextWeek = "глубина расчёта",
+                    journalEntry = "Сжатый итог дня для round-trip.",
                 ),
             ),
             focusSessions = listOf(

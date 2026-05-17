@@ -36,6 +36,7 @@ import com.avangard.app.ui.theme.IsaColors
 @Composable
 fun SundayAuditScreen(
     onOpenHistory: () -> Unit,
+    onOpenPulpit: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: SundayAuditViewModel = hiltViewModel(),
 ) {
@@ -48,6 +49,7 @@ fun SundayAuditScreen(
         onPickBottleneck = viewModel::onPickBottleneck,
         onSubmit = viewModel::submit,
         onOpenHistory = onOpenHistory,
+        onOpenPulpit = onOpenPulpit,
         modifier = modifier,
     )
 }
@@ -58,6 +60,7 @@ internal fun SundayAuditContent(
     onPickBottleneck: (Bottleneck) -> Unit,
     onSubmit: () -> Unit,
     onOpenHistory: () -> Unit,
+    onOpenPulpit: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -118,6 +121,15 @@ internal fun SundayAuditContent(
         HardButton(
             label = stringResource(R.string.audit_open_history),
             onClick = onOpenHistory,
+        )
+
+        // Sunday is reflection day by design, but the operator may still
+        // want to record a focus session on the cycle's last day. The
+        // pulpit stays one tap away — the start destination just defaults
+        // to the audit on Sundays via AccessPolicy.
+        HardButton(
+            label = stringResource(R.string.audit_open_pulpit),
+            onClick = onOpenPulpit,
         )
     }
 }

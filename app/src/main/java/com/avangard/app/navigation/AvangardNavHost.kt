@@ -66,6 +66,7 @@ fun AvangardNavHost(startDestination: String = NavRoute.OperatorPulpit.route) {
             HistoryGate(onLockedReturn = { navController.popBackStack() }) {
                 SundayAuditScreen(
                     onOpenHistory = { navController.navigate(NavRoute.HistoryGrid.route) },
+                    onOpenPulpit = { navController.navigate(NavRoute.OperatorPulpit.route) },
                 )
             }
         }

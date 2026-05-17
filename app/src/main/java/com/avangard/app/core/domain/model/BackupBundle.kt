@@ -39,6 +39,7 @@ data class BackupDailySession(
     val virtHonesty: Int? = null,
     val virtJustice: Int? = null,
     val bottleneckForNextWeek: String? = null,
+    val journalEntry: String? = null,
 )
 
 @Serializable

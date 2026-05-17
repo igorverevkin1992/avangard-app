@@ -50,6 +50,9 @@
     <string name="closing_defect_hint">Ядро не зафиксировано. Выберите тип отклонения.</string>
     <string name="closing_defect_kind_defect">ДЕФЕКТ</string>
     <string name="closing_defect_kind_waste">ПОТЕРЯ</string>
+    <string name="closing_journal_label">ЖУРНАЛ ДНЯ</string>
+    <string name="closing_journal_hint">Сжатое резюме смены. До 500 знаков.</string>
+    <string name="closing_journal_counter">%1$d / %2$d</string>
     <string name="closing_submit">ЗАФИКСИРОВАТЬ ЗАКРЫТИЕ СМЕНЫ</string>
 
     <!-- Virtues. -->
@@ -71,6 +74,7 @@
     <string name="audit_bottleneck_label">УЗКОЕ МЕСТО НА СЛЕДУЮЩУЮ НЕДЕЛЮ</string>
     <string name="audit_submit">ЗАФИКСИРОВАТЬ</string>
     <string name="audit_open_history">ОТКРЫТЬ ИСТОРИЮ</string>
+    <string name="audit_open_pulpit">ОТКРЫТЬ ПУЛЬТ</string>
     <string name="audit_submitted_confirmation">✓ ЗАФИКСИРОВАНО · УЗКОЕ МЕСТО СОХРАНЕНО</string>
     <string name="audit_completed_label">СОСТОЯНИЕ АУДИТА</string>
     <string name="audit_completed_header">АУДИТ ЗАВЕРШЁН</string>
