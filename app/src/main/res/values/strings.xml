@@ -71,6 +71,7 @@
     <string name="audit_bottleneck_label">УЗКОЕ МЕСТО НА СЛЕДУЮЩУЮ НЕДЕЛЮ</string>
     <string name="audit_submit">ЗАФИКСИРОВАТЬ</string>
     <string name="audit_open_history">ОТКРЫТЬ ИСТОРИЮ</string>
+    <string name="audit_submitted_confirmation">✓ ЗАФИКСИРОВАНО · УЗКОЕ МЕСТО СОХРАНЕНО</string>
 
     <!-- Weekday lock. -->
     <string name="weekday_lock_title">ДОСТУП К ИСТОРИИ — ВОСКРЕСЕНЬЕ</string>

@@ -18,7 +18,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
@@ -33,6 +35,7 @@ import com.avangard.app.core.ui.components.HardButton
 import com.avangard.app.core.ui.components.HardButtonVariant
 import com.avangard.app.core.ui.components.PulpitPanel
 import com.avangard.app.ui.theme.IsaColors
+import kotlinx.coroutines.delay
 
 @Composable
 fun SundayAuditScreen(
@@ -41,11 +44,24 @@ fun SundayAuditScreen(
     viewModel: SundayAuditViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
+    // Submitted is a transient UX-only flag — the persistence already
+    // happened on disk; the flag just lets the screen acknowledge the
+    // tap with a visible "ЗАФИКСИРОВАНО" banner that auto-clears.
+    var justSubmitted by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
-        viewModel.effects.collect { /* Submitted — UI stays put, user can then tap history */ }
+        viewModel.effects.collect { effect ->
+            when (effect) {
+                SundayAuditEffect.Submitted -> {
+                    justSubmitted = true
+                    delay(2_500)
+                    justSubmitted = false
+                }
+            }
+        }
     }
     SundayAuditContent(
         state = state,
+        justSubmitted = justSubmitted,
         onPickBottleneck = viewModel::onPickBottleneck,
         onSubmit = viewModel::submit,
         onOpenHistory = onOpenHistory,
@@ -56,6 +72,7 @@ fun SundayAuditScreen(
 @Composable
 internal fun SundayAuditContent(
     state: SundayAuditState,
+    justSubmitted: Boolean,
     onPickBottleneck: (Bottleneck) -> Unit,
     onSubmit: () -> Unit,
     onOpenHistory: () -> Unit,
@@ -111,6 +128,15 @@ internal fun SundayAuditContent(
             enabled = state.canSubmit,
             variant = HardButtonVariant.Primary,
         )
+
+        if (justSubmitted) {
+            Text(
+                text = stringResource(R.string.audit_submitted_confirmation),
+                color = IsaColors.Approve,
+                style = MaterialTheme.typography.labelLarge,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
 
         HardButton(
             label = stringResource(R.string.audit_open_history),
