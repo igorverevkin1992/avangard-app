@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Status-bar notification glyph. Android tints whatever shape ships
+    here to a single colour (white on most ROMs), so the design is a
+    pure silhouette — no red accent. Compact PM mark scaled to a 24dp
+    box; filename kept stable so SimpleNotificationPresenter callers
+    don't churn during the brand rename.
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
@@ -7,5 +14,11 @@
     android:tint="#FFFFFFFF">
     <path
         android:fillColor="#FFFFFFFF"
-        android:pathData="M4,4 L20,4 L20,7 L13.5,7 L13.5,20 L10.5,20 L10.5,7 L4,7 Z" />
+        android:pathData="M3,4 L5.5,4 L5.5,20 L3,20 Z
+                          M6,4 L11,4 L11,6.5 L6,6.5 Z
+                          M9,7 L11,7 L11,11 L9,11 Z
+                          M6,11.5 L11,11.5 L11,14 L6,14 Z
+                          M13,4 L15.5,4 L15.5,20 L13,20 Z
+                          M15.5,4 L18,4 L20.5,15 L18,15 Z
+                          M18,4 L21,4 L18,15 L15.5,15 Z" />
 </vector>

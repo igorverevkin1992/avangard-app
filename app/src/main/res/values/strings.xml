@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">АВАНГАРД</string>
+    <string name="app_name">Prime mover</string>
 
     <!-- Pulpit header. -->
     <string name="pulpit_mvd_on">РЕЖИМ MVD: ВКЛ</string>
