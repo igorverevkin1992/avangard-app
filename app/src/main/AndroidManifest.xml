@@ -7,17 +7,8 @@
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.VIBRATE" />
-    <!--
-        v3.4 foreground service + Quick Settings tile are temporarily
-        unbound from the manifest while investigating a fresh-install
-        startup crash. The Kotlin classes (FlashForegroundService,
-        FlashTileService, AndroidFocusServiceController) remain in the
-        source tree; only their system entry points are disabled so the
-        process can come up clean and we can re-enable them one at a
-        time once the trigger is identified.
-    -->
-    <!-- <uses-permission android:name="android.permission.FOREGROUND_SERVICE" /> -->
-    <!-- <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" /> -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
 
     <application
         android:name=".AvangardApplication"
@@ -29,6 +20,20 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="false"
         android:theme="@style/Theme.Avangard">
+
+        <!--
+            Disable Sentry's auto-init ContentProvider. The SDK installs
+            SentryInitProvider via manifest merging; it runs before
+            Application.onCreate and demands a non-empty DSN in the
+            manifest meta-data. We init Sentry manually in
+            AvangardApplication.initCrashReporting, conditional on
+            BuildConfig.SENTRY_DSN being non-blank, so the auto-init must
+            be off — otherwise every fresh install without a configured
+            DSN crashes the process before any of our code runs.
+        -->
+        <meta-data
+            android:name="io.sentry.auto-init"
+            android:value="false" />
 
         <activity
             android:name=".MainActivity"
@@ -57,12 +62,6 @@
             </intent-filter>
         </receiver>
 
-        <!--
-            v3.4 ongoing-notification service. Disabled in manifest while
-            diagnosing fresh-install startup crash; re-enable once
-            isolated.
-        -->
-        <!--
         <service
             android:name=".sync.service.FlashForegroundService"
             android:exported="false"
@@ -82,7 +81,6 @@
                 <action android:name="android.service.quicksettings.action.QS_TILE" />
             </intent-filter>
         </service>
-        -->
     </application>
 
 </manifest>

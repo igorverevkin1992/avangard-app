@@ -5,11 +5,13 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import com.avangard.app.MainActivity
 import com.avangard.app.core.common.Clock
 import com.avangard.app.core.common.toStartOfDayEpoch
 import com.avangard.app.core.data.UserPreferencesRepository
 import com.avangard.app.core.domain.model.CoreStatus
 import com.avangard.app.core.domain.repository.SessionRepository
+import com.avangard.app.navigation.NavRoute
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -17,25 +19,16 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * The single alarm v3 keeps: an idempotent evening-close nudge at the time
- * configured in UserPreferences (default 21:00). Re-arms itself daily from
- * EveningCloseReceiver and after any preference change in SettingsViewModel.
+ * Single evening-close nudge alarm. Re-armed daily from EveningCloseReceiver
+ * and after any preference change in SettingsViewModel.
  *
- * Two reliability guarantees added in v3.4:
- *
- *  1. **No silent miss after reboot.** If the device booted after today's
- *     target and today's shift is not yet closed, schedule a near-immediate
- *     fire instead of pushing to tomorrow.
- *  2. **Doze precision.** Prefer `setAlarmClock` (treated as a user-visible
- *     alarm by the system, exempt from Doze deferrals) with
- *     `setExactAndAllowWhileIdle` as fallback when exact permission is
- *     missing.
- *
- *  v3.5 splits the post-fire path into [scheduleNextAfterFire] so the
- *  receiver can re-arm for tomorrow without re-engaging the
- *  fire-immediately branch — that previously created a loop where the
- *  receiver's re-arm immediately re-fired the alarm while the shift was
- *  still unclosed.
+ * Reliability guarantees:
+ *  1. No silent miss after reboot — ensureScheduled fires immediately if
+ *     today's slot has passed and the shift hasn't been closed.
+ *  2. Doze precision — setAlarmClock with a fallback to
+ *     setAndAllowWhileIdle when exact-alarm permission is missing.
+ *  3. No re-fire loop after the receiver runs — scheduleNextAfterFire
+ *     skips the fire-immediately branch.
  */
 @Singleton
 class EveningCloseScheduler @Inject constructor(
@@ -53,12 +46,6 @@ class EveningCloseScheduler @Inject constructor(
         scheduleAt(triggerAt)
     }
 
-    /**
-     * Receiver-only path: today's alarm just fired, so move directly to
-     * tomorrow's target without consulting the fire-immediately heuristic.
-     * Calling [ensureScheduled] here would loop — `now >= target` is still
-     * true and the shift typically isn't closed yet.
-     */
     suspend fun scheduleNextAfterFire() {
         val prefs = preferences.snapshot()
         val target = LocalTime.of(prefs.eveningCloseHour, prefs.eveningCloseMinute)
@@ -69,12 +56,14 @@ class EveningCloseScheduler @Inject constructor(
 
     private fun scheduleAt(triggerAt: Long) {
         val operation = pendingIntent()
-        // Temporarily reverted from setAlarmClock to setExactAndAllowWhileIdle
-        // while a fresh-install startup crash is being isolated. The
-        // lockscreen alarm-chip becomes non-functional, but the broadcast
-        // still fires at target time. Restore once the trigger is found.
         if (canScheduleExact()) {
-            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, operation)
+            // setAlarmClock surfaces a system alarm-chip on the lockscreen.
+            // showIntent launches an Activity (chip-tap path), separate from
+            // the broadcast that actually fires the alarm.
+            alarmManager.setAlarmClock(
+                AlarmManager.AlarmClockInfo(triggerAt, lockscreenChipIntent()),
+                operation,
+            )
         } else {
             alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, operation)
         }
@@ -92,10 +81,6 @@ class EveningCloseScheduler @Inject constructor(
         if (now.isBefore(target)) {
             return LocalDateTime.of(today, target).atZone(clock.zone()).toEpochSecond() * 1000L
         }
-        // Today's slot has already passed. Two branches:
-        //   - shift not yet closed AND core actually started → fire shortly,
-        //     covering the reboot-after-target case.
-        //   - shift already closed OR not started → schedule for tomorrow.
         val todayEpoch = today.toStartOfDayEpoch(clock.zone())
         val daily = sessions.findForDate(todayEpoch)
         val shiftStartedButUnclosed =
@@ -119,11 +104,23 @@ class EveningCloseScheduler @Inject constructor(
         )
     }
 
+    private fun lockscreenChipIntent(): PendingIntent {
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra(MainActivity.EXTRA_START_DESTINATION, NavRoute.EveningClose.route)
+        }
+        return PendingIntent.getActivity(
+            context,
+            SHOW_REQUEST_CODE,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+    }
+
     companion object {
         const val ACTION_FIRE = "com.avangard.app.alarm.EVENING_CLOSE"
         private const val REQUEST_CODE = 4001
-        // 5s lets the boot path settle (DataStore warm, Hilt graph resolved)
-        // before the AlarmManager broadcast lands.
+        private const val SHOW_REQUEST_CODE = 4002
         private const val FIRE_IMMEDIATELY_BUFFER_MS = 5_000L
     }
 }
