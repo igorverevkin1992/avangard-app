@@ -16,6 +16,7 @@
     <string name="pulpit_hostage_banner">ЗАБЛОКИРОВАНО ДО ПЕРВОГО ЯДРА</string>
     <string name="pulpit_close_shift">ЗАКРЫТЬ СМЕНУ</string>
     <string name="pulpit_evening_nudge">СМЕНА НЕ ЗАКРЫТА · ТАП ДЛЯ ВЕЧЕРНЕГО ЗАКРЫТИЯ</string>
+    <string name="pulpit_quote_of_day_label">ЦИТАТА ДНЯ · ТАП ДЛЯ ПОЛНОГО ТЕКСТА</string>
 
     <!-- Authorisation modal. -->
     <string name="auth_title">ОСОЗНАННАЯ АВТОРИЗАЦИЯ</string>

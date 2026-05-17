@@ -53,6 +53,12 @@ class OperatorPulpitViewModelTest {
             every { flow } returns MutableStateFlow(UserPreferences())
             coEvery { snapshot() } returns UserPreferences()
         }
+        val quotes = mockk<com.avangard.app.core.data.QuoteRepository>(relaxed = true) {
+            // Pulpit reads quote-of-day off a flow; an empty flow keeps state
+            // emitting via the rest of the combine sources without dragging
+            // assets into the test classpath.
+            every { quoteOfDayFlow() } returns kotlinx.coroutines.flow.flowOf(null)
+        }
         viewModel = OperatorPulpitViewModel(
             clock = clock,
             observeSession = ObserveDailySessionUseCase(repository),
@@ -62,6 +68,7 @@ class OperatorPulpitViewModelTest {
             endFocus = EndFocusUseCase(repository, clock),
             toggleMvd = ToggleMvdUseCase(repository, clock),
             setInfraStatus = SetInfraStatusUseCase(repository, clock),
+            quotes = quotes,
         )
     }
 

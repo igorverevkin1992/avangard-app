@@ -59,6 +59,7 @@ fun OperatorPulpitScreen(
     onOpenSabotage: () -> Unit,
     onOpenEveningClose: () -> Unit,
     onOpenSettings: () -> Unit,
+    onOpenQuote: (Int) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: OperatorPulpitViewModel = hiltViewModel(),
 ) {
@@ -87,6 +88,7 @@ fun OperatorPulpitScreen(
         onSabotageClicked = viewModel::onSabotageClicked,
         onCloseShiftClicked = viewModel::onCloseShiftClicked,
         onSettingsLongPress = onOpenSettings,
+        onOpenQuote = onOpenQuote,
         modifier = modifier,
     )
 }
@@ -105,6 +107,7 @@ internal fun OperatorPulpitContent(
     onSabotageClicked: () -> Unit,
     onCloseShiftClicked: () -> Unit,
     onSettingsLongPress: () -> Unit = {},
+    onOpenQuote: (Int) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -125,6 +128,10 @@ internal fun OperatorPulpitContent(
 
         NotificationPermissionBanner()
         ExactAlarmPermissionBanner()
+
+        state?.dailyQuote?.let { quote ->
+            QuoteOfDayCard(quote = quote, onClick = { onOpenQuote(quote.id) })
+        }
 
         if (state?.shouldNudgeEveningClose == true) {
             Text(
@@ -392,5 +399,42 @@ private fun InfraCard(
                 modifier = Modifier.weight(1f),
             )
         }
+    }
+}
+
+@Composable
+private fun QuoteOfDayCard(
+    quote: com.avangard.app.core.domain.model.Quote,
+    onClick: () -> Unit,
+) {
+    val interactionSource = remember(quote.id) { MutableInteractionSource() }
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(width = 1.dp, color = IsaColors.Steel)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick,
+            )
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Text(
+            text = stringResource(R.string.pulpit_quote_of_day_label),
+            color = IsaColors.Lattice,
+            style = MaterialTheme.typography.labelSmall,
+        )
+        Text(
+            text = quote.text,
+            color = IsaColors.LiveMetal,
+            style = MaterialTheme.typography.bodyMedium,
+            maxLines = 3,
+        )
+        Text(
+            text = quote.source,
+            color = IsaColors.Lattice,
+            style = MaterialTheme.typography.labelSmall,
+        )
     }
 }

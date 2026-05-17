@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.avangard.app.core.common.Clock
 import com.avangard.app.core.common.DomainResult
+import com.avangard.app.core.data.QuoteRepository
 import com.avangard.app.core.data.UserPreferences
 import com.avangard.app.core.data.UserPreferencesRepository
 import com.avangard.app.core.domain.model.CoreStatus
@@ -11,6 +12,7 @@ import com.avangard.app.core.domain.model.DailySession
 import com.avangard.app.core.domain.model.FocusSession
 import com.avangard.app.core.domain.model.Habit
 import com.avangard.app.core.domain.model.InfraStatus
+import com.avangard.app.core.domain.model.Quote
 import com.avangard.app.core.domain.model.SessionError
 import com.avangard.app.core.domain.usecase.EndFocusUseCase
 import com.avangard.app.core.domain.usecase.ObserveActiveFocusUseCase
@@ -44,6 +46,7 @@ data class PulpitState(
     val transientError: SessionError? = null,
     val coldStartThresholdMs: Long = DEFAULT_COLD_START_THRESHOLD_MS,
     val shouldNudgeEveningClose: Boolean = false,
+    val dailyQuote: Quote? = null,
 ) {
     val isCoreUnlocked: Boolean get() = session.isCoreUnlocked
     fun isFocusActiveOn(habit: Habit): Boolean = activeFocus?.habit == habit
@@ -65,6 +68,7 @@ class OperatorPulpitViewModel @Inject constructor(
     private val endFocus: EndFocusUseCase,
     private val toggleMvd: ToggleMvdUseCase,
     private val setInfraStatus: SetInfraStatusUseCase,
+    quotes: QuoteRepository,
 ) : ViewModel() {
 
     private val _effects = Channel<PulpitEffect>(Channel.BUFFERED)
@@ -83,6 +87,7 @@ class OperatorPulpitViewModel @Inject constructor(
         val focus: FocusSession?,
         val error: SessionError?,
         val prefs: UserPreferences,
+        val quote: Quote?,
     )
 
     // PulpitState is split from the 1Hz ticker so the screen-wide recomp only
@@ -90,27 +95,30 @@ class OperatorPulpitViewModel @Inject constructor(
     // wall-clock millis are exposed separately via [nowMs] and collected only
     // inside the CoreTimerDisplay subtree.
     val state: StateFlow<PulpitState?> = combine(
-        observeSession(),
-        observeActiveFocus(),
-        tickerFlow(clock),
-        transientError,
-        preferences.flow,
-    ) { session, focus, _, error, prefs ->
-        Inputs(session, focus, error, prefs)
-    }.map { i ->
-        PulpitState(
-            today = clock.today(),
-            session = i.session,
-            activeFocus = i.focus,
-            transientError = i.error,
-            coldStartThresholdMs = i.prefs.coldStartThresholdMs,
-            shouldNudgeEveningClose = computeEveningNudge(i.session, i.prefs),
+        combine(
+            observeSession(),
+            observeActiveFocus(),
+            tickerFlow(clock),
+            transientError,
+            preferences.flow,
+        ) { session, focus, _, error, prefs -> Inputs(session, focus, error, prefs, null) },
+        quotes.quoteOfDayFlow(),
+    ) { inputs, quote -> inputs.copy(quote = quote) }
+        .map { i ->
+            PulpitState(
+                today = clock.today(),
+                session = i.session,
+                activeFocus = i.focus,
+                transientError = i.error,
+                coldStartThresholdMs = i.prefs.coldStartThresholdMs,
+                shouldNudgeEveningClose = computeEveningNudge(i.session, i.prefs),
+                dailyQuote = i.quote,
+            )
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = null,
         )
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = null,
-    )
 
     /** 1 Hz ticker exposed as a StateFlow so only the timer-rendering
      *  subtree collects it; the rest of the pulpit doesn't recomp on tick. */

@@ -39,6 +39,7 @@ fun AvangardNavHost(
                 onOpenSabotage = { navController.navigate(NavRoute.Sabotage.route) },
                 onOpenEveningClose = { navController.navigate(NavRoute.EveningClose.route) },
                 onOpenSettings = { navController.navigate(NavRoute.Settings.route) },
+                onOpenQuote = { id -> navController.navigate(NavRoute.QuoteDetail.create(id)) },
             )
         }
         composable(NavRoute.Settings.route) {
