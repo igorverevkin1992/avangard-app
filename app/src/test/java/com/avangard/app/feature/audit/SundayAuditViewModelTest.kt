@@ -80,7 +80,7 @@ class SundayAuditViewModelTest {
 
             // Attempting to flip the pick is a no-op once sealed; the picker
             // is also hidden in the UI but defensively guard the callback.
-            viewModel.onPickBottleneck(Bottleneck.GraphicHygiene)
+            viewModel.onPickBottleneck(Bottleneck.ScheduleHygiene)
             advanceUntilIdle()
             val afterAttempt = viewModel.state.first()
             assertEquals(Bottleneck.PromptDiscipline, afterAttempt.fixatedBottleneck)
