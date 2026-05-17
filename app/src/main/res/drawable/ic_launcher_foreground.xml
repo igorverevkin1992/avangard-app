@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Prime Mover launcher glyph. Adaptive icon foreground; geometry sits
-    fully inside the 66×66 adaptive-icon safe zone of the 108×108 viewport
-    so circular / squircle launchers crop nothing.
+    Prime Mover launcher glyph v2. Adaptive-icon foreground rendered as a
+    flat-vector approximation of the brand sheet: silver stencil P + M on
+    the dark adaptive-icon background, with a single red diagonal slash
+    cutting from top-right to bottom-left across both letters.
 
-    The mark is a four-segment stencil "P" plus a three-segment "M" where
-    the right diagonal is the only chromatic accent (signal red).
+    Render order matters — letters first, slash last so the red sits on
+    top and visually bisects the mark.
 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
@@ -13,24 +14,27 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Letter P (stencil): left vertical, top arm, inner-loop right
-         vertical, middle horizontal. Small gaps between segments keep
-         the industrial trafaret feel. -->
+    <!-- Letter P (stencil silver): left vertical, top arm, inner-loop
+         right vertical, middle horizontal. -->
     <path
-        android:fillColor="#0F0F0F"
-        android:pathData="M21,22 L29,22 L29,86 L21,86 Z
-                          M31,22 L49,22 L49,30 L31,30 Z
-                          M41,32 L49,32 L49,50 L41,50 Z
-                          M31,52 L49,52 L49,60 L31,60 Z" />
+        android:fillColor="#C8C8C8"
+        android:pathData="M16,22 L24,22 L24,86 L16,86 Z
+                          M26,22 L48,22 L48,30 L26,30 Z
+                          M40,32 L48,32 L48,50 L40,50 Z
+                          M26,52 L48,52 L48,60 L26,60 Z" />
 
-    <!-- Letter M — left vertical + left diagonal (black). -->
+    <!-- Letter M (silver): both verticals + inverted-V in the middle. -->
     <path
-        android:fillColor="#0F0F0F"
-        android:pathData="M55,22 L63,22 L63,86 L55,86 Z
-                          M63,22 L71,22 L79,58 L71,58 Z" />
+        android:fillColor="#C8C8C8"
+        android:pathData="M58,22 L66,22 L66,86 L58,86 Z
+                          M84,22 L92,22 L92,86 L84,86 Z
+                          M66,22 L74,22 L80,52 L72,52 Z
+                          M76,22 L84,22 L78,52 L70,52 Z" />
 
-    <!-- Letter M — right diagonal (signal red). -->
+    <!-- Red mover-stroke: diagonal slash from top-right toward
+         bottom-left, ~6 units thick, drawn last so it overlays the
+         letters where it crosses them. -->
     <path
         android:fillColor="#D6322D"
-        android:pathData="M79,22 L87,22 L79,58 L71,58 Z" />
+        android:pathData="M10,94 L14,98 L98,14 L94,10 Z" />
 </vector>
