@@ -72,6 +72,9 @@
     <string name="audit_submit">ЗАФИКСИРОВАТЬ</string>
     <string name="audit_open_history">ОТКРЫТЬ ИСТОРИЮ</string>
     <string name="audit_submitted_confirmation">✓ ЗАФИКСИРОВАНО · УЗКОЕ МЕСТО СОХРАНЕНО</string>
+    <string name="audit_completed_label">СОСТОЯНИЕ АУДИТА</string>
+    <string name="audit_completed_header">АУДИТ ЗАВЕРШЁН</string>
+    <string name="audit_completed_subtitle">Узкое место для следующей недели зафиксировано. Изменение возможно только в следующий цикл.</string>
 
     <!-- Weekday lock. -->
     <string name="weekday_lock_title">ДОСТУП К ИСТОРИИ — ВОСКРЕСЕНЬЕ</string>

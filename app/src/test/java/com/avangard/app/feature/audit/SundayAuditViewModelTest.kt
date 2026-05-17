@@ -4,6 +4,7 @@ import com.avangard.app.core.common.toStartOfDayEpoch
 import com.avangard.app.core.domain.FakeClock
 import com.avangard.app.core.domain.FakeSessionRepository
 import com.avangard.app.core.domain.model.Bottleneck
+import com.avangard.app.core.domain.usecase.ObserveDailySessionUseCase
 import com.avangard.app.core.domain.usecase.SetBottleneckUseCase
 import com.avangard.app.core.domain.usecase.SundayAuditUseCase
 import kotlinx.coroutines.Dispatchers
@@ -36,6 +37,7 @@ class SundayAuditViewModelTest {
         repository = FakeSessionRepository(clock)
         viewModel = SundayAuditViewModel(
             audit = SundayAuditUseCase(repository, clock),
+            observeSession = ObserveDailySessionUseCase(repository),
             setBottleneck = SetBottleneckUseCase(repository, clock),
         )
     }
@@ -64,4 +66,23 @@ class SundayAuditViewModelTest {
         val stored = repository.findForDate(today)!!
         assertEquals(Bottleneck.SocialComparison, stored.bottleneckForNextWeek)
     }
+
+    @Test
+    fun `state flips to completed after submit and is sealed against re-submit`() =
+        runTest(dispatcher) {
+            viewModel.onPickBottleneck(Bottleneck.PromptDiscipline)
+            viewModel.submit()
+            advanceUntilIdle()
+
+            val sealed = viewModel.state.first { it.isCompleted }
+            assertEquals(Bottleneck.PromptDiscipline, sealed.fixatedBottleneck)
+            assertFalse("completed audit must not allow re-submit", sealed.canSubmit)
+
+            // Attempting to flip the pick is a no-op once sealed; the picker
+            // is also hidden in the UI but defensively guard the callback.
+            viewModel.onPickBottleneck(Bottleneck.GraphicHygiene)
+            advanceUntilIdle()
+            val afterAttempt = viewModel.state.first()
+            assertEquals(Bottleneck.PromptDiscipline, afterAttempt.fixatedBottleneck)
+        }
 }

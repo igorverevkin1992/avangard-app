@@ -15,12 +15,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
@@ -35,7 +32,6 @@ import com.avangard.app.core.ui.components.HardButton
 import com.avangard.app.core.ui.components.HardButtonVariant
 import com.avangard.app.core.ui.components.PulpitPanel
 import com.avangard.app.ui.theme.IsaColors
-import kotlinx.coroutines.delay
 
 @Composable
 fun SundayAuditScreen(
@@ -44,24 +40,11 @@ fun SundayAuditScreen(
     viewModel: SundayAuditViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
-    // Submitted is a transient UX-only flag — the persistence already
-    // happened on disk; the flag just lets the screen acknowledge the
-    // tap with a visible "ЗАФИКСИРОВАНО" banner that auto-clears.
-    var justSubmitted by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) {
-        viewModel.effects.collect { effect ->
-            when (effect) {
-                SundayAuditEffect.Submitted -> {
-                    justSubmitted = true
-                    delay(2_500)
-                    justSubmitted = false
-                }
-            }
-        }
-    }
+    // Effects pipeline kept idle — the completion state derives from
+    // DailySession.bottleneckForNextWeek via the ViewModel's combine, so
+    // the UI flips to the sealed layout the moment setBottleneck commits.
     SundayAuditContent(
         state = state,
-        justSubmitted = justSubmitted,
         onPickBottleneck = viewModel::onPickBottleneck,
         onSubmit = viewModel::submit,
         onOpenHistory = onOpenHistory,
@@ -72,7 +55,6 @@ fun SundayAuditScreen(
 @Composable
 internal fun SundayAuditContent(
     state: SundayAuditState,
-    justSubmitted: Boolean,
     onPickBottleneck: (Bottleneck) -> Unit,
     onSubmit: () -> Unit,
     onOpenHistory: () -> Unit,
@@ -112,29 +94,24 @@ internal fun SundayAuditContent(
             else -> MetricsTable(view = view)
         }
 
-        PulpitPanel(label = stringResource(R.string.audit_bottleneck_label)) {
-            Bottleneck.entries.forEach { b ->
-                BottleneckRow(
-                    bottleneck = b,
-                    selected = state.selectedBottleneck == b,
-                    onClick = { onPickBottleneck(b) },
-                )
+        if (state.isCompleted) {
+            CompletionPanel(fixated = state.fixatedBottleneck!!)
+        } else {
+            PulpitPanel(label = stringResource(R.string.audit_bottleneck_label)) {
+                Bottleneck.entries.forEach { b ->
+                    BottleneckRow(
+                        bottleneck = b,
+                        selected = state.selectedBottleneck == b,
+                        onClick = { onPickBottleneck(b) },
+                    )
+                }
             }
-        }
 
-        HardButton(
-            label = stringResource(R.string.audit_submit),
-            onClick = onSubmit,
-            enabled = state.canSubmit,
-            variant = HardButtonVariant.Primary,
-        )
-
-        if (justSubmitted) {
-            Text(
-                text = stringResource(R.string.audit_submitted_confirmation),
-                color = IsaColors.Approve,
-                style = MaterialTheme.typography.labelLarge,
-                modifier = Modifier.fillMaxWidth(),
+            HardButton(
+                label = stringResource(R.string.audit_submit),
+                onClick = onSubmit,
+                enabled = state.canSubmit,
+                variant = HardButtonVariant.Primary,
             )
         }
 
@@ -179,6 +156,35 @@ private fun MetricRow(label: String, value: String) {
     ) {
         Text(text = label, color = IsaColors.LiveMetal, style = MaterialTheme.typography.bodyMedium)
         Text(text = value, color = IsaColors.Approve, style = MaterialTheme.typography.labelLarge)
+    }
+}
+
+@Composable
+private fun CompletionPanel(fixated: Bottleneck) {
+    PulpitPanel(label = stringResource(R.string.audit_completed_label)) {
+        Text(
+            text = stringResource(R.string.audit_completed_header),
+            color = IsaColors.Approve,
+            style = MaterialTheme.typography.headlineLarge,
+            modifier = Modifier.semantics { heading() },
+        )
+        Text(
+            text = stringResource(R.string.audit_completed_subtitle),
+            color = IsaColors.Lattice,
+            style = MaterialTheme.typography.labelMedium,
+        )
+        // Sealed bottleneck — green outline, no click affordance. The
+        // operator can re-read what they fixated but not flip it
+        // without waiting for the next Sunday cycle.
+        Text(
+            text = fixated.displayName,
+            color = IsaColors.Approve,
+            style = MaterialTheme.typography.labelLarge,
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(width = 2.dp, color = IsaColors.Approve)
+                .padding(horizontal = 10.dp, vertical = 10.dp),
+        )
     }
 }
 
