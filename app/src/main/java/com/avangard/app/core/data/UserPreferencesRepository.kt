@@ -2,6 +2,7 @@ package com.avangard.app.core.data
 
 import android.content.Context
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
@@ -29,6 +30,13 @@ data class UserPreferences(
     val lastSyncedAt: Long? = null,
     /** Drive-reported modifiedTime of the most recent successful upload. */
     val remoteModifiedAt: Long? = null,
+    /**
+     * Set once after the first post-sign-in cold-start has consulted the
+     * Drive snapshot (restored, skipped, or explicitly continued without
+     * restore). Survives process death so an interrupted restore can be
+     * retried on the next launch.
+     */
+    val initialRestoreDone: Boolean = false,
 ) {
     companion object {
         const val DEFAULT_COLD_START_MS: Long = 5L * 60 * 1000
@@ -74,6 +82,13 @@ class UserPreferencesRepository @Inject constructor(
         context.preferencesStore.edit { prefs ->
             prefs.remove(KEY_LAST_SYNCED_AT)
             prefs.remove(KEY_REMOTE_MODIFIED_AT)
+            prefs.remove(KEY_INITIAL_RESTORE_DONE)
+        }
+    }
+
+    suspend fun setInitialRestoreDone() {
+        context.preferencesStore.edit { prefs ->
+            prefs[KEY_INITIAL_RESTORE_DONE] = true
         }
     }
 
@@ -102,6 +117,7 @@ class UserPreferencesRepository @Inject constructor(
         appLaunchCount = this[KEY_APP_LAUNCH_COUNT] ?: 0,
         lastSyncedAt = this[KEY_LAST_SYNCED_AT],
         remoteModifiedAt = this[KEY_REMOTE_MODIFIED_AT],
+        initialRestoreDone = this[KEY_INITIAL_RESTORE_DONE] ?: false,
     )
 
     companion object {
@@ -111,6 +127,7 @@ class UserPreferencesRepository @Inject constructor(
         private val KEY_APP_LAUNCH_COUNT = intPreferencesKey("app_launch_count")
         private val KEY_LAST_SYNCED_AT = longPreferencesKey("cloud_sync_last_at")
         private val KEY_REMOTE_MODIFIED_AT = longPreferencesKey("cloud_sync_remote_modified_at")
+        private val KEY_INITIAL_RESTORE_DONE = booleanPreferencesKey("cloud_sync_initial_restore_done")
         private const val VACUUM_EVERY_LAUNCHES = 30
     }
 }

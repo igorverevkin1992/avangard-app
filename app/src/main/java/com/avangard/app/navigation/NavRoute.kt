@@ -4,6 +4,7 @@ sealed interface NavRoute {
     val route: String
 
     data object SignIn : NavRoute { override val route = "auth/signin" }
+    data object Restoring : NavRoute { override val route = "auth/restoring" }
     data object OperatorPulpit : NavRoute { override val route = "pulpit" }
     data object AuthorisationModal : NavRoute { override val route = "pulpit/authorise" }
     data object EarnedPride : NavRoute { override val route = "pulpit/earned-pride" }

@@ -7,6 +7,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.avangard.app.feature.audit.SundayAuditScreen
+import com.avangard.app.feature.auth.RestoringScreen
 import com.avangard.app.feature.auth.SignInScreen
 import com.avangard.app.feature.closing.EveningCloseScreen
 import com.avangard.app.feature.habits.HabitTrackerScreen
@@ -37,11 +38,22 @@ fun AvangardNavHost(
         composable(NavRoute.SignIn.route) {
             SignInScreen(
                 onSignedIn = {
-                    navController.navigate(NavRoute.OperatorPulpit.route) {
-                        // After login, sign-in is gone from the back stack —
-                        // back-press from the pulpit closes the app instead
-                        // of dumping the user back to the login wall.
+                    // After login, jump to the restore overlay; it pulls the
+                    // Drive snapshot and only then forwards to the pulpit.
+                    // Sign-in is gone from the back stack — back-press from
+                    // the pulpit closes the app instead of dumping the user
+                    // back to the login wall.
+                    navController.navigate(NavRoute.Restoring.route) {
                         popUpTo(NavRoute.SignIn.route) { inclusive = true }
+                    }
+                },
+            )
+        }
+        composable(NavRoute.Restoring.route) {
+            RestoringScreen(
+                onDone = {
+                    navController.navigate(NavRoute.OperatorPulpit.route) {
+                        popUpTo(NavRoute.Restoring.route) { inclusive = true }
                     }
                 },
             )

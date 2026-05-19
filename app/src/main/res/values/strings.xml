@@ -28,6 +28,12 @@
     <string name="signin_subtitle">Войдите через Google для сохранения данных между устройствами. Резервная копия живёт в скрытой папке Google Drive — она недоступна из обычного Drive-интерфейса и видна только этому приложению.</string>
     <string name="signin_button">ВОЙТИ ЧЕРЕЗ GOOGLE</string>
     <string name="signin_failed">Вход отменён или недоступен. OAuth-клиент должен быть зарегистрирован в Google Cloud Console (см. README).</string>
+    <string name="restoring_title">ВОССТАНОВЛЕНИЕ</string>
+    <string name="restoring_subtitle">Загружаем резервную копию из Google Drive. Это занимает несколько секунд на медленной сети.</string>
+    <string name="restoring_failed_title">ОШИБКА ВОССТАНОВЛЕНИЯ</string>
+    <string name="restoring_failed_body">Снимок повреждён или несовместим. Продолжите с пустой базой или выйдите и попробуйте другой аккаунт.</string>
+    <string name="restoring_failed_continue">ПРОДОЛЖИТЬ БЕЗ ВОССТАНОВЛЕНИЯ</string>
+    <string name="restoring_failed_sign_out">ВЫЙТИ</string>
     <!-- Focus-session daily totals on each habit card. -->
     <string name="pulpit_focus_stats_active">ВСПЫШКА · %1$s   |   СЕГОДНЯ · %2$d × %3$s</string>
     <string name="pulpit_focus_stats_idle">СЕГОДНЯ · %1$d ВСПЫШЕК · %2$s</string>
