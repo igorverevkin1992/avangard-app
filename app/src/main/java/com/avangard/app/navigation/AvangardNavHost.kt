@@ -7,6 +7,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.avangard.app.feature.audit.SundayAuditScreen
+import com.avangard.app.feature.auth.SignInScreen
 import com.avangard.app.feature.closing.EveningCloseScreen
 import com.avangard.app.feature.habits.HabitTrackerScreen
 import androidx.navigation.NavType
@@ -33,6 +34,18 @@ fun AvangardNavHost(
         startDestination = startDestination,
         modifier = modifier,
     ) {
+        composable(NavRoute.SignIn.route) {
+            SignInScreen(
+                onSignedIn = {
+                    navController.navigate(NavRoute.OperatorPulpit.route) {
+                        // After login, sign-in is gone from the back stack —
+                        // back-press from the pulpit closes the app instead
+                        // of dumping the user back to the login wall.
+                        popUpTo(NavRoute.SignIn.route) { inclusive = true }
+                    }
+                },
+            )
+        }
         composable(NavRoute.OperatorPulpit.route) {
             OperatorPulpitScreen(
                 onOpenAuthorisation = { navController.navigate(NavRoute.AuthorisationModal.route) },

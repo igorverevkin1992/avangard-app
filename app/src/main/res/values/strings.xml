@@ -17,6 +17,17 @@
     <string name="pulpit_close_shift">ЗАКРЫТЬ СМЕНУ</string>
     <string name="pulpit_evening_nudge">СМЕНА НЕ ЗАКРЫТА · ТАП ДЛЯ ВЕЧЕРНЕГО ЗАКРЫТИЯ</string>
     <string name="pulpit_quote_of_day_label">ЦИТАТА ДНЯ · ТАП ДЛЯ ПОЛНОГО ТЕКСТА</string>
+
+    <!-- Sign-in / cloud sync (v3.8). default_web_client_id is intentionally
+         empty here; release builds inject a real value via build.gradle's
+         resValue or a CI-managed override. AuthRepository tolerates an
+         empty value by skipping requestIdToken — Drive AppData scope works
+         off the Android OAuth client alone. -->
+    <string name="default_web_client_id" translatable="false"></string>
+    <string name="auth_title">PRIME MOVER · СИНХРОНИЗАЦИЯ</string>
+    <string name="auth_subtitle">Войдите через Google для сохранения данных между устройствами. Резервная копия живёт в скрытой папке Google Drive — она недоступна из обычного Drive-интерфейса и видна только этому приложению.</string>
+    <string name="auth_signin_button">ВОЙТИ ЧЕРЕЗ GOOGLE</string>
+    <string name="auth_signin_failed">Вход отменён или недоступен. OAuth-клиент должен быть зарегистрирован в Google Cloud Console (см. README).</string>
     <!-- Focus-session daily totals on each habit card. -->
     <string name="pulpit_focus_stats_active">ВСПЫШКА · %1$s   |   СЕГОДНЯ · %2$d × %3$s</string>
     <string name="pulpit_focus_stats_idle">СЕГОДНЯ · %1$d ВСПЫШЕК · %2$s</string>

@@ -18,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import com.avangard.app.core.common.Clock
+import com.avangard.app.core.data.auth.AuthRepository
 import com.avangard.app.core.domain.model.AccessPolicy
 import com.avangard.app.navigation.AvangardNavHost
 import com.avangard.app.navigation.AvangardNavigationBar
@@ -33,6 +34,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 class MainActivity : ComponentActivity() {
 
     @Inject lateinit var clock: Clock
+    @Inject lateinit var auth: AuthRepository
 
     /**
      * Holds the most recent Intent so that notification deep-links delivered to
@@ -59,9 +61,14 @@ class MainActivity : ComponentActivity() {
         intentState.value = intent
     }
 
-    private fun defaultStart(): String =
-        if (AccessPolicy.isHistoryUnlocked(clock.today())) NavRoute.SundayAudit.route
-        else NavRoute.OperatorPulpit.route
+    private fun defaultStart(): String = when {
+        // Sign-in is mandatory at launch. Without a Google account on file
+        // the cloud-sync layer has no destination, so the rest of the app
+        // is unreachable until the user signs in.
+        !auth.isSignedIn -> NavRoute.SignIn.route
+        AccessPolicy.isHistoryUnlocked(clock.today()) -> NavRoute.SundayAudit.route
+        else -> NavRoute.OperatorPulpit.route
+    }
 
     companion object {
         const val EXTRA_START_DESTINATION = "start_destination"
@@ -100,7 +107,8 @@ private fun AvangardApp(startDestination: String) {
                     navController = navController,
                     startDestination = if (
                         startDestination == NavRoute.SundayAudit.route ||
-                        startDestination == NavRoute.OperatorPulpit.route
+                        startDestination == NavRoute.OperatorPulpit.route ||
+                        startDestination == NavRoute.SignIn.route
                     ) startDestination else NavRoute.OperatorPulpit.route,
                 )
             }
