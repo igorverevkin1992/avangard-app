@@ -25,6 +25,10 @@ data class UserPreferences(
     val eveningCloseMinute: Int = 0,
     val coldStartThresholdMs: Long = DEFAULT_COLD_START_MS,
     val appLaunchCount: Int = 0,
+    /** Last successful cloud upload — epoch millis, null when never synced. */
+    val lastSyncedAt: Long? = null,
+    /** Drive-reported modifiedTime of the most recent successful upload. */
+    val remoteModifiedAt: Long? = null,
 ) {
     companion object {
         const val DEFAULT_COLD_START_MS: Long = 5L * 60 * 1000
@@ -59,6 +63,20 @@ class UserPreferencesRepository @Inject constructor(
         }
     }
 
+    suspend fun markSynced(lastSyncedAt: Long, remoteModifiedAt: Long) {
+        context.preferencesStore.edit { prefs ->
+            prefs[KEY_LAST_SYNCED_AT] = lastSyncedAt
+            prefs[KEY_REMOTE_MODIFIED_AT] = remoteModifiedAt
+        }
+    }
+
+    suspend fun clearSyncMarkers() {
+        context.preferencesStore.edit { prefs ->
+            prefs.remove(KEY_LAST_SYNCED_AT)
+            prefs.remove(KEY_REMOTE_MODIFIED_AT)
+        }
+    }
+
     /**
      * Increment the launch counter and, every [VACUUM_EVERY_LAUNCHES] launches,
      * defragment the SQLite file. Cheap maintenance to keep the DB compact on
@@ -82,6 +100,8 @@ class UserPreferencesRepository @Inject constructor(
         eveningCloseMinute = this[KEY_EVENING_MINUTE] ?: 0,
         coldStartThresholdMs = this[KEY_COLD_START_MS] ?: UserPreferences.DEFAULT_COLD_START_MS,
         appLaunchCount = this[KEY_APP_LAUNCH_COUNT] ?: 0,
+        lastSyncedAt = this[KEY_LAST_SYNCED_AT],
+        remoteModifiedAt = this[KEY_REMOTE_MODIFIED_AT],
     )
 
     companion object {
@@ -89,6 +109,8 @@ class UserPreferencesRepository @Inject constructor(
         private val KEY_EVENING_MINUTE = intPreferencesKey("evening_close_minute")
         private val KEY_COLD_START_MS = longPreferencesKey("cold_start_threshold_ms")
         private val KEY_APP_LAUNCH_COUNT = intPreferencesKey("app_launch_count")
+        private val KEY_LAST_SYNCED_AT = longPreferencesKey("cloud_sync_last_at")
+        private val KEY_REMOTE_MODIFIED_AT = longPreferencesKey("cloud_sync_remote_modified_at")
         private const val VACUUM_EVERY_LAUNCHES = 30
     }
 }

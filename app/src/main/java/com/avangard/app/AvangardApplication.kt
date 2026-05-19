@@ -1,7 +1,10 @@
 package com.avangard.app
 
 import android.app.Application
+import androidx.hilt.work.HiltWorkerFactory
+import androidx.work.Configuration
 import com.avangard.app.core.data.UserPreferencesRepository
+import com.avangard.app.core.data.cloud.SyncCoordinator
 import com.avangard.app.sync.notifications.SimpleNotificationPresenter
 import com.avangard.app.sync.scheduler.EveningCloseScheduler
 import dagger.hilt.android.HiltAndroidApp
@@ -14,18 +17,26 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
 @HiltAndroidApp
-class AvangardApplication : Application() {
+class AvangardApplication : Application(), Configuration.Provider {
 
     @Inject lateinit var scheduler: EveningCloseScheduler
     @Inject lateinit var presenter: SimpleNotificationPresenter
     @Inject lateinit var preferences: UserPreferencesRepository
+    @Inject lateinit var syncCoordinator: SyncCoordinator
+    @Inject lateinit var workerFactory: HiltWorkerFactory
 
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    override val workManagerConfiguration: Configuration
+        get() = Configuration.Builder()
+            .setWorkerFactory(workerFactory)
+            .build()
 
     override fun onCreate() {
         super.onCreate()
         initCrashReporting()
         presenter.ensureChannel()
+        syncCoordinator.start()
         applicationScope.launch {
             preferences.incrementAppLaunchAndMaybeVacuum()
             scheduler.ensureScheduled()
