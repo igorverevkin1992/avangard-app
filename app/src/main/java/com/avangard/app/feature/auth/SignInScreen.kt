@@ -59,27 +59,27 @@ fun SignInScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
-            text = stringResource(R.string.auth_title),
+            text = stringResource(R.string.signin_title),
             color = IsaColors.LiveMetal,
             style = MaterialTheme.typography.headlineLarge,
             textAlign = TextAlign.Center,
             modifier = Modifier.semantics { heading() },
         )
         Text(
-            text = stringResource(R.string.auth_subtitle),
+            text = stringResource(R.string.signin_subtitle),
             color = IsaColors.Lattice,
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
         )
         HardButton(
-            label = stringResource(R.string.auth_signin_button),
+            label = stringResource(R.string.signin_button),
             onClick = { launcher.launch(viewModel.signInIntent()) },
             variant = HardButtonVariant.Primary,
             enabled = !state.signingIn,
         )
         if (state.errorCode != null) {
             Text(
-                text = stringResource(R.string.auth_signin_failed),
+                text = stringResource(R.string.signin_failed),
                 color = IsaColors.Signal,
                 style = MaterialTheme.typography.labelMedium,
                 textAlign = TextAlign.Center,
