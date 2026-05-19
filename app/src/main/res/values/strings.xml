@@ -184,6 +184,13 @@
     <string name="settings_minute_label">МИНУТА</string>
     <string name="settings_cold_start_label">ПОРОГ ХОЛОДНОГО ЗАПУСКА</string>
     <string name="settings_cold_start_hint">После какого времени Flash-таймер переключает цвет.</string>
+    <string name="settings_cloud_label">ОБЛАЧНАЯ СИНХРОНИЗАЦИЯ</string>
+    <string name="settings_cloud_account_label">АККАУНТ</string>
+    <string name="settings_cloud_account_empty">не подключён</string>
+    <string name="settings_cloud_last_sync_label">ПОСЛЕДНЯЯ ВЫГРУЗКА</string>
+    <string name="settings_cloud_last_sync_never">—</string>
+    <string name="settings_cloud_sync_now">СИНХРОНИЗОВАТЬ СЕЙЧАС</string>
+    <string name="settings_cloud_sign_out">ВЫЙТИ</string>
     <string name="settings_wipe_label">ЛОКАЛЬНАЯ БАЗА</string>
     <string name="settings_wipe_request">СТЕРЕТЬ ВСЁ</string>
     <string name="settings_wipe_confirm">ПОДТВЕРДИТЬ СТИРАНИЕ</string>

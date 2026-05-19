@@ -7,6 +7,8 @@ import com.avangard.app.core.common.Clock
 import com.avangard.app.core.common.DomainResult
 import com.avangard.app.core.data.UserPreferences
 import com.avangard.app.core.data.UserPreferencesRepository
+import com.avangard.app.core.data.auth.AuthRepository
+import com.avangard.app.core.data.cloud.SyncCoordinator
 import com.avangard.app.core.domain.repository.HabitRepository
 import com.avangard.app.core.domain.repository.SessionRepository
 import com.avangard.app.core.domain.usecase.BackupImportError
@@ -44,6 +46,8 @@ data class SettingsState(
     val wipeInProgress: Boolean = false,
     val pendingImportBytes: ByteArray? = null,
     val backupStatus: BackupStatus = BackupStatus.Idle,
+    /** Currently signed-in account's display email, or null when out. */
+    val signedInEmail: String? = null,
 ) {
     // ByteArray breaks data-class equals; keep generated equals/hashCode honest.
     override fun equals(other: Any?): Boolean {
@@ -53,6 +57,7 @@ data class SettingsState(
         if (confirmingWipe != other.confirmingWipe) return false
         if (wipeInProgress != other.wipeInProgress) return false
         if (backupStatus != other.backupStatus) return false
+        if (signedInEmail != other.signedInEmail) return false
         return when {
             pendingImportBytes == null && other.pendingImportBytes == null -> true
             pendingImportBytes != null && other.pendingImportBytes != null ->
@@ -67,6 +72,7 @@ data class SettingsState(
         result = 31 * result + wipeInProgress.hashCode()
         result = 31 * result + (pendingImportBytes?.contentHashCode() ?: 0)
         result = 31 * result + backupStatus.hashCode()
+        result = 31 * result + (signedInEmail?.hashCode() ?: 0)
         return result
     }
 }
@@ -80,6 +86,8 @@ class SettingsViewModel @Inject constructor(
     private val exportBackup: ExportBackupUseCase,
     private val importBackup: ImportBackupUseCase,
     private val clock: Clock,
+    private val auth: AuthRepository,
+    private val syncCoordinator: SyncCoordinator,
 ) : ViewModel() {
 
     /** Backup filename uses the injected Clock so timezone-sensitive paths
@@ -93,13 +101,15 @@ class SettingsViewModel @Inject constructor(
         preferences.flow,
         wipeFlags,
         backupState,
-    ) { prefs, flags, backup ->
+        auth.account,
+    ) { prefs, flags, backup, account ->
         SettingsState(
             preferences = prefs,
             confirmingWipe = flags.confirming,
             wipeInProgress = flags.inProgress,
             pendingImportBytes = backup.pendingImportBytes,
             backupStatus = backup.status,
+            signedInEmail = account?.email,
         )
     }.stateIn(
         scope = viewModelScope,
@@ -212,6 +222,28 @@ class SettingsViewModel @Inject constructor(
 
     fun acknowledgeBackupStatus() {
         backupState.value = backupState.value.copy(status = BackupStatus.Idle)
+    }
+
+    /**
+     * "СИНХРОНИЗОВАТЬ СЕЙЧАС" — bypass the 5-second debounce and run the
+     * uploader immediately (still subject to WorkManager's CONNECTED
+     * constraint).
+     */
+    fun onForceSync() {
+        syncCoordinator.syncNow()
+    }
+
+    /**
+     * "ВЫЙТИ" — drop the Google account and the cloud markers so a fresh
+     * sign-in re-triggers the restore overlay against the new account.
+     * The local DB is untouched — local-only operators can keep working
+     * offline; SAF backup remains the manual fallback.
+     */
+    fun onSignOut() {
+        viewModelScope.launch {
+            auth.signOut()
+            preferences.clearSyncMarkers()
+        }
     }
 
     private data class WipeFlags(

@@ -99,6 +99,8 @@ fun SettingsScreen(
         onConfirmImport = viewModel::commitImport,
         onCancelImport = viewModel::cancelImport,
         onDismissBackupStatus = viewModel::acknowledgeBackupStatus,
+        onForceSync = viewModel::onForceSync,
+        onSignOut = viewModel::onSignOut,
         onReturn = onReturn,
         modifier = modifier,
     )
@@ -117,6 +119,8 @@ internal fun SettingsContent(
     onConfirmImport: () -> Unit,
     onCancelImport: () -> Unit,
     onDismissBackupStatus: () -> Unit,
+    onForceSync: () -> Unit,
+    onSignOut: () -> Unit,
     onReturn: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -144,6 +148,13 @@ internal fun SettingsContent(
         ColdStartBlock(
             currentMinutes = (state.preferences.coldStartThresholdMs / 60 / 1000).toInt(),
             onChanged = onColdStartThresholdChanged,
+        )
+
+        CloudSyncPanel(
+            email = state.signedInEmail,
+            lastSyncedAt = state.preferences.lastSyncedAt,
+            onForceSync = onForceSync,
+            onSignOut = onSignOut,
         )
 
         BackupBlock(
@@ -306,6 +317,81 @@ private fun BackupStatusLine(
         color = color,
         style = MaterialTheme.typography.labelMedium,
     )
+}
+
+@Composable
+private fun CloudSyncPanel(
+    email: String?,
+    lastSyncedAt: Long?,
+    onForceSync: () -> Unit,
+    onSignOut: () -> Unit,
+) {
+    val signedIn = email != null
+    PulpitPanel(label = stringResource(R.string.settings_cloud_label)) {
+        LabelValueRow(
+            label = stringResource(R.string.settings_cloud_account_label),
+            value = email ?: stringResource(R.string.settings_cloud_account_empty),
+            valueColor = if (signedIn) IsaColors.LiveMetal else IsaColors.Mute,
+        )
+        LabelValueRow(
+            label = stringResource(R.string.settings_cloud_last_sync_label),
+            value = lastSyncedAt
+                ?.let { formatEpochAsHumanLocal(it) }
+                ?: stringResource(R.string.settings_cloud_last_sync_never),
+            valueColor = if (lastSyncedAt != null) IsaColors.LiveMetal else IsaColors.Mute,
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            HardButton(
+                label = stringResource(R.string.settings_cloud_sync_now),
+                onClick = onForceSync,
+                enabled = signedIn,
+                variant = HardButtonVariant.Primary,
+                modifier = Modifier.weight(1f),
+            )
+            HardButton(
+                label = stringResource(R.string.settings_cloud_sign_out),
+                onClick = onSignOut,
+                enabled = signedIn,
+                variant = HardButtonVariant.Danger,
+                modifier = Modifier.weight(1f),
+            )
+        }
+    }
+}
+
+@Composable
+private fun LabelValueRow(
+    label: String,
+    value: String,
+    valueColor: androidx.compose.ui.graphics.Color,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Text(
+            text = label,
+            color = IsaColors.Lattice,
+            style = MaterialTheme.typography.labelMedium,
+            modifier = Modifier.weight(1f),
+        )
+        Text(
+            text = value,
+            color = valueColor,
+            style = MaterialTheme.typography.labelMedium,
+            modifier = Modifier.weight(2f),
+        )
+    }
+}
+
+private fun formatEpochAsHumanLocal(epochMs: Long): String {
+    val instant = java.time.Instant.ofEpochMilli(epochMs)
+    val zoned = instant.atZone(java.time.ZoneId.systemDefault())
+    val formatter = java.time.format.DateTimeFormatter.ofPattern("HH:mm · dd.MM.yyyy")
+    return zoned.format(formatter)
 }
 
 @Composable

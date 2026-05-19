@@ -4,6 +4,8 @@ import com.avangard.app.core.common.DomainResult
 import com.avangard.app.core.common.toStartOfDayEpoch
 import com.avangard.app.core.data.UserPreferences
 import com.avangard.app.core.data.UserPreferencesRepository
+import com.avangard.app.core.data.auth.AuthRepository
+import com.avangard.app.core.data.cloud.SyncCoordinator
 import com.avangard.app.core.domain.FakeClock
 import com.avangard.app.core.domain.FakeHabitRepository
 import com.avangard.app.core.domain.FakeSessionRepository
@@ -47,6 +49,8 @@ class SettingsViewModelTest {
     private lateinit var scheduler: EveningCloseScheduler
     private lateinit var exportBackup: ExportBackupUseCase
     private lateinit var importBackup: ImportBackupUseCase
+    private lateinit var auth: AuthRepository
+    private lateinit var syncCoordinator: SyncCoordinator
     private lateinit var viewModel: SettingsViewModel
 
     @Before
@@ -63,6 +67,10 @@ class SettingsViewModelTest {
         exportBackup = mockk(relaxed = true)
         importBackup = mockk(relaxed = true)
         coEvery { exportBackup.invoke() } returns "{}".toByteArray()
+        auth = mockk(relaxed = true) {
+            every { account } returns MutableStateFlow(null)
+        }
+        syncCoordinator = mockk(relaxed = true)
         viewModel = SettingsViewModel(
             sessions = sessions,
             habits = habits,
@@ -71,6 +79,8 @@ class SettingsViewModelTest {
             exportBackup = exportBackup,
             importBackup = importBackup,
             clock = clock,
+            auth = auth,
+            syncCoordinator = syncCoordinator,
         )
     }
 
@@ -222,5 +232,21 @@ class SettingsViewModelTest {
             BackupStatus.ImportFailed.UnsupportedSchema(99),
             viewModel.state.value.backupStatus,
         )
+    }
+
+    @Test
+    fun `onForceSync delegates to syncCoordinator`() {
+        viewModel.onForceSync()
+
+        io.mockk.verify { syncCoordinator.syncNow() }
+    }
+
+    @Test
+    fun `onSignOut clears markers and signs out`() = runTest(dispatcher) {
+        viewModel.onSignOut()
+        advanceUntilIdle()
+
+        coVerify { auth.signOut() }
+        coVerify { preferences.clearSyncMarkers() }
     }
 }
