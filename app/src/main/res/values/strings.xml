@@ -97,10 +97,11 @@
     <string name="audit_completed_header">АУДИТ ЗАВЕРШЁН</string>
     <string name="audit_completed_subtitle">Узкое место для следующей недели зафиксировано. Изменение возможно только в следующий цикл.</string>
 
-    <!-- Weekday lock. -->
-    <string name="weekday_lock_title">ДОСТУП К ИСТОРИИ — ВОСКРЕСЕНЬЕ</string>
-    <string name="weekday_lock_body">Прошлое объективно не существует и не подлежит изменению. Существует только текущий производственный цикл.</string>
-    <string name="weekday_lock_return">ВЕРНУТЬСЯ</string>
+    <!-- Weekday lock — only the Sunday audit is gated now; the history grid
+         is read-only and reachable every day. -->
+    <string name="weekday_lock_title">АУДИТ — ВОСКРЕСЕНЬЕ</string>
+    <string name="weekday_lock_body">PDCA-ревизия недели открывается только в день рефлексии. История и трекер привычек доступны каждый день.</string>
+    <string name="weekday_lock_return">ВЕРНУТЬСЯ К ПУЛЬТУ</string>
 
     <!-- Notification. -->
     <string name="notification_evening_title">ТРЕБУЕТСЯ ЗАКРЫТИЕ СМЕНЫ</string>

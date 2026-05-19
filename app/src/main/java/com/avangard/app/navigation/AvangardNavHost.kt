@@ -85,9 +85,10 @@ fun AvangardNavHost(
             }
         }
         composable(NavRoute.HistoryGrid.route) {
-            HistoryGate(onLockedReturn = { navController.popBackStack() }) {
-                HabitTrackerScreen()
-            }
+            // History grid (monthly habit mosaic) is reachable every day:
+            // it's a read-only summary of past behaviour, not a Sunday
+            // reflection ritual. Audit stays Sunday-only via HistoryGate.
+            HabitTrackerScreen()
         }
         composable(NavRoute.Library.route) {
             LibraryScreen(
