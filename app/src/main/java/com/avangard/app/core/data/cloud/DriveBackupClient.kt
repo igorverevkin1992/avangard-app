@@ -12,7 +12,6 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import okhttp3.Headers
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
@@ -153,16 +152,12 @@ class DriveBackupClient @Inject constructor(
         } else {
             """{"name":"$BACKUP_FILE_NAME"}"""
         }
+        // OkHttp's MultipartBody rejects an explicit Content-Type header on
+        // each part — it must come from the body's MediaType only.
         return MultipartBody.Builder()
             .setType("multipart/related".toMediaType())
-            .addPart(
-                Headers.headersOf("Content-Type", "application/json; charset=UTF-8"),
-                metadataJson.toRequestBody(),
-            )
-            .addPart(
-                Headers.headersOf("Content-Type", "application/json"),
-                bytes.toRequestBody("application/json".toMediaType()),
-            )
+            .addPart(metadataJson.toRequestBody("application/json; charset=UTF-8".toMediaType()))
+            .addPart(bytes.toRequestBody("application/json".toMediaType()))
             .build()
     }
 
