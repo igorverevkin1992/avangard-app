@@ -39,11 +39,11 @@ class QuoteRepositoryTest {
         val quotes = repository.all()
         assertEquals(100, quotes.size)
         // Spot-check the first quote so any rename/strip silently lands in
-        // the diff rather than passing.
+        // the diff rather than passing. Catalog is Russian-only now.
         assertEquals(1, quotes.first().id)
         assertTrue(
-            "first quote should mention productive work",
-            quotes.first().text.contains("Productive work", ignoreCase = true),
+            "first quote should be the productive-work passage in Russian",
+            quotes.first().text.contains("Производительный труд", ignoreCase = true),
         )
     }
 

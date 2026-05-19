@@ -3,602 +3,602 @@
   "quotes": [
     {
       "id": 1,
-      "text": "Productive work is the central purpose of a rational man's life, the central value that integrates and determines the hierarchy of all his other values. Reason is the source, the precondition of his productive work — pride is the result.",
-      "source": "Ayn Rand, \"The Objectivist Ethics\" — The Virtue of Selfishness",
+      "text": "Производительный труд — центральная цель жизни рационального человека, главная ценность, которая интегрирует и определяет иерархию всех остальных его ценностей. Разум — источник и предпосылка производительного труда; гордость — его результат.",
+      "source": "Айн Рэнд, «Объективистская этика», сборник «Добродетель эгоизма»",
       "virtues": ["RATIONALITY"]
     },
     {
       "id": 2,
-      "text": "Man's mind is his basic tool of survival. Life is given to him, survival is not. His body is given to him, its sustenance is not. His mind is given to him, its content is not. To remain alive, he must act, and before he can act he must know the nature and purpose of his action.",
-      "source": "Ayn Rand, Atlas Shrugged — John Galt's speech",
+      "text": "Разум — главное орудие выживания человека. Жизнь ему дана, выживание — нет. Тело ему дано, поддержание тела — нет. Разум ему дан, содержимое разума — нет. Чтобы оставаться живым, он должен действовать, а прежде чем действовать — должен знать природу и цель своего действия.",
+      "source": "Айн Рэнд, «Атлант расправил плечи» — речь Джона Голта",
       "virtues": ["RATIONALITY"]
     },
     {
       "id": 3,
-      "text": "The faculty that distinguishes man from animals is reason. The function of reason is to perceive the reality which exists and to integrate it into knowledge.",
-      "source": "Ayn Rand, \"For the New Intellectual\"",
+      "text": "Способность, отличающая человека от животного, — разум. Функция разума — воспринимать существующую реальность и интегрировать её в знание.",
+      "source": "Айн Рэнд, «Для нового интеллектуала»",
       "virtues": ["RATIONALITY"]
     },
     {
       "id": 4,
-      "text": "A is A. A thing is itself. You will not assault reality without paying the price, and the price is your own destruction.",
-      "source": "Ayn Rand, Atlas Shrugged — John Galt's speech",
+      "text": "А есть А. Вещь есть то, чем она является. Невозможно напасть на реальность, не заплатив цены, и эта цена — твоё собственное разрушение.",
+      "source": "Айн Рэнд, «Атлант расправил плечи» — речь Джона Голта",
       "virtues": ["RATIONALITY", "HONESTY"]
     },
     {
       "id": 5,
-      "text": "Contradictions do not exist. Whenever you think that you are facing a contradiction, check your premises. You will find that one of them is wrong.",
-      "source": "Ayn Rand, Atlas Shrugged",
+      "text": "Противоречий не существует. Когда тебе кажется, что ты встретил противоречие, — проверь свои предпосылки. Окажется, что одна из них ошибочна.",
+      "source": "Айн Рэнд, «Атлант расправил плечи»",
       "virtues": ["RATIONALITY"]
     },
     {
       "id": 6,
-      "text": "Reason is not automatic. Those who deny it cannot be conquered by it. Do not count on them. Leave them alone.",
-      "source": "Ayn Rand, Atlas Shrugged",
+      "text": "Разум не автоматичен. Те, кто его отрицает, не могут быть им покорены. Не рассчитывай на них. Оставь их в покое.",
+      "source": "Айн Рэнд, «Атлант расправил плечи»",
       "virtues": ["RATIONALITY", "JUSTICE"]
     },
     {
       "id": 7,
-      "text": "Thinking is man's only basic virtue, from which all the others proceed. The virtue of Rationality means the recognition and acceptance of reason as one's only source of knowledge, one's only judge of values and one's only guide to action.",
-      "source": "Ayn Rand, \"The Objectivist Ethics\"",
+      "text": "Мышление — единственная базовая добродетель человека, из которой следуют все остальные. Добродетель Разумности — это признание и принятие разума как единственного источника знания, единственного судьи ценностей и единственного руководства к действию.",
+      "source": "Айн Рэнд, «Объективистская этика»",
       "virtues": ["RATIONALITY"]
     },
     {
       "id": 8,
-      "text": "The pursuit of a rational purpose is the only form of pleasure that does not corrupt or deplete the man who experiences it.",
-      "source": "Ayn Rand, Atlas Shrugged",
+      "text": "Преследование рациональной цели — единственная форма удовольствия, которая не развращает и не истощает человека, её испытывающего.",
+      "source": "Айн Рэнд, «Атлант расправил плечи»",
       "virtues": ["RATIONALITY"]
     },
     {
       "id": 9,
-      "text": "An emotion that clashes with your reason, an emotion that you cannot explain or control, is only the carcass of that stale thinking which you forbade your mind to revise.",
-      "source": "Ayn Rand, Atlas Shrugged",
+      "text": "Эмоция, которая сталкивается с твоим разумом, эмоция, которую ты не можешь объяснить или контролировать, — лишь труп застоявшейся мысли, которую ты запретил своему уму пересмотреть.",
+      "source": "Айн Рэнд, «Атлант расправил плечи»",
       "virtues": ["RATIONALITY", "HONESTY"]
     },
     {
       "id": 10,
-      "text": "Happiness is that state of consciousness which proceeds from the achievement of one's values.",
-      "source": "Ayn Rand, \"The Objectivist Ethics\"",
+      "text": "Счастье — это состояние сознания, проистекающее из достижения собственных ценностей.",
+      "source": "Айн Рэнд, «Объективистская этика»",
       "virtues": ["RATIONALITY"]
     },
     {
       "id": 11,
-      "text": "To live, man must hold three things as the supreme and ruling values of his life: Reason — Purpose — Self-esteem.",
-      "source": "Ayn Rand, \"The Objectivist Ethics\"",
+      "text": "Чтобы жить, человек должен принять три ценности как высшие и господствующие в его жизни: Разум — Цель — Самоуважение.",
+      "source": "Айн Рэнд, «Объективистская этика»",
       "virtues": ["RATIONALITY", "INDEPENDENCE"]
     },
     {
       "id": 12,
-      "text": "The hardest thing to explain is the glaringly evident which everybody had decided not to see.",
-      "source": "Ayn Rand, Atlas Shrugged",
+      "text": "Труднее всего объяснить очевиднейшее — то, что все решили не видеть.",
+      "source": "Айн Рэнд, «Атлант расправил плечи»",
       "virtues": ["RATIONALITY", "HONESTY"]
     },
     {
       "id": 13,
-      "text": "Throughout the centuries there were men who took first steps down new roads armed with nothing but their own vision.",
-      "source": "Ayn Rand, The Fountainhead — Roark's courtroom speech",
+      "text": "На протяжении веков были люди, делавшие первые шаги по новым дорогам, вооружённые лишь собственным видением.",
+      "source": "Айн Рэнд, «Источник» — речь Рорка в суде",
       "virtues": ["INDEPENDENCE"]
     },
     {
       "id": 14,
-      "text": "The creator stands on his own judgment. The parasite follows the opinions of others. The creator thinks, the parasite copies.",
-      "source": "Ayn Rand, The Fountainhead — Roark's courtroom speech",
+      "text": "Творец опирается на собственное суждение. Паразит следует чужим мнениям. Творец мыслит — паразит копирует.",
+      "source": "Айн Рэнд, «Источник» — речь Рорка в суде",
       "virtues": ["INDEPENDENCE", "RATIONALITY"]
     },
     {
       "id": 15,
-      "text": "I came here to say that I do not recognize anyone's right to one minute of my life. Nor to any part of my energy. Nor to any achievement of mine. No matter who makes the claim, how large their number or how great their need.",
-      "source": "Ayn Rand, The Fountainhead — Roark's courtroom speech",
+      "text": "Я пришёл сюда сказать, что не признаю ни за кем права ни на одну минуту моей жизни. Ни на часть моей энергии. Ни на одно моё достижение. Кто бы ни предъявлял требование, сколь бы ни велико было их число и сколь бы тяжела ни была их нужда.",
+      "source": "Айн Рэнд, «Источник» — речь Рорка в суде",
       "virtues": ["INDEPENDENCE", "JUSTICE"]
     },
     {
       "id": 16,
-      "text": "I wished to come here and say that I am a man who does not exist for others. It had to be said. The world is perishing from an orgy of self-sacrificing.",
-      "source": "Ayn Rand, The Fountainhead — Roark's courtroom speech",
+      "text": "Я хотел прийти сюда и сказать: я — человек, который не существует ради других. Это нужно было произнести. Мир гибнет в оргии самопожертвования.",
+      "source": "Айн Рэнд, «Источник» — речь Рорка в суде",
       "virtues": ["INDEPENDENCE"]
     },
     {
       "id": 17,
-      "text": "The mind is an attribute of the individual. There is no such thing as a collective brain. There is no such thing as a collective thought.",
-      "source": "Ayn Rand, The Fountainhead — Roark's courtroom speech",
+      "text": "Разум — атрибут индивидуума. Не существует коллективного мозга. Не существует коллективной мысли.",
+      "source": "Айн Рэнд, «Источник» — речь Рорка в суде",
       "virtues": ["INDEPENDENCE", "RATIONALITY"]
     },
     {
       "id": 18,
-      "text": "No man can use his brain to think for another. All the functions of body and spirit are private. They cannot be shared or transferred.",
-      "source": "Ayn Rand, The Fountainhead — Roark's courtroom speech",
+      "text": "Никто не может использовать свой мозг, чтобы думать за другого. Все функции тела и духа частны. Их нельзя разделить или передать.",
+      "source": "Айн Рэнд, «Источник» — речь Рорка в суде",
       "virtues": ["INDEPENDENCE"]
     },
     {
       "id": 19,
-      "text": "I swear by my life and my love of it that I will never live for the sake of another man, nor ask another man to live for mine.",
-      "source": "Ayn Rand, Atlas Shrugged — John Galt's oath",
+      "text": "Клянусь своей жизнью и любовью к ней, что никогда не буду жить ради другого человека и не попрошу другого жить ради меня.",
+      "source": "Айн Рэнд, «Атлант расправил плечи» — клятва Джона Голта",
       "virtues": ["INDEPENDENCE", "JUSTICE"]
     },
     {
       "id": 20,
-      "text": "Independence is the recognition of the fact that yours is the responsibility of judgment and nothing can help you escape it.",
-      "source": "Ayn Rand, \"The Objectivist Ethics\"",
+      "text": "Независимость — это признание того факта, что суждение есть твоя ответственность, и ничто не поможет тебе от неё уйти.",
+      "source": "Айн Рэнд, «Объективистская этика»",
       "virtues": ["INDEPENDENCE"]
     },
     {
       "id": 21,
-      "text": "No substitute can do your thinking, as no pinch-hitter can live your life.",
-      "source": "Ayn Rand, \"The Objectivist Ethics\"",
+      "text": "Никакой заменитель не подумает за тебя — как никакой дублёр не проживёт твою жизнь.",
+      "source": "Айн Рэнд, «Объективистская этика»",
       "virtues": ["INDEPENDENCE"]
     },
     {
       "id": 22,
-      "text": "A first-handed ego is the one who reverses convention. The first questions he asks of his work are never \"What will they think of it?\" The first questions are \"Is it true? Is it right? Does it work?\"",
-      "source": "Ayn Rand, The Fountainhead",
+      "text": "Первоисточниковое эго переворачивает условности. Первые вопросы, которые он задаёт своей работе, никогда не «что они о ней подумают?». Первые вопросы — «Истинно ли это? Верно ли это? Работает ли это?».",
+      "source": "Айн Рэнд, «Источник»",
       "virtues": ["INDEPENDENCE", "HONESTY"]
     },
     {
       "id": 23,
-      "text": "Howard, the worst second-hander of all — the man who goes after power.",
-      "source": "Ayn Rand, The Fountainhead — Dominique to Roark",
+      "text": "Хоуард, худший из всех второсортных — человек, идущий за властью.",
+      "source": "Айн Рэнд, «Источник» — Доминик Рорку",
       "virtues": ["INDEPENDENCE"]
     },
     {
       "id": 24,
-      "text": "Civilization is the progress toward a society of privacy. The savage's whole existence is public, ruled by the laws of his tribe. Civilization is the process of setting man free from men.",
-      "source": "Ayn Rand, The Fountainhead",
+      "text": "Цивилизация — это движение к обществу приватности. Существование дикаря целиком публично, оно подчинено законам племени. Цивилизация — процесс освобождения человека от людей.",
+      "source": "Айн Рэнд, «Источник»",
       "virtues": ["INDEPENDENCE"]
     },
     {
       "id": 25,
-      "text": "Achievement of your happiness is the only moral purpose of your life, and that happiness — not pain or mindless self-indulgence — is the proof of your moral integrity.",
-      "source": "Ayn Rand, Atlas Shrugged — John Galt's speech",
+      "text": "Достижение твоего счастья — единственная нравственная цель твоей жизни, и именно счастье, а не страдание и не безмозглое потакание себе, есть доказательство твоей нравственной цельности.",
+      "source": "Айн Рэнд, «Атлант расправил плечи» — речь Джона Голта",
       "virtues": ["INDEPENDENCE", "HONESTY"]
     },
     {
       "id": 26,
-      "text": "The question isn't who is going to let me; it's who is going to stop me.",
-      "source": "Ayn Rand, The Fountainhead",
+      "text": "Вопрос не в том, кто мне позволит, — вопрос в том, кто меня остановит.",
+      "source": "Айн Рэнд, «Источник»",
       "virtues": ["INDEPENDENCE"]
     },
     {
       "id": 27,
-      "text": "To say \"I love you\" one must know first how to say the \"I.\"",
-      "source": "Ayn Rand, The Fountainhead",
+      "text": "Чтобы сказать «я люблю тебя», нужно сперва научиться произносить «я».",
+      "source": "Айн Рэнд, «Источник»",
       "virtues": ["INDEPENDENCE"]
     },
     {
       "id": 28,
-      "text": "I never thought of him in relation to others. I thought of him in relation to himself.",
-      "source": "Ayn Rand, The Fountainhead",
+      "text": "Я никогда не думала о нём в отношении к другим. Я думала о нём в отношении к нему самому.",
+      "source": "Айн Рэнд, «Источник»",
       "virtues": ["INDEPENDENCE"]
     },
     {
       "id": 29,
-      "text": "Do not let your fire go out, spark by irreplaceable spark, in the hopeless swamps of the approximate, the not-quite, the not-yet, the not-at-all.",
-      "source": "Ayn Rand, Atlas Shrugged",
+      "text": "Не дай своему огню угаснуть — искра за невосполнимой искрой — в безнадёжных болотах приблизительного, не-совсем, ещё-не и вовсе-не.",
+      "source": "Айн Рэнд, «Атлант расправил плечи»",
       "virtues": ["INDEPENDENCE", "RATIONALITY"]
     },
     {
       "id": 30,
-      "text": "Honesty is the recognition of the fact that the unreal is unreal and can have no value, that neither love nor fame nor cash is a value if obtained by fraud.",
-      "source": "Ayn Rand, \"The Objectivist Ethics\"",
+      "text": "Честность — это признание того, что нереальное нереально и не может иметь ценности; что ни любовь, ни слава, ни деньги не являются ценностью, если получены обманом.",
+      "source": "Айн Рэнд, «Объективистская этика»",
       "virtues": ["HONESTY"]
     },
     {
       "id": 31,
-      "text": "The first right on earth is the right of the ego. Man's first duty is to himself. His moral law is never to place his prime goal within the persons of others.",
-      "source": "Ayn Rand, The Fountainhead — Roark's courtroom speech",
+      "text": "Первое право на земле — право эго. Первый долг человека — перед самим собой. Его нравственный закон — никогда не помещать свою главную цель внутрь других людей.",
+      "source": "Айн Рэнд, «Источник» — речь Рорка в суде",
       "virtues": ["INDEPENDENCE", "HONESTY"]
     },
     {
       "id": 32,
-      "text": "An honest man is one who knows that he can't consume more than he has produced.",
-      "source": "Ayn Rand, Atlas Shrugged — Francisco's money speech",
+      "text": "Честный человек — тот, кто знает, что не может потребить больше, чем произвёл.",
+      "source": "Айн Рэнд, «Атлант расправил плечи» — речь Франсиско о деньгах",
       "virtues": ["HONESTY", "JUSTICE"]
     },
     {
       "id": 33,
-      "text": "Money will not give him a code of values, if he's evaded the knowledge of what to value, and it will not provide him with a purpose, if he's evaded the choice of what to seek.",
-      "source": "Ayn Rand, Atlas Shrugged — Francisco's money speech",
+      "text": "Деньги не дадут ему кодекса ценностей, если он уклонился от знания того, что ценить; и не дадут ему цели, если он уклонился от выбора того, к чему стремиться.",
+      "source": "Айн Рэнд, «Атлант расправил плечи» — речь Франсиско о деньгах",
       "virtues": ["HONESTY", "RATIONALITY"]
     },
     {
       "id": 34,
-      "text": "The unfocused mind is not conscious. The man who lives without consciousness, with thoughts unowned and acts unconsidered, has not earned the right to call himself human.",
-      "source": "Ayn Rand, Atlas Shrugged",
+      "text": "Нефокусированный ум не сознателен. Человек, живущий без сознания, с непринятыми мыслями и необдуманными поступками, не заслужил права называться человеком.",
+      "source": "Айн Рэнд, «Атлант расправил плечи»",
       "virtues": ["HONESTY", "RATIONALITY"]
     },
     {
       "id": 35,
-      "text": "Evasion is the act of blanking out, the willful refusal to see — the willful refusal to be conscious.",
-      "source": "Ayn Rand, Atlas Shrugged — John Galt's speech",
+      "text": "Уклонение — это акт обнуления, волевой отказ видеть — волевой отказ быть сознательным.",
+      "source": "Айн Рэнд, «Атлант расправил плечи» — речь Джона Голта",
       "virtues": ["HONESTY", "RATIONALITY"]
     },
     {
       "id": 36,
-      "text": "You cannot stand watching the dishonesty around you and decide to do nothing about your own integrity — for integrity is single, you cannot have it in one area of your life and lose it in another.",
-      "source": "Leonard Peikoff, Objectivism: The Philosophy of Ayn Rand",
+      "text": "Нельзя смотреть на нечестность вокруг и решить ничего не делать со своей собственной цельностью — ибо цельность едина: невозможно иметь её в одной области жизни и потерять в другой.",
+      "source": "Леонард Пейкофф, «Объективизм: философия Айн Рэнд»",
       "virtues": ["HONESTY"]
     },
     {
       "id": 37,
-      "text": "The man who attempts to live for the sake of others is a dependent. He is a parasite in motive and makes parasites of those he serves.",
-      "source": "Ayn Rand, The Fountainhead — Roark's courtroom speech",
+      "text": "Человек, пытающийся жить ради других, — иждивенец. Он паразит по мотиву и делает паразитами тех, кому служит.",
+      "source": "Айн Рэнд, «Источник» — речь Рорка в суде",
       "virtues": ["HONESTY", "INDEPENDENCE"]
     },
     {
       "id": 38,
-      "text": "Justice is the recognition of the fact that you cannot fake the character of men as you cannot fake the character of nature, that you must judge all men as conscientiously as you judge inanimate objects, with the same respect for truth.",
-      "source": "Ayn Rand, Atlas Shrugged — John Galt's speech",
+      "text": "Справедливость — это признание того, что нельзя подделать характер людей, как нельзя подделать природу; что судить о людях нужно так же добросовестно, как судят о неодушевлённых предметах, с тем же уважением к истине.",
+      "source": "Айн Рэнд, «Атлант расправил плечи» — речь Джона Голта",
       "virtues": ["JUSTICE", "HONESTY"]
     },
     {
       "id": 39,
-      "text": "The only way men can deal with one another is by trade, and the only proper criterion of trade is justice: a trade by free, mutual consent to mutual advantage.",
-      "source": "Ayn Rand, \"The Objectivist Ethics\"",
+      "text": "Единственный способ, которым люди могут иметь дело друг с другом, — обмен; и единственный надлежащий критерий обмена — справедливость: обмен по свободному взаимному согласию, к взаимной выгоде.",
+      "source": "Айн Рэнд, «Объективистская этика»",
       "virtues": ["JUSTICE"]
     },
     {
       "id": 40,
-      "text": "When you condemn the guilty, you uphold the innocent. When you let the guilty pass, you condemn the innocent.",
-      "source": "Paraphrased from Ayn Rand, Atlas Shrugged",
+      "text": "Осуждая виновного, ты защищаешь невинного. Пропуская виновного, ты осуждаешь невинного.",
+      "source": "Парафраз: Айн Рэнд, «Атлант расправил плечи»",
       "virtues": ["JUSTICE"]
     },
     {
       "id": 41,
-      "text": "The man who refuses to judge, who neither agrees nor disagrees, who declares that there are no absolutes and believes that he escapes responsibility, is the man responsible for all the blood that is now spilled in the world.",
-      "source": "Ayn Rand, Atlas Shrugged — John Galt's speech",
+      "text": "Человек, отказывающийся судить, который ни соглашается, ни не соглашается, который заявляет, что абсолютов нет, и верит, будто уходит от ответственности, — именно тот, кто ответствен за всю кровь, проливаемую сейчас в мире.",
+      "source": "Айн Рэнд, «Атлант расправил плечи» — речь Джона Голта",
       "virtues": ["JUSTICE", "HONESTY"]
     },
     {
       "id": 42,
-      "text": "There are two sides to every issue: one side is right and the other is wrong, but the middle is always evil.",
-      "source": "Ayn Rand, Atlas Shrugged",
+      "text": "У любого вопроса есть две стороны: одна права, другая неправа; но середина всегда есть зло.",
+      "source": "Айн Рэнд, «Атлант расправил плечи»",
       "virtues": ["JUSTICE", "HONESTY"]
     },
     {
       "id": 43,
-      "text": "Force and mind are opposites; morality ends where a gun begins.",
-      "source": "Ayn Rand, Atlas Shrugged — John Galt's speech",
+      "text": "Сила и разум противоположны; нравственность заканчивается там, где начинается пистолет.",
+      "source": "Айн Рэнд, «Атлант расправил плечи» — речь Джона Голта",
       "virtues": ["JUSTICE", "RATIONALITY"]
     },
     {
       "id": 44,
-      "text": "Whoever is now within reach of my voice, whoever is man the victim, not man the killer — I am speaking at the deathbed of your mind, at the brink of that darkness in which you're drowning, and if you have not yet decided to relinquish your hold on the world, hear me.",
-      "source": "Ayn Rand, Atlas Shrugged — John Galt's speech",
+      "text": "Кто бы ни находился сейчас в пределах моего голоса, кто бы ни был человеком-жертвой, а не человеком-палачом, — я говорю у смертного ложа твоего разума, на краю тьмы, в которой ты тонешь; и если ты ещё не решился отпустить свою хватку на этом мире, услышь меня.",
+      "source": "Айн Рэнд, «Атлант расправил плечи» — речь Джона Голта",
       "virtues": ["RATIONALITY", "HONESTY"]
     },
     {
       "id": 45,
-      "text": "Discard the protective rags of that vice which you called a virtue: humility — learn to value yourself, which means: to fight for your happiness.",
-      "source": "Ayn Rand, Atlas Shrugged",
+      "text": "Сбрось защитные лохмотья того порока, который ты называл добродетелью, — смирения. Научись ценить себя, а это значит — сражаться за своё счастье.",
+      "source": "Айн Рэнд, «Атлант расправил плечи»",
       "virtues": ["INDEPENDENCE", "JUSTICE"]
     },
     {
       "id": 46,
-      "text": "The proper method of judging when or whether one should help another person is by reference to one's own rational self-interest and one's own hierarchy of values: the time, money, or effort one gives or the risk one takes should be proportionate to the value of the person in relation to one's own happiness.",
-      "source": "Ayn Rand, \"The Ethics of Emergencies\" — The Virtue of Selfishness",
+      "text": "Надлежащий метод суждения о том, когда и нужно ли помогать другому, — через ссылку на собственный рациональный интерес и собственную иерархию ценностей: время, деньги или усилия, которые ты отдаёшь, или риск, который принимаешь, должны быть соразмерны ценности этого человека для твоего собственного счастья.",
+      "source": "Айн Рэнд, «Этика чрезвычайных ситуаций» — сборник «Добродетель эгоизма»",
       "virtues": ["JUSTICE", "RATIONALITY"]
     },
     {
       "id": 47,
-      "text": "A creative man is motivated by the desire to achieve, not by the desire to beat others.",
-      "source": "Ayn Rand, The Fountainhead",
+      "text": "Творческий человек движим желанием достичь, а не желанием обойти других.",
+      "source": "Айн Рэнд, «Источник»",
       "virtues": ["INDEPENDENCE"]
     },
     {
       "id": 48,
-      "text": "Wealth is the product of man's capacity to think.",
-      "source": "Ayn Rand, Atlas Shrugged — Francisco's money speech",
+      "text": "Богатство — продукт способности человека мыслить.",
+      "source": "Айн Рэнд, «Атлант расправил плечи» — речь Франсиско о деньгах",
       "virtues": ["RATIONALITY"]
     },
     {
       "id": 49,
-      "text": "Run for your life from any man who tells you that money is evil. That sentence is the leper's bell of an approaching looter.",
-      "source": "Ayn Rand, Atlas Shrugged — Francisco's money speech",
+      "text": "Беги что есть мочи от любого, кто говорит тебе, что деньги — зло. Эта фраза — колокольчик прокажённого, возвещающий приближение грабителя.",
+      "source": "Айн Рэнд, «Атлант расправил плечи» — речь Франсиско о деньгах",
       "virtues": ["JUSTICE", "HONESTY"]
     },
     {
       "id": 50,
-      "text": "If you don't know, the thing to do is not to get scared but to learn.",
-      "source": "Ayn Rand, Atlas Shrugged",
+      "text": "Если ты не знаешь, нужно не пугаться, а учиться.",
+      "source": "Айн Рэнд, «Атлант расправил плечи»",
       "virtues": ["RATIONALITY", "HONESTY"]
     },
     {
       "id": 51,
-      "text": "The smallest minority on earth is the individual. Those who deny individual rights cannot claim to be defenders of minorities.",
-      "source": "Ayn Rand, \"The Roots of War\" — Capitalism: The Unknown Ideal",
+      "text": "Наименьшее меньшинство на земле — индивидуум. Те, кто отрицает индивидуальные права, не вправе называть себя защитниками меньшинств.",
+      "source": "Айн Рэнд, «Корни войны» — сборник «Капитализм: незнакомый идеал»",
       "virtues": ["INDEPENDENCE", "JUSTICE"]
     },
     {
       "id": 52,
-      "text": "Every aspect of Western culture needs a new code of ethics — a rational ethics — as a precondition of rebirth.",
-      "source": "Ayn Rand, \"For the New Intellectual\"",
+      "text": "Каждый аспект западной культуры нуждается в новом кодексе этики — рациональной этики — как условии возрождения.",
+      "source": "Айн Рэнд, «Для нового интеллектуала»",
       "virtues": ["RATIONALITY"]
     },
     {
       "id": 53,
-      "text": "Civilization is the progress toward a society of privacy.",
-      "source": "Ayn Rand, The Fountainhead",
+      "text": "Цивилизация — это движение к обществу приватности.",
+      "source": "Айн Рэнд, «Источник»",
       "virtues": ["INDEPENDENCE"]
     },
     {
       "id": 54,
-      "text": "The man who lets a leader prescribe his course is a wreck being towed to the scrap heap.",
-      "source": "Ayn Rand, The Fountainhead",
+      "text": "Человек, позволяющий лидеру предписать свой курс, — обломок, который буксируют в лом.",
+      "source": "Айн Рэнд, «Источник»",
       "virtues": ["INDEPENDENCE", "HONESTY"]
     },
     {
       "id": 55,
-      "text": "Anyone who fights for the future, lives in it today.",
-      "source": "Ayn Rand, journal entry, 1945",
+      "text": "Тот, кто сражается за будущее, уже живёт в нём сегодня.",
+      "source": "Айн Рэнд, дневниковая запись, 1945",
       "virtues": ["INDEPENDENCE"]
     },
     {
       "id": 56,
-      "text": "Pride is the recognition of the fact that you are your own highest value and, like all of man's values, it has to be earned.",
-      "source": "Ayn Rand, \"The Objectivist Ethics\"",
+      "text": "Гордость — это признание того, что ты сам — высшая своя ценность; и, как любая ценность человека, она должна быть заработана.",
+      "source": "Айн Рэнд, «Объективистская этика»",
       "virtues": ["INDEPENDENCE", "JUSTICE"]
     },
     {
       "id": 57,
-      "text": "The virtue of Pride is moral ambitiousness — the dedication to achieve one's own moral perfection.",
-      "source": "Ayn Rand, \"The Objectivist Ethics\"",
+      "text": "Добродетель Гордости — это нравственное честолюбие, посвящённость достижению собственного нравственного совершенства.",
+      "source": "Айн Рэнд, «Объективистская этика»",
       "virtues": ["INDEPENDENCE", "JUSTICE"]
     },
     {
       "id": 58,
-      "text": "Man cannot survive except by gaining knowledge, and reason is his only means to gain it. Reason is the faculty that perceives, identifies and integrates the material provided by his senses.",
-      "source": "Ayn Rand, \"Faith and Force: The Destroyers of the Modern World\"",
+      "text": "Человек не может выжить иначе, как приобретая знание; и разум — единственное его средство его получения. Разум — способность, воспринимающая, идентифицирующая и интегрирующая материал, поставляемый чувствами.",
+      "source": "Айн Рэнд, «Вера и сила: разрушители современного мира»",
       "virtues": ["RATIONALITY"]
     },
     {
       "id": 59,
-      "text": "Man has to be man — by choice; he has to hold his life as a value — by choice; he has to learn to sustain it — by choice; he has to discover the values it requires and practice his virtues — by choice.",
-      "source": "Ayn Rand, \"The Objectivist Ethics\"",
+      "text": "Человек должен быть человеком — по выбору; должен держать свою жизнь как ценность — по выбору; должен научиться её поддерживать — по выбору; должен открыть ценности, которые она требует, и упражнять свои добродетели — по выбору.",
+      "source": "Айн Рэнд, «Объективистская этика»",
       "virtues": ["RATIONALITY", "INDEPENDENCE"]
     },
     {
       "id": 60,
-      "text": "There can be no compromise between a property owner and a burglar. Whatever the burglar gains, the owner loses, no matter what excuses or rationalizations are offered.",
-      "source": "Ayn Rand, \"Doesn't Life Require Compromise?\" — The Virtue of Selfishness",
+      "text": "Не может быть компромисса между владельцем и грабителем. Что бы ни выигрывал грабитель, тем владелец проигрывает — какие бы оправдания или рационализации ни предъявлялись.",
+      "source": "Айн Рэнд, «Разве жизнь не требует компромисса?» — сборник «Добродетель эгоизма»",
       "virtues": ["JUSTICE", "HONESTY"]
     },
     {
       "id": 61,
-      "text": "A morality of rational selfishness is a morality of life, of consciousness, of love of one's own values and of refusal to substitute the values of others.",
-      "source": "Paraphrased from Ayn Rand, The Virtue of Selfishness",
+      "text": "Нравственность рационального эгоизма — это нравственность жизни, сознания, любви к собственным ценностям и отказа подставлять на их место ценности других.",
+      "source": "Парафраз: Айн Рэнд, «Добродетель эгоизма»",
       "virtues": ["INDEPENDENCE", "JUSTICE"]
     },
     {
       "id": 62,
-      "text": "Sweep aside those parasites of subsidized classrooms, who live on the profits of the mind of others and proclaim that man needs no morality, no values, no code of behavior.",
-      "source": "Ayn Rand, Atlas Shrugged — John Galt's speech",
+      "text": "Сметите этих паразитов дотируемых аудиторий, живущих на доходах от чужого ума и провозглашающих, что человеку не нужны ни нравственность, ни ценности, ни кодекс поведения.",
+      "source": "Айн Рэнд, «Атлант расправил плечи» — речь Джона Голта",
       "virtues": ["JUSTICE", "HONESTY"]
     },
     {
       "id": 63,
-      "text": "It is not advisable, James, to venture unsolicited opinions. You should spare yourself the embarrassing discovery of their exact value to your listener.",
-      "source": "Ayn Rand, Atlas Shrugged — Francisco",
+      "text": "Не стоит, Джеймс, навязывать непрошеные мнения. Избавь себя от неловкого открытия их точной ценности в глазах собеседника.",
+      "source": "Айн Рэнд, «Атлант расправил плечи» — Франсиско",
       "virtues": ["JUSTICE"]
     },
     {
       "id": 64,
-      "text": "Throughout the centuries, the man who placed his work above himself, who lived for the joy of his work — was the only kind of being who never sacrificed others to his pleasure.",
-      "source": "Paraphrased from Ayn Rand, The Fountainhead",
+      "text": "На протяжении веков человек, ставивший своё дело выше себя и живший радостью своего дела, был единственным существом, никогда не приносившим других в жертву своему удовольствию.",
+      "source": "Парафраз: Айн Рэнд, «Источник»",
       "virtues": ["INDEPENDENCE", "JUSTICE"]
     },
     {
       "id": 65,
-      "text": "When a creator dies, he doesn't die — his ideas, his vision, his work live on and create the world he wanted.",
-      "source": "Paraphrased from Ayn Rand, The Fountainhead",
+      "text": "Когда умирает творец, он не умирает: его идеи, его видение, его работа продолжают жить и создавать тот мир, которого он хотел.",
+      "source": "Парафраз: Айн Рэнд, «Источник»",
       "virtues": ["INDEPENDENCE"]
     },
     {
       "id": 66,
-      "text": "Reason demands the long-range view. Reason is a faculty that acts on principle.",
-      "source": "Leonard Peikoff, Objectivism: The Philosophy of Ayn Rand",
+      "text": "Разум требует дальновидности. Разум — способность, действующая по принципу.",
+      "source": "Леонард Пейкофф, «Объективизм: философия Айн Рэнд»",
       "virtues": ["RATIONALITY"]
     },
     {
       "id": 67,
-      "text": "To live for his own sake means that the achievement of his own happiness is man's highest moral purpose.",
-      "source": "Ayn Rand, \"The Objectivist Ethics\"",
+      "text": "Жить ради собственного блага означает: достижение собственного счастья есть высшая нравственная цель человека.",
+      "source": "Айн Рэнд, «Объективистская этика»",
       "virtues": ["INDEPENDENCE", "RATIONALITY"]
     },
     {
       "id": 68,
-      "text": "Man's basic vice, the source of all his evils, is the act of unfocusing his mind, the suspension of his consciousness, which is not blindness, but the refusal to see, not ignorance, but the refusal to know.",
-      "source": "Ayn Rand, Atlas Shrugged — John Galt's speech",
+      "text": "Базовый порок человека, источник всех его зол, — акт расфокусирования ума, приостановка сознания: не слепота, а отказ видеть; не невежество, а отказ знать.",
+      "source": "Айн Рэнд, «Атлант расправил плечи» — речь Джона Голта",
       "virtues": ["HONESTY", "RATIONALITY"]
     },
     {
       "id": 69,
-      "text": "Honors and praise from those of inferior judgment carry the contagion of their fault.",
-      "source": "Paraphrased from Ayn Rand, The Fountainhead",
+      "text": "Почести и похвала от тех, чьё суждение ниже, несут заразу их собственного изъяна.",
+      "source": "Парафраз: Айн Рэнд, «Источник»",
       "virtues": ["INDEPENDENCE", "JUSTICE"]
     },
     {
       "id": 70,
-      "text": "The smallest, most personal, most private of decisions — what to think, what to value, what to do — is the one that no other man can make for you.",
-      "source": "Paraphrased from Ayn Rand, Atlas Shrugged",
+      "text": "Самое маленькое, самое личное, самое приватное решение — что мыслить, что ценить, что делать — никто другой не может принять его за тебя.",
+      "source": "Парафраз: Айн Рэнд, «Атлант расправил плечи»",
       "virtues": ["INDEPENDENCE"]
     },
     {
       "id": 71,
-      "text": "Productiveness is your acceptance of morality, your recognition of the fact that you choose to live — that productive work is the process by which man's consciousness controls his existence.",
-      "source": "Ayn Rand, Atlas Shrugged — John Galt's speech",
+      "text": "Производительность — это твоё принятие нравственности, твоё признание того, что ты выбираешь жить; что производительный труд есть процесс, посредством которого сознание человека управляет его существованием.",
+      "source": "Айн Рэнд, «Атлант расправил плечи» — речь Джона Голта",
       "virtues": ["RATIONALITY", "INDEPENDENCE"]
     },
     {
       "id": 72,
-      "text": "Your work is the process of achieving your values. To lose your ambition for values is to lose your ambition to live.",
-      "source": "Ayn Rand, Atlas Shrugged — John Galt's speech",
+      "text": "Твоё дело — это процесс достижения твоих ценностей. Утратить честолюбие к ценностям — значит утратить честолюбие жить.",
+      "source": "Айн Рэнд, «Атлант расправил плечи» — речь Джона Голта",
       "virtues": ["RATIONALITY", "INDEPENDENCE"]
     },
     {
       "id": 73,
-      "text": "The man who does not value himself, cannot value anything or anyone.",
-      "source": "Ayn Rand, Atlas Shrugged",
+      "text": "Человек, не ценящий самого себя, не может ценить ничего и никого.",
+      "source": "Айн Рэнд, «Атлант расправил плечи»",
       "virtues": ["INDEPENDENCE"]
     },
     {
       "id": 74,
-      "text": "Reality is that which exists; the unreal does not exist; the unreal is merely that negation of existence which is the content of a human consciousness when it attempts to abandon reason.",
-      "source": "Ayn Rand, Atlas Shrugged",
+      "text": "Реальность — это то, что существует; нереальное не существует; нереальное — лишь отрицание существования, наполняющее сознание человека, когда оно пытается отказаться от разума.",
+      "source": "Айн Рэнд, «Атлант расправил плечи»",
       "virtues": ["RATIONALITY", "HONESTY"]
     },
     {
       "id": 75,
-      "text": "The only proof of one's mind is the unbreached objectivity with which one views and judges all matters.",
-      "source": "Paraphrased from Leonard Peikoff, OPAR",
+      "text": "Единственное доказательство ума — непрерывная объективность, с которой человек смотрит на все вещи и судит их.",
+      "source": "Парафраз: Леонард Пейкофф, «Объективизм: философия Айн Рэнд»",
       "virtues": ["RATIONALITY", "JUSTICE"]
     },
     {
       "id": 76,
-      "text": "The pursuit of truth is the only road to happiness on earth.",
-      "source": "Paraphrased from Ayn Rand, Atlas Shrugged",
+      "text": "Поиск истины — единственный путь к счастью на этой земле.",
+      "source": "Парафраз: Айн Рэнд, «Атлант расправил плечи»",
       "virtues": ["HONESTY", "RATIONALITY"]
     },
     {
       "id": 77,
-      "text": "A wish is not the equivalent of an act. The wish to do is not the doing.",
-      "source": "Paraphrased from Ayn Rand, Atlas Shrugged",
+      "text": "Желание не эквивалентно действию. Желание сделать — это ещё не сделанное.",
+      "source": "Парафраз: Айн Рэнд, «Атлант расправил плечи»",
       "virtues": ["HONESTY", "JUSTICE"]
     },
     {
       "id": 78,
-      "text": "To deal with men by force is as impractical as to deal with nature by persuasion.",
-      "source": "Ayn Rand, \"The Nature of Government\" — The Virtue of Selfishness",
+      "text": "Иметь дело с людьми посредством силы столь же непрактично, как иметь дело с природой посредством уговоров.",
+      "source": "Айн Рэнд, «Природа правительства» — сборник «Добродетель эгоизма»",
       "virtues": ["JUSTICE", "RATIONALITY"]
     },
     {
       "id": 79,
-      "text": "A man who cannot acknowledge the man he is, denies the right of existence to the man he could become.",
-      "source": "Paraphrased from Ayn Rand, journals",
+      "text": "Человек, не способный признать того человека, которым он является, отказывает в праве на существование тому, кем он мог бы стать.",
+      "source": "Парафраз: Айн Рэнд, дневники",
       "virtues": ["HONESTY", "INDEPENDENCE"]
     },
     {
       "id": 80,
-      "text": "The hardest words to utter in any language are: I was wrong. They are also the most liberating.",
-      "source": "Paraphrased from Leonard Peikoff, OPAR",
+      "text": "Самые трудные слова в любом языке: «я был неправ». Они же — самые освобождающие.",
+      "source": "Парафраз: Леонард Пейкофф, «Объективизм: философия Айн Рэнд»",
       "virtues": ["HONESTY", "RATIONALITY"]
     },
     {
       "id": 81,
-      "text": "A standard is an abstract principle that serves as a measurement or gauge to guide a man's choices in the achievement of a concrete, specific purpose.",
-      "source": "Ayn Rand, \"The Objectivist Ethics\"",
+      "text": "Стандарт — абстрактный принцип, служащий мерой или эталоном, направляющим выбор человека в достижении конкретной, определённой цели.",
+      "source": "Айн Рэнд, «Объективистская этика»",
       "virtues": ["RATIONALITY"]
     },
     {
       "id": 82,
-      "text": "The good, says the altruist, is the welfare of others; man, the man who needs the good, is the means by which it is achieved. This is the doctrine of human sacrifice.",
-      "source": "Paraphrased from Ayn Rand, Atlas Shrugged",
+      "text": "Добро, говорит альтруист, — это благополучие других; а человек, нуждающийся в добре, — лишь средство его достижения. Это доктрина человеческого жертвоприношения.",
+      "source": "Парафраз: Айн Рэнд, «Атлант расправил плечи»",
       "virtues": ["JUSTICE", "INDEPENDENCE"]
     },
     {
       "id": 83,
-      "text": "There are no contradictions in reality; only in human thinking.",
-      "source": "Paraphrased from Ayn Rand, Atlas Shrugged",
+      "text": "Противоречий нет в реальности — они только в человеческом мышлении.",
+      "source": "Парафраз: Айн Рэнд, «Атлант расправил плечи»",
       "virtues": ["RATIONALITY", "HONESTY"]
     },
     {
       "id": 84,
-      "text": "An emotion as such tells you nothing about reality, beyond the fact that something makes you feel something.",
-      "source": "Ayn Rand, Philosophy: Who Needs It",
+      "text": "Эмоция как таковая ничего не сообщает тебе о реальности — кроме факта, что нечто заставляет тебя нечто чувствовать.",
+      "source": "Айн Рэнд, «Философия: кому она нужна»",
       "virtues": ["RATIONALITY"]
     },
     {
       "id": 85,
-      "text": "A philosophical system is an integrated view of existence. As a human being, you have no choice about the fact that you need a philosophy. Your only choice is whether you define your philosophy by a conscious, rational, disciplined process of thought.",
-      "source": "Ayn Rand, Philosophy: Who Needs It",
+      "text": "Философская система — это интегрированный взгляд на существование. Как у человека, у тебя нет выбора в том, нужна ли тебе философия. Единственный выбор — определишь ли ты свою философию сознательным, рациональным, дисциплинированным процессом мысли.",
+      "source": "Айн Рэнд, «Философия: кому она нужна»",
       "virtues": ["RATIONALITY", "INDEPENDENCE"]
     },
     {
       "id": 86,
-      "text": "The man of self-esteem knows it is impossible to fake his own consciousness; he can fake reality for a moment, but not his own awareness of having faked it.",
-      "source": "Paraphrased from Ayn Rand, The Virtue of Selfishness",
+      "text": "Человек самоуважения знает: невозможно подделать собственное сознание; он может на мгновение подделать реальность, но не собственное осознание того, что он её подделал.",
+      "source": "Парафраз: Айн Рэнд, «Добродетель эгоизма»",
       "virtues": ["HONESTY", "INDEPENDENCE"]
     },
     {
       "id": 87,
-      "text": "The man who lies to the world, is the world's slave from then on.",
-      "source": "Ayn Rand, journals",
+      "text": "Человек, лгущий миру, с этого момента — раб мира.",
+      "source": "Айн Рэнд, дневники",
       "virtues": ["HONESTY"]
     },
     {
       "id": 88,
-      "text": "A man who tells you that he has a special way of knowing reality, by-passing reason, is a man asking you to surrender your mind.",
-      "source": "Paraphrased from Ayn Rand, Philosophy: Who Needs It",
+      "text": "Человек, утверждающий, что у него есть особый способ познания реальности в обход разума, — это человек, просящий тебя сдать свой ум.",
+      "source": "Парафраз: Айн Рэнд, «Философия: кому она нужна»",
       "virtues": ["RATIONALITY", "JUSTICE"]
     },
     {
       "id": 89,
-      "text": "Productiveness is the road of unlimited achievement and calls upon the highest attributes of your character.",
-      "source": "Ayn Rand, Atlas Shrugged — John Galt's speech",
+      "text": "Производительность — дорога безграничного достижения; она призывает к высшим качествам твоего характера.",
+      "source": "Айн Рэнд, «Атлант расправил плечи» — речь Джона Голта",
       "virtues": ["INDEPENDENCE", "RATIONALITY"]
     },
     {
       "id": 90,
-      "text": "Pride is the sum of all virtues.",
-      "source": "Ayn Rand, Atlas Shrugged",
+      "text": "Гордость — сумма всех добродетелей.",
+      "source": "Айн Рэнд, «Атлант расправил плечи»",
       "virtues": ["JUSTICE", "INDEPENDENCE"]
     },
     {
       "id": 91,
-      "text": "To work — only to feed the consumption of others; to live — only on borrowed values; this is not life, it is a slow extinction.",
-      "source": "Paraphrased from Ayn Rand, Atlas Shrugged",
+      "text": "Работать — только чтобы питать потребление других; жить — только заимствованными ценностями: это не жизнь, это медленное угасание.",
+      "source": "Парафраз: Айн Рэнд, «Атлант расправил плечи»",
       "virtues": ["JUSTICE", "INDEPENDENCE"]
     },
     {
       "id": 92,
-      "text": "Suffering is not a value, only man's fight against suffering is. If you have not chosen your happiness as the highest purpose, you have chosen suffering.",
-      "source": "Paraphrased from Ayn Rand, Atlas Shrugged",
+      "text": "Страдание не ценность — ценностью является лишь борьба человека против страдания. Если ты не выбрал своё счастье как высшую цель, ты выбрал страдание.",
+      "source": "Парафраз: Айн Рэнд, «Атлант расправил плечи»",
       "virtues": ["RATIONALITY", "JUSTICE"]
     },
     {
       "id": 93,
-      "text": "A culture, no less than a person, lives by its values.",
-      "source": "Ayn Rand, Philosophy: Who Needs It",
+      "text": "Культура, не меньше человека, живёт своими ценностями.",
+      "source": "Айн Рэнд, «Философия: кому она нужна»",
       "virtues": ["JUSTICE"]
     },
     {
       "id": 94,
-      "text": "It does not matter who first thought of an idea; what matters is whether it is true.",
-      "source": "Paraphrased from Leonard Peikoff, OPAR",
+      "text": "Не имеет значения, кто первым подумал об идее; имеет значение то, истинна ли она.",
+      "source": "Парафраз: Леонард Пейкофф, «Объективизм: философия Айн Рэнд»",
       "virtues": ["INDEPENDENCE", "RATIONALITY"]
     },
     {
       "id": 95,
-      "text": "Selfishness is a magnificent force — provided your self is something worth being.",
-      "source": "Ayn Rand, journals",
+      "text": "Эгоизм — великолепная сила, при условии, что твоё «я» стоит того, чтобы им быть.",
+      "source": "Айн Рэнд, дневники",
       "virtues": ["INDEPENDENCE", "HONESTY"]
     },
     {
       "id": 96,
-      "text": "To say \"I want it\" is not enough. You must be willing to do what reality requires to get it.",
-      "source": "Paraphrased from Ayn Rand, The Romantic Manifesto",
+      "text": "Сказать «я этого хочу» недостаточно. Ты должен быть готов сделать то, чего требует реальность, чтобы это получить.",
+      "source": "Парафраз: Айн Рэнд, «Романтический манифест»",
       "virtues": ["RATIONALITY", "HONESTY"]
     },
     {
       "id": 97,
-      "text": "You can avoid reality, but you cannot avoid the consequences of avoiding reality.",
-      "source": "Ayn Rand",
+      "text": "Можно избегать реальности, но нельзя избежать последствий избегания реальности.",
+      "source": "Айн Рэнд",
       "virtues": ["HONESTY", "JUSTICE"]
     },
     {
       "id": 98,
-      "text": "Self-esteem is reliance on one's power to think. It cannot be replaced by one's power to deceive.",
-      "source": "Paraphrased from Ayn Rand, The Virtue of Selfishness",
+      "text": "Самоуважение — опора на собственную способность мыслить. Её нельзя заменить способностью обманывать.",
+      "source": "Парафраз: Айн Рэнд, «Добродетель эгоизма»",
       "virtues": ["INDEPENDENCE", "HONESTY"]
     },
     {
       "id": 99,
-      "text": "The choice to live is the choice to think. To refuse to think is to refuse to live as a human being.",
-      "source": "Paraphrased from Leonard Peikoff, OPAR",
+      "text": "Выбор жить — это выбор мыслить. Отказ мыслить — это отказ жить как человек.",
+      "source": "Парафраз: Леонард Пейкофф, «Объективизм: философия Айн Рэнд»",
       "virtues": ["RATIONALITY", "HONESTY"]
     },
     {
       "id": 100,
-      "text": "Do not say that you're afraid to trust your mind because you know so little. Are you safer in surrendering to mystics and discarding the little that you know? Live and act within the limit of your knowledge and keep expanding it to the limit of your life.",
-      "source": "Ayn Rand, Atlas Shrugged — John Galt's speech",
+      "text": "Не говори, что боишься доверять своему уму, потому что знаешь так мало. Разве ты в большей безопасности, сдаваясь мистикам и отбрасывая то немногое, что знаешь? Живи и действуй в пределах своего знания — и расширяй эти пределы до пределов своей жизни.",
+      "source": "Айн Рэнд, «Атлант расправил плечи» — речь Джона Голта",
       "virtues": ["RATIONALITY", "INDEPENDENCE"]
     }
   ]
