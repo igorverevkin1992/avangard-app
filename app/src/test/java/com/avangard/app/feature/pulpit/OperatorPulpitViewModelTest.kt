@@ -94,30 +94,50 @@ class OperatorPulpitViewModelTest {
     }
 
     @Test
-    fun `Infra start is rejected while Core is not yet approved`() = runTest(dispatcher) {
-        viewModel.onStartFocus(Habit.Sport)
+    fun `Evening Infra start is rejected while Core is not yet approved`() = runTest(dispatcher) {
+        // Watching is gated by Core; morning habits (Spanish, Sport) are not.
+        viewModel.onStartFocus(Habit.Watching)
         advanceUntilIdle()
         assertEquals(null, repository.findActiveFocus())
     }
 
     @Test
-    fun `mark Infra is rejected while Core is locked`() = runTest(dispatcher) {
-        viewModel.onMarkInfra(Habit.Sport, InfraStatus.Standard)
+    fun `Morning Infra start succeeds with Core still idle`() = runTest(dispatcher) {
+        // Sport runs before Core in the operator's schedule — it must not
+        // wait on Approval.
+        viewModel.onStartFocus(Habit.Sport)
         advanceUntilIdle()
-        val today = clock.today().toStartOfDayEpoch(clock.zone())
-        val stored = repository.findForDate(today)
-        // Either a zeroed row was created or no row at all — but infra_03 must stay NotDone.
-        assertTrue(stored == null || stored.infra03 == InfraStatus.NotDone)
+        assertEquals(Habit.Sport, repository.findActiveFocus()?.habit)
     }
 
     @Test
-    fun `mark Infra succeeds after Core approval`() = runTest(dispatcher) {
+    fun `mark evening Infra is rejected while Core is locked`() = runTest(dispatcher) {
+        viewModel.onMarkInfra(Habit.Watching, InfraStatus.Standard)
+        advanceUntilIdle()
         val today = clock.today().toStartOfDayEpoch(clock.zone())
-        repository.approveCore(today, "Шот", clock.nowEpochMillis())
+        val stored = repository.findForDate(today)
+        // infra_04 (Watching) must stay NotDone — Core not approved.
+        assertTrue(stored == null || stored.infra04 == InfraStatus.NotDone)
+    }
+
+    @Test
+    fun `mark morning Infra succeeds without Core approval`() = runTest(dispatcher) {
+        // Sport / Spanish can be marked Standard at any point in the day.
         viewModel.onMarkInfra(Habit.Sport, InfraStatus.Standard)
         advanceUntilIdle()
+        val today = clock.today().toStartOfDayEpoch(clock.zone())
         val stored = repository.findForDate(today)!!
         assertEquals(InfraStatus.Standard, stored.infra03)
+    }
+
+    @Test
+    fun `mark evening Infra succeeds after Core approval`() = runTest(dispatcher) {
+        val today = clock.today().toStartOfDayEpoch(clock.zone())
+        repository.approveCore(today, "Шот", clock.nowEpochMillis())
+        viewModel.onMarkInfra(Habit.Reading, InfraStatus.Standard)
+        advanceUntilIdle()
+        val stored = repository.findForDate(today)!!
+        assertEquals(InfraStatus.Standard, stored.infra05)
     }
 
     @Test
@@ -129,20 +149,19 @@ class OperatorPulpitViewModelTest {
     }
 
     @Test
-    fun `Infra start rejection surfaces a transient error on state`() = runTest(dispatcher) {
-        viewModel.onStartFocus(Habit.Sport) // Core idle → InfraLocked
-        // Don't advanceUntilIdle — the 3s transient-error clear would otherwise
-        // run on the virtual clock and wipe the error before we observe it.
-        val state = viewModel.state.filterNotNull().first()
-        assertEquals(SessionError.InfraLocked, state.transientError)
-    }
+    fun `Evening Infra start rejection surfaces a transient error on state`() =
+        runTest(dispatcher) {
+            viewModel.onStartFocus(Habit.Watching) // Core idle → InfraLocked
+            // Don't advanceUntilIdle — the 3s transient-error clear would
+            // otherwise run on the virtual clock and wipe the error before
+            // we observe it.
+            val state = viewModel.state.filterNotNull().first()
+            assertEquals(SessionError.InfraLocked, state.transientError)
+        }
 
     @Test
     fun `onStopFocus ends active focus even when state has detached`() = runTest(dispatcher) {
-        // Core must be approved before Sport can be started (Hostage Logic),
-        // and Generations would be rejected as AlreadyApproved after approve.
-        val today = clock.today().toStartOfDayEpoch(clock.zone())
-        repository.approveCore(today, "Шот", clock.nowEpochMillis())
+        // Sport is a morning habit — starts immediately, no Core required.
         viewModel.onStartFocus(Habit.Sport)
         advanceUntilIdle()
         assertNotNull(repository.findActiveFocus())

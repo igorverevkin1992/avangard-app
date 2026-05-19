@@ -29,10 +29,13 @@ class StartFocusUseCase @Inject constructor(
             if (session?.coreStatus is CoreStatus.Approved) {
                 return DomainResult.Err(SessionError.AlreadyApproved)
             }
-        } else {
-            if (session?.coreStatus !is CoreStatus.Approved) {
-                return DomainResult.Err(SessionError.InfraLocked)
-            }
+        } else if (habit.requiresCoreApproval &&
+            session?.coreStatus !is CoreStatus.Approved
+        ) {
+            // Morning habits (Spanish, Sport) run before Core by the
+            // operator's schedule and skip the gate. Evening habits
+            // (Watching, Reading) still wait for Core Approval.
+            return DomainResult.Err(SessionError.InfraLocked)
         }
         val id = try {
             repository.startFocus(today, habit, clock.nowEpochMillis())

@@ -53,9 +53,7 @@ class StartFocusUseCaseTest {
 
     @Test
     fun `successful Infra start also pokes the focus service`() = runTest {
-        val today = clock.today().toStartOfDayEpoch(clock.zone())
-        repository.approveCore(today, "Шот", clock.nowEpochMillis())
-
+        // Sport is a morning habit — no Core required.
         val result = useCase(Habit.Sport)
         assertTrue(result is DomainResult.Ok)
         assertEquals(1, focusService.starts)
@@ -63,7 +61,8 @@ class StartFocusUseCaseTest {
 
     @Test
     fun `rejected start does not poke the focus service`() = runTest {
-        val result = useCase(Habit.Sport)
+        // Watching is evening, gated by Core Approved. Core idle here.
+        val result = useCase(Habit.Watching)
         assertEquals(DomainResult.Err(SessionError.InfraLocked), result)
         assertEquals(0, focusService.starts)
     }
@@ -84,16 +83,22 @@ class StartFocusUseCaseTest {
     }
 
     @Test
-    fun `Infra is locked when Core is not yet approved`() = runTest {
-        val result = useCase(Habit.Sport)
+    fun `Evening Infra is locked when Core is not yet approved`() = runTest {
+        val result = useCase(Habit.Reading)
         assertEquals(DomainResult.Err(SessionError.InfraLocked), result)
     }
 
     @Test
-    fun `Infra unlocks after Core is approved`() = runTest {
+    fun `Morning Infra is unlocked regardless of Core status`() = runTest {
+        val sportResult = useCase(Habit.Sport)
+        assertTrue(sportResult is DomainResult.Ok)
+    }
+
+    @Test
+    fun `Evening Infra unlocks after Core is approved`() = runTest {
         val today = clock.today().toStartOfDayEpoch(clock.zone())
         repository.approveCore(today, "Сохранённый шот", clock.nowEpochMillis())
-        val result = useCase(Habit.Sport)
+        val result = useCase(Habit.Reading)
         assertTrue(result is DomainResult.Ok)
     }
 

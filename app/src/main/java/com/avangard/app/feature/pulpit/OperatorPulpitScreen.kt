@@ -341,7 +341,9 @@ private fun InfraCard(
     onMarkInfra: (Habit, InfraStatus) -> Unit,
 ) {
     val session: DailySession? = state?.session
-    val locked = session?.isCoreUnlocked != true
+    // Only evening habits (Watching, Reading) wait for Core. Morning habits
+    // (Spanish, Sport) are always unlocked.
+    val locked = habit.requiresCoreApproval && session?.isCoreUnlocked != true
     val infraStatus = session?.infraStatus(habit) ?: InfraStatus.NotDone
     val activeOnHabit = state?.isFocusActiveOn(habit) == true
     val badge = when {
