@@ -173,6 +173,7 @@ internal fun OperatorPulpitContent(
         InfraCard(
             habit = Habit.Spanish,
             state = state,
+            nowMsFlow = nowMsFlow,
             onStartFocus = onStartFocus,
             onStopFocus = onStopFocus,
             onMarkInfra = onMarkInfra,
@@ -180,6 +181,7 @@ internal fun OperatorPulpitContent(
         InfraCard(
             habit = Habit.Sport,
             state = state,
+            nowMsFlow = nowMsFlow,
             onStartFocus = onStartFocus,
             onStopFocus = onStopFocus,
             onMarkInfra = onMarkInfra,
@@ -187,6 +189,7 @@ internal fun OperatorPulpitContent(
         InfraCard(
             habit = Habit.Watching,
             state = state,
+            nowMsFlow = nowMsFlow,
             onStartFocus = onStartFocus,
             onStopFocus = onStopFocus,
             onMarkInfra = onMarkInfra,
@@ -194,6 +197,7 @@ internal fun OperatorPulpitContent(
         InfraCard(
             habit = Habit.Reading,
             state = state,
+            nowMsFlow = nowMsFlow,
             onStartFocus = onStartFocus,
             onStopFocus = onStopFocus,
             onMarkInfra = onMarkInfra,
@@ -323,6 +327,7 @@ private fun CoreCard(
             enabled = !isApproved,
             onClick = if (activeOnCore) onStopFocus else onStartFocus,
         )
+        FocusStatsLine(habit = Habit.Generations, state = state, nowMsFlow = nowMsFlow)
         HardButton(
             label = stringResource(R.string.pulpit_save_shot),
             onClick = onRequestApproveCore,
@@ -336,6 +341,7 @@ private fun CoreCard(
 private fun InfraCard(
     habit: Habit,
     state: PulpitState?,
+    nowMsFlow: kotlinx.coroutines.flow.StateFlow<Long>,
     onStartFocus: (Habit) -> Unit,
     onStopFocus: () -> Unit,
     onMarkInfra: (Habit, InfraStatus) -> Unit,
@@ -382,6 +388,7 @@ private fun InfraCard(
             enabled = state?.activeFocus == null || activeOnHabit,
             onClick = if (activeOnHabit) onStopFocus else { { onStartFocus(habit) } },
         )
+        FocusStatsLine(habit = habit, state = state, nowMsFlow = nowMsFlow)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -402,6 +409,57 @@ private fun InfraCard(
             )
         }
     }
+}
+
+/**
+ * Shows today's focus totals for a habit and, when a session is active on
+ * this habit, the live elapsed time too. Live tick is scoped to this line
+ * via nowMsFlow.collectAsState(), so a sibling card not currently in
+ * focus doesn't recompose every second.
+ */
+@Composable
+private fun FocusStatsLine(
+    habit: Habit,
+    state: PulpitState?,
+    nowMsFlow: kotlinx.coroutines.flow.StateFlow<Long>,
+) {
+    val completedMs = state?.completedFocusByHabit?.get(habit) ?: 0L
+    val completedCount = state?.completedFocusCountByHabit?.get(habit) ?: 0
+    val activeOnHabit = state?.isFocusActiveOn(habit) == true
+    if (!activeOnHabit && completedCount == 0) return
+
+    val nowMs by nowMsFlow.collectAsState()
+    val activeElapsed = if (activeOnHabit) {
+        state?.activeFocus?.durationMillis(nowMs) ?: 0L
+    } else 0L
+    val displayText = if (activeOnHabit) {
+        stringResource(
+            R.string.pulpit_focus_stats_active,
+            formatHms(activeElapsed),
+            completedCount,
+            formatHms(completedMs),
+        )
+    } else {
+        stringResource(
+            R.string.pulpit_focus_stats_idle,
+            completedCount,
+            formatHms(completedMs),
+        )
+    }
+    Text(
+        text = displayText,
+        color = if (activeOnHabit) IsaColors.Approve else IsaColors.Lattice,
+        style = MaterialTheme.typography.labelSmall,
+        modifier = Modifier.fillMaxWidth(),
+    )
+}
+
+private fun formatHms(millis: Long): String {
+    val total = (millis / 1000).coerceAtLeast(0)
+    val h = total / 3600
+    val m = (total % 3600) / 60
+    val s = total % 60
+    return "%02d:%02d:%02d".format(java.util.Locale.US, h, m, s)
 }
 
 @Composable

@@ -17,6 +17,9 @@
     <string name="pulpit_close_shift">ЗАКРЫТЬ СМЕНУ</string>
     <string name="pulpit_evening_nudge">СМЕНА НЕ ЗАКРЫТА · ТАП ДЛЯ ВЕЧЕРНЕГО ЗАКРЫТИЯ</string>
     <string name="pulpit_quote_of_day_label">ЦИТАТА ДНЯ · ТАП ДЛЯ ПОЛНОГО ТЕКСТА</string>
+    <!-- Focus-session daily totals on each habit card. -->
+    <string name="pulpit_focus_stats_active">ВСПЫШКА · %1$s   |   СЕГОДНЯ · %2$d × %3$s</string>
+    <string name="pulpit_focus_stats_idle">СЕГОДНЯ · %1$d ВСПЫШЕК · %2$s</string>
 
     <!-- Authorisation modal. -->
     <string name="auth_title">ОСОЗНАННАЯ АВТОРИЗАЦИЯ</string>

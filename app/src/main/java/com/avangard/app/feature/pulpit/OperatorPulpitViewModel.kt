@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.avangard.app.core.common.Clock
 import com.avangard.app.core.common.DomainResult
+import com.avangard.app.core.common.toStartOfDayEpoch
 import com.avangard.app.core.data.QuoteRepository
 import com.avangard.app.core.data.UserPreferences
 import com.avangard.app.core.data.UserPreferencesRepository
@@ -14,6 +15,7 @@ import com.avangard.app.core.domain.model.Habit
 import com.avangard.app.core.domain.model.InfraStatus
 import com.avangard.app.core.domain.model.Quote
 import com.avangard.app.core.domain.model.SessionError
+import com.avangard.app.core.domain.repository.SessionRepository
 import com.avangard.app.core.domain.usecase.EndFocusUseCase
 import com.avangard.app.core.domain.usecase.ObserveActiveFocusUseCase
 import com.avangard.app.core.domain.usecase.ObserveDailySessionUseCase
@@ -29,11 +31,15 @@ import javax.inject.Inject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
@@ -47,6 +53,12 @@ data class PulpitState(
     val coldStartThresholdMs: Long = DEFAULT_COLD_START_THRESHOLD_MS,
     val shouldNudgeEveningClose: Boolean = false,
     val dailyQuote: Quote? = null,
+    /** Sum of completed (endedAt != null) focus durations today, per habit.
+     *  Active session is excluded so the live elapsed can be added at the UI
+     *  layer against [nowMs] without re-emitting state every tick. */
+    val completedFocusByHabit: Map<Habit, Long> = emptyMap(),
+    /** Number of completed focus sessions today, per habit. */
+    val completedFocusCountByHabit: Map<Habit, Int> = emptyMap(),
 ) {
     val isCoreUnlocked: Boolean get() = session.isCoreUnlocked
     fun isFocusActiveOn(habit: Habit): Boolean = activeFocus?.habit == habit
@@ -58,6 +70,7 @@ sealed interface PulpitEffect {
     data object OpenEveningClose : PulpitEffect
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class OperatorPulpitViewModel @Inject constructor(
     private val clock: Clock,
@@ -69,6 +82,7 @@ class OperatorPulpitViewModel @Inject constructor(
     private val toggleMvd: ToggleMvdUseCase,
     private val setInfraStatus: SetInfraStatusUseCase,
     quotes: QuoteRepository,
+    sessions: SessionRepository,
 ) : ViewModel() {
 
     private val _effects = Channel<PulpitEffect>(Channel.BUFFERED)
@@ -88,7 +102,21 @@ class OperatorPulpitViewModel @Inject constructor(
         val error: SessionError?,
         val prefs: UserPreferences,
         val quote: Quote?,
+        val completedFocusToday: List<FocusSession>,
     )
+
+    // Today's epoch is recomputed off the ticker so observeFocusForDay
+    // switches to the new day's slice automatically when midnight passes.
+    private val todayEpochFlow = tickerFlow(clock, intervalMs = 60_000L)
+        .map { clock.today().toStartOfDayEpoch(clock.zone()) }
+        .distinctUntilChanged()
+
+    private val completedFocusTodayFlow: Flow<List<FocusSession>> =
+        todayEpochFlow.flatMapLatest { epoch ->
+            sessions.observeFocusForDay(epoch).map { list ->
+                list.filter { it.endedAt != null }
+            }
+        }
 
     // PulpitState is split from the 1Hz ticker so the screen-wide recomp only
     // happens when something the user can act on actually changes. The current
@@ -101,10 +129,16 @@ class OperatorPulpitViewModel @Inject constructor(
             tickerFlow(clock),
             transientError,
             preferences.flow,
-        ) { session, focus, _, error, prefs -> Inputs(session, focus, error, prefs, null) },
+        ) { session, focus, _, error, prefs ->
+            Inputs(session, focus, error, prefs, null, emptyList())
+        },
         quotes.quoteOfDayFlow(),
-    ) { inputs, quote -> inputs.copy(quote = quote) }
+        completedFocusTodayFlow,
+    ) { inputs, quote, completed ->
+        inputs.copy(quote = quote, completedFocusToday = completed)
+    }
         .map { i ->
+            val completedByHabit = i.completedFocusToday.groupBy { it.habit }
             PulpitState(
                 today = clock.today(),
                 session = i.session,
@@ -113,6 +147,12 @@ class OperatorPulpitViewModel @Inject constructor(
                 coldStartThresholdMs = i.prefs.coldStartThresholdMs,
                 shouldNudgeEveningClose = computeEveningNudge(i.session, i.prefs),
                 dailyQuote = i.quote,
+                completedFocusByHabit = completedByHabit.mapValues { (_, list) ->
+                    list.sumOf { (it.endedAt ?: 0L) - it.startedAt }
+                },
+                completedFocusCountByHabit = completedByHabit.mapValues { (_, list) ->
+                    list.size
+                },
             )
         }.stateIn(
             scope = viewModelScope,

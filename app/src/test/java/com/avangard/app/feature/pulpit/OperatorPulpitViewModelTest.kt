@@ -69,6 +69,7 @@ class OperatorPulpitViewModelTest {
             toggleMvd = ToggleMvdUseCase(repository, clock),
             setInfraStatus = SetInfraStatusUseCase(repository, clock),
             quotes = quotes,
+            sessions = repository,
         )
     }
 
