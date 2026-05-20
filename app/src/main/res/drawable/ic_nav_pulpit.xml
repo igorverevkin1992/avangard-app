@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="?android:attr/colorControlNormal">
+    <!-- Stencil "Г" — pulpit / control. -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M4,4 L20,4 L20,7 L13.5,7 L13.5,20 L10.5,20 L10.5,7 L4,7 Z" />
+</vector>

@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
 }
@@ -19,6 +20,13 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables { useSupportLibrary = true }
+
+        // Sentry DSN — load from local.properties or env, default empty.
+        // Without DSN the SDK is initialised to no-op (release builds skip init).
+        val sentryDsn: String = providers.gradleProperty("sentry.dsn").orNull
+            ?: System.getenv("SENTRY_DSN")
+            ?: ""
+        buildConfigField("String", "SENTRY_DSN", "\"$sentryDsn\"")
     }
 
     buildTypes {
@@ -60,6 +68,12 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
+    // Robolectric needs merged res + assets to read app strings and
+    // bundled JSON datasets (assets/library_quotes.json) from unit tests.
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
+    }
 }
 
 ksp {
@@ -92,8 +106,19 @@ dependencies {
 
     implementation(libs.androidx.datastore.preferences)
 
+    implementation(libs.sentry.android.core)
+    implementation(libs.kotlinx.serialization.json)
+
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.coroutines.play.services)
+
+    // Google Sign-In + Drive AppData REST sync (v3.8).
+    implementation(libs.play.services.auth)
+    implementation(libs.okhttp)
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.hilt.work)
+    ksp(libs.androidx.hilt.work.compiler)
 
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
@@ -103,7 +128,10 @@ dependencies {
     testImplementation(libs.turbine)
     testImplementation(libs.mockk)
     testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.test.core)
     testImplementation(libs.androidx.room.testing)
+    testImplementation(libs.okhttp.mockwebserver)
+    testImplementation(libs.androidx.work.testing)
 
     androidTestImplementation(libs.androidx.test.junit)
     androidTestImplementation(libs.androidx.test.espresso)

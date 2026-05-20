@@ -7,6 +7,7 @@ import com.avangard.app.core.domain.FakeSessionRepository
 import com.avangard.app.core.domain.model.DefectKind
 import com.avangard.app.core.domain.usecase.CloseEveningUseCase
 import com.avangard.app.core.domain.usecase.ObserveDailySessionUseCase
+import com.avangard.app.core.domain.usecase.SetJournalUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -37,6 +38,7 @@ class EveningCloseViewModelTest {
         viewModel = EveningCloseViewModel(
             observeSession = ObserveDailySessionUseCase(repository),
             closeEvening = CloseEveningUseCase(repository, clock),
+            setJournal = SetJournalUseCase(repository, clock),
         )
     }
 
@@ -88,4 +90,29 @@ class EveningCloseViewModelTest {
         assertEquals(1, s.honesty)
         assertEquals(-1, s.justice)
     }
+
+    @Test
+    fun `journal draft is clipped at 500 chars and never reports over-limit`() =
+        runTest(dispatcher) {
+            val payload = "x".repeat(800)
+            viewModel.onJournalChange(payload)
+            val s = viewModel.state.value
+            assertEquals(500, s.journalCharCount)
+            assertFalse("clipped draft must not be over-limit", s.journalOverLimit)
+        }
+
+    @Test
+    fun `submit persists the journal alongside closing the shift`() =
+        runTest(dispatcher) {
+            // Idle core path: defect kind required for close.
+            viewModel.onDefectKindChange(DefectKind.Defect)
+            viewModel.onJournalChange("Сосредоточился. Брак — техника.")
+            viewModel.submit()
+            advanceUntilIdle()
+
+            val today = clock.today().toStartOfDayEpoch(clock.zone())
+            val stored = repository.findForDate(today)!!
+            assertEquals("Сосредоточился. Брак — техника.", stored.journalEntry)
+            assertTrue(stored.eveningClosed)
+        }
 }

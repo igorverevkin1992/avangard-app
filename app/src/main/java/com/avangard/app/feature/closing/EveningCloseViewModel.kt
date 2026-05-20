@@ -4,11 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.avangard.app.core.common.DomainResult
 import com.avangard.app.core.domain.model.CoreStatus
+import com.avangard.app.core.domain.model.DailySession
 import com.avangard.app.core.domain.model.DefectKind
 import com.avangard.app.core.domain.model.SessionError
 import com.avangard.app.core.domain.model.VirtueScores
 import com.avangard.app.core.domain.usecase.CloseEveningUseCase
 import com.avangard.app.core.domain.usecase.ObserveDailySessionUseCase
+import com.avangard.app.core.domain.usecase.SetJournalUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.channels.Channel
@@ -28,6 +30,8 @@ data class EveningCloseState(
     val honesty: Int = 0,
     val justice: Int = 0,
     val defectKind: DefectKind? = null,
+    val journalDraft: String = "",
+    val journalLoaded: Boolean = false,
     val submitting: Boolean = false,
     val error: SessionError? = null,
 ) {
@@ -37,8 +41,14 @@ data class EveningCloseState(
     val prideOk: Boolean get() = coreApproved
     val integrityOk: Boolean get() = !coreFailed
 
+    val journalCharCount: Int get() = journalDraft.length
+    val journalLimit: Int get() = DailySession.JOURNAL_MAX_CHARS
+    val journalOverLimit: Boolean get() = journalCharCount > journalLimit
+
     val canSubmit: Boolean
-        get() = !submitting && (!needsDefectKind || defectKind != null)
+        get() = !submitting &&
+            !journalOverLimit &&
+            (!needsDefectKind || defectKind != null)
 }
 
 sealed interface EveningCloseEffect {
@@ -49,6 +59,7 @@ sealed interface EveningCloseEffect {
 class EveningCloseViewModel @Inject constructor(
     observeSession: ObserveDailySessionUseCase,
     private val closeEvening: CloseEveningUseCase,
+    private val setJournal: SetJournalUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(EveningCloseState())
@@ -60,9 +71,18 @@ class EveningCloseViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             observeSession().collect { session ->
-                _state.value = _state.value.copy(
+                // First emission seeds the journal draft from disk so the
+                // operator sees what they wrote earlier today instead of an
+                // empty box. After load, the textarea owns the draft —
+                // observeToday() re-emissions don't clobber typing.
+                val current = _state.value
+                _state.value = current.copy(
                     coreApproved = session.coreStatus is CoreStatus.Approved,
                     coreFailed = session.coreStatus is CoreStatus.Failed,
+                    journalDraft = if (!current.journalLoaded) {
+                        session.journalEntry.orEmpty()
+                    } else current.journalDraft,
+                    journalLoaded = true,
                 )
             }
         }
@@ -82,6 +102,15 @@ class EveningCloseViewModel @Inject constructor(
         _state.value = _state.value.copy(defectKind = kind, error = null)
     }
 
+    fun onJournalChange(text: String) {
+        // Hard-clip at the limit so the textarea can't accept the 501st
+        // character. SetJournalUseCase still re-checks defensively.
+        val clipped = if (text.length > DailySession.JOURNAL_MAX_CHARS) {
+            text.substring(0, DailySession.JOURNAL_MAX_CHARS)
+        } else text
+        _state.value = _state.value.copy(journalDraft = clipped)
+    }
+
     fun submit() {
         val current = _state.value
         if (!current.canSubmit) return
@@ -94,6 +123,10 @@ class EveningCloseViewModel @Inject constructor(
                 justice = current.justice,
             )
             val defect = if (current.needsDefectKind) current.defectKind else null
+            // Journal first — it's recoverable on its own, doesn't gate the
+            // close. The clipped draft is already at-or-below the limit, so
+            // SetJournalUseCase will succeed.
+            setJournal(current.journalDraft)
             when (val result = closeEvening(virtues = virtues, defectKindWhenIdle = defect)) {
                 is DomainResult.Ok -> {
                     _state.value = current.copy(submitting = false)

@@ -21,7 +21,12 @@ class SetInfraStatusUseCase @Inject constructor(
         if (habit == Habit.Generations) return DomainResult.Err(SessionError.InfraLocked)
         val today = clock.today().toStartOfDayEpoch(clock.zone())
         val session = repository.findForDate(today)
-        if (session?.coreStatus !is CoreStatus.Approved) {
+        // Morning habits (Spanish, Sport) can be marked Standard/MVD at any
+        // point in the day per the operator's real schedule. Evening habits
+        // (Watching, Reading) still wait for Core Approved.
+        if (habit.requiresCoreApproval &&
+            session?.coreStatus !is CoreStatus.Approved
+        ) {
             return DomainResult.Err(SessionError.InfraLocked)
         }
         repository.setInfraStatus(today, habit, status, clock.nowEpochMillis())

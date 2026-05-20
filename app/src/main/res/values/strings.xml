@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">АВАНГАРД</string>
+    <string name="app_name">Prime mover</string>
 
     <!-- Pulpit header. -->
     <string name="pulpit_mvd_on">РЕЖИМ MVD: ВКЛ</string>
@@ -15,6 +15,28 @@
     <string name="pulpit_mark_mvd">MVD</string>
     <string name="pulpit_hostage_banner">ЗАБЛОКИРОВАНО ДО ПЕРВОГО ЯДРА</string>
     <string name="pulpit_close_shift">ЗАКРЫТЬ СМЕНУ</string>
+    <string name="pulpit_evening_nudge">СМЕНА НЕ ЗАКРЫТА · ТАП ДЛЯ ВЕЧЕРНЕГО ЗАКРЫТИЯ</string>
+    <string name="pulpit_quote_of_day_label">ЦИТАТА ДНЯ · ТАП ДЛЯ ПОЛНОГО ТЕКСТА</string>
+
+    <!-- Sign-in / cloud sync (v3.8). default_web_client_id is intentionally
+         empty here; release builds inject a real value via build.gradle's
+         resValue or a CI-managed override. AuthRepository tolerates an
+         empty value by skipping requestIdToken — Drive AppData scope works
+         off the Android OAuth client alone. -->
+    <string name="default_web_client_id" translatable="false"></string>
+    <string name="signin_title">PRIME MOVER · СИНХРОНИЗАЦИЯ</string>
+    <string name="signin_subtitle">Войдите через Google для сохранения данных между устройствами. Резервная копия живёт в скрытой папке Google Drive — она недоступна из обычного Drive-интерфейса и видна только этому приложению.</string>
+    <string name="signin_button">ВОЙТИ ЧЕРЕЗ GOOGLE</string>
+    <string name="signin_failed">Вход отменён или недоступен. OAuth-клиент должен быть зарегистрирован в Google Cloud Console (см. README).</string>
+    <string name="restoring_title">ВОССТАНОВЛЕНИЕ</string>
+    <string name="restoring_subtitle">Загружаем резервную копию из Google Drive. Это занимает несколько секунд на медленной сети.</string>
+    <string name="restoring_failed_title">ОШИБКА ВОССТАНОВЛЕНИЯ</string>
+    <string name="restoring_failed_body">Снимок повреждён или несовместим. Продолжите с пустой базой или выйдите и попробуйте другой аккаунт.</string>
+    <string name="restoring_failed_continue">ПРОДОЛЖИТЬ БЕЗ ВОССТАНОВЛЕНИЯ</string>
+    <string name="restoring_failed_sign_out">ВЫЙТИ</string>
+    <!-- Focus-session daily totals on each habit card. -->
+    <string name="pulpit_focus_stats_active">ВСПЫШКА · %1$s   |   СЕГОДНЯ · %2$d × %3$s</string>
+    <string name="pulpit_focus_stats_idle">СЕГОДНЯ · %1$d ВСПЫШЕК · %2$s</string>
 
     <!-- Authorisation modal. -->
     <string name="auth_title">ОСОЗНАННАЯ АВТОРИЗАЦИЯ</string>
@@ -49,6 +71,9 @@
     <string name="closing_defect_hint">Ядро не зафиксировано. Выберите тип отклонения.</string>
     <string name="closing_defect_kind_defect">ДЕФЕКТ</string>
     <string name="closing_defect_kind_waste">ПОТЕРЯ</string>
+    <string name="closing_journal_label">ЖУРНАЛ ДНЯ</string>
+    <string name="closing_journal_hint">Сжатое резюме смены. До 500 знаков.</string>
+    <string name="closing_journal_counter">%1$d / %2$d</string>
     <string name="closing_submit">ЗАФИКСИРОВАТЬ ЗАКРЫТИЕ СМЕНЫ</string>
 
     <!-- Virtues. -->
@@ -70,15 +95,45 @@
     <string name="audit_bottleneck_label">УЗКОЕ МЕСТО НА СЛЕДУЮЩУЮ НЕДЕЛЮ</string>
     <string name="audit_submit">ЗАФИКСИРОВАТЬ</string>
     <string name="audit_open_history">ОТКРЫТЬ ИСТОРИЮ</string>
+    <string name="audit_open_pulpit">ОТКРЫТЬ ПУЛЬТ</string>
 
-    <!-- Weekday lock. -->
-    <string name="weekday_lock_title">ДОСТУП К ИСТОРИИ — ВОСКРЕСЕНЬЕ</string>
-    <string name="weekday_lock_body">Прошлое объективно не существует и не подлежит изменению. Существует только текущий производственный цикл.</string>
-    <string name="weekday_lock_return">ВЕРНУТЬСЯ</string>
+    <!-- Bottom navigation tabs. -->
+    <string name="nav_tab_pulpit">ПУЛЬТ</string>
+    <string name="nav_tab_library">БИБЛИОТЕКА</string>
+    <string name="nav_tab_audit">АУДИТ</string>
+    <string name="nav_tab_history">ИСТОРИЯ</string>
+
+    <!-- Library. -->
+    <string name="library_header">БИБЛИОТЕКА</string>
+    <string name="library_quote_of_day_label">ЦИТАТА ДНЯ</string>
+    <string name="library_virtues_label">ПОДБОРКИ ПО ДОБРОДЕТЕЛЯМ</string>
+    <string name="library_empty_state">ПО ЭТОЙ ДОБРОДЕТЕЛИ ЦИТАТ НЕТ.</string>
+    <string name="library_footer_note">Источник: Айн Рэнд, Леонард Пейкофф. Куратор подборки — оператор.</string>
+    <string name="library_back">НАЗАД</string>
+    <string name="library_share">ПОДЕЛИТЬСЯ</string>
+    <string name="library_quote_not_found">Цитата не найдена. Возможно, обновлён каталог.</string>
+    <string name="audit_submitted_confirmation">✓ ЗАФИКСИРОВАНО · УЗКОЕ МЕСТО СОХРАНЕНО</string>
+    <string name="audit_completed_label">СОСТОЯНИЕ АУДИТА</string>
+    <string name="audit_completed_header">АУДИТ ЗАВЕРШЁН</string>
+    <string name="audit_completed_subtitle">Узкое место для следующей недели зафиксировано. Изменение возможно только в следующий цикл.</string>
+
+    <!-- Weekday lock — only the Sunday audit is gated now; the history grid
+         is read-only and reachable every day. -->
+    <string name="weekday_lock_title">АУДИТ — ВОСКРЕСЕНЬЕ</string>
+    <string name="weekday_lock_body">PDCA-ревизия недели открывается только в день рефлексии. История и трекер привычек доступны каждый день.</string>
+    <string name="weekday_lock_return">ВЕРНУТЬСЯ К ПУЛЬТУ</string>
 
     <!-- Notification. -->
     <string name="notification_evening_title">ТРЕБУЕТСЯ ЗАКРЫТИЕ СМЕНЫ</string>
     <string name="notification_evening_body">Зафиксируйте состояние Ядра и добродетели.</string>
+    <string name="focus_notification_title">ВСПЫШКА · %1$s</string>
+    <string name="focus_notification_body">Активная фокус-сессия. Тап — пульт.</string>
+    <string name="focus_notification_placeholder_title">ВСПЫШКА</string>
+
+    <!-- Quick Settings Tile. -->
+    <string name="tile_flash_label">ВСПЫШКА</string>
+    <string name="tile_flash_active">АКТИВНА ВСПЫШКА</string>
+    <string name="tile_flash_idle">ЗАПУСТИТЬ ВСПЫШКУ</string>
 
     <!-- Permission banners on the pulpit. -->
     <string name="permission_notifications_title">УВЕДОМЛЕНИЯ ВЫКЛЮЧЕНЫ</string>
@@ -102,6 +157,16 @@
     <string name="audit_empty_state">ДАННЫЕ ОТСУТСТВУЮТ. ЗАЛОЖИТЕ ПЕРВУЮ НЕДЕЛЮ.</string>
 
     <!-- Accessibility content descriptions. -->
+    <string name="a11y_state_checked">установлен</string>
+    <string name="a11y_state_unchecked">не установлен</string>
+    <string name="a11y_state_on">включено</string>
+    <string name="a11y_state_off">выключено</string>
+    <string name="a11y_status_idle">статус Idle — действий не выполнено</string>
+    <string name="a11y_status_standard">статус Standard — стандартная отметка</string>
+    <string name="a11y_status_mvd">статус MVD — минимально-достаточное действие</string>
+    <string name="a11y_status_approved">статус Approved — Ядро зафиксировано</string>
+    <string name="a11y_status_fail">статус Fail — Ядро провалено</string>
+    <string name="a11y_status_locked">заблокировано до утверждения Ядра</string>
     <string name="a11y_pulpit_date">Дата текущей смены. Долгое нажатие — конфиг.</string>
     <string name="a11y_flash_start">Запустить фокус-сессию: %1$s</string>
     <string name="a11y_flash_stop">Завершить активную фокус-сессию</string>
@@ -113,11 +178,40 @@
 
     <!-- Settings (long-press on date strip to reach). -->
     <string name="settings_header">КОНФИГ</string>
+    <string name="settings_evening_close_label">ВЕЧЕРНИЙ СИГНАЛ</string>
+    <string name="settings_evening_close_hint">Время напоминания о закрытии смены.</string>
+    <string name="settings_hour_label">ЧАС</string>
+    <string name="settings_minute_label">МИНУТА</string>
+    <string name="settings_cold_start_label">ПОРОГ ХОЛОДНОГО ЗАПУСКА</string>
+    <string name="settings_cold_start_hint">После какого времени Flash-таймер переключает цвет.</string>
+    <string name="settings_cloud_label">ОБЛАЧНАЯ СИНХРОНИЗАЦИЯ</string>
+    <string name="settings_cloud_account_label">АККАУНТ</string>
+    <string name="settings_cloud_account_empty">не подключён</string>
+    <string name="settings_cloud_last_sync_label">ПОСЛЕДНЯЯ ВЫГРУЗКА</string>
+    <string name="settings_cloud_last_sync_never">—</string>
+    <string name="settings_cloud_sync_now">СИНХРОНИЗОВАТЬ СЕЙЧАС</string>
+    <string name="settings_cloud_sign_out">ВЫЙТИ</string>
     <string name="settings_wipe_label">ЛОКАЛЬНАЯ БАЗА</string>
     <string name="settings_wipe_request">СТЕРЕТЬ ВСЁ</string>
     <string name="settings_wipe_confirm">ПОДТВЕРДИТЬ СТИРАНИЕ</string>
     <string name="settings_wipe_cancel">ОТМЕНА</string>
     <string name="settings_wipe_confirm_message">Все сессии, фокусы и привычки будут удалены без возможности восстановления.</string>
     <string name="settings_wipe_in_progress">Стирание базы…</string>
+    <string name="settings_backup_label">КОПИЯ БАЗЫ</string>
+    <string name="settings_backup_hint">Экспорт в JSON через системный выбор хранилища. Поддерживает Drive, Files, OneDrive, локальный диск.</string>
+    <string name="settings_backup_export">ЭКСПОРТ КОПИИ</string>
+    <string name="settings_backup_import">ВОССТАНОВИТЬ ИЗ КОПИИ</string>
+    <string name="settings_backup_exporting">Снятие копии…</string>
+    <string name="settings_backup_importing">Восстановление…</string>
+    <string name="settings_backup_export_ok">Копия сохранена.</string>
+    <string name="settings_backup_import_ok">База восстановлена из копии.</string>
+    <string name="settings_backup_export_failed">Не удалось записать копию.</string>
+    <string name="settings_backup_import_not_json">Файл не является валидным JSON-снимком.</string>
+    <string name="settings_backup_import_unsupported">Несовместимая схема копии (версия %1$d).</string>
+    <string name="settings_backup_import_corrupted">Снимок нарушает целостность базы и был отклонён. Исходные данные сохранены.</string>
+    <string name="settings_backup_import_read_failed">Не удалось прочитать файл копии.</string>
+    <string name="settings_restore_confirm">ПОДТВЕРДИТЬ ВОССТАНОВЛЕНИЕ</string>
+    <string name="settings_restore_cancel">ОТМЕНА</string>
+    <string name="settings_restore_confirm_message">Все текущие данные будут замещены содержимым копии. Это необратимо.</string>
     <string name="settings_return">ВЕРНУТЬСЯ К ПУЛЬТУ</string>
 </resources>

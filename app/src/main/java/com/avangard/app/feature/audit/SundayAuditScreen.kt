@@ -15,12 +15,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.avangard.app.R
@@ -35,18 +36,20 @@ import com.avangard.app.ui.theme.IsaColors
 @Composable
 fun SundayAuditScreen(
     onOpenHistory: () -> Unit,
+    onOpenPulpit: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: SundayAuditViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
-    LaunchedEffect(Unit) {
-        viewModel.effects.collect { /* Submitted — UI stays put, user can then tap history */ }
-    }
+    // Effects pipeline kept idle — the completion state derives from
+    // DailySession.bottleneckForNextWeek via the ViewModel's combine, so
+    // the UI flips to the sealed layout the moment setBottleneck commits.
     SundayAuditContent(
         state = state,
         onPickBottleneck = viewModel::onPickBottleneck,
         onSubmit = viewModel::submit,
         onOpenHistory = onOpenHistory,
+        onOpenPulpit = onOpenPulpit,
         modifier = modifier,
     )
 }
@@ -57,6 +60,7 @@ internal fun SundayAuditContent(
     onPickBottleneck: (Bottleneck) -> Unit,
     onSubmit: () -> Unit,
     onOpenHistory: () -> Unit,
+    onOpenPulpit: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -71,6 +75,7 @@ internal fun SundayAuditContent(
             text = stringResource(R.string.audit_header),
             color = IsaColors.LiveMetal,
             style = MaterialTheme.typography.headlineLarge,
+            modifier = Modifier.semantics { heading() },
         )
 
         val view = state.view
@@ -92,26 +97,39 @@ internal fun SundayAuditContent(
             else -> MetricsTable(view = view)
         }
 
-        PulpitPanel(label = stringResource(R.string.audit_bottleneck_label)) {
-            Bottleneck.entries.forEach { b ->
-                BottleneckRow(
-                    bottleneck = b,
-                    selected = state.selectedBottleneck == b,
-                    onClick = { onPickBottleneck(b) },
-                )
+        if (state.isCompleted) {
+            CompletionPanel(fixated = state.fixatedBottleneck!!)
+        } else {
+            PulpitPanel(label = stringResource(R.string.audit_bottleneck_label)) {
+                Bottleneck.entries.forEach { b ->
+                    BottleneckRow(
+                        bottleneck = b,
+                        selected = state.selectedBottleneck == b,
+                        onClick = { onPickBottleneck(b) },
+                    )
+                }
             }
-        }
 
-        HardButton(
-            label = stringResource(R.string.audit_submit),
-            onClick = onSubmit,
-            enabled = state.canSubmit,
-            variant = HardButtonVariant.Primary,
-        )
+            HardButton(
+                label = stringResource(R.string.audit_submit),
+                onClick = onSubmit,
+                enabled = state.canSubmit,
+                variant = HardButtonVariant.Primary,
+            )
+        }
 
         HardButton(
             label = stringResource(R.string.audit_open_history),
             onClick = onOpenHistory,
+        )
+
+        // Sunday is reflection day by design, but the operator may still
+        // want to record a focus session on the cycle's last day. The
+        // pulpit stays one tap away — the start destination just defaults
+        // to the audit on Sundays via AccessPolicy.
+        HardButton(
+            label = stringResource(R.string.audit_open_pulpit),
+            onClick = onOpenPulpit,
         )
     }
 }
@@ -154,6 +172,35 @@ private fun MetricRow(label: String, value: String) {
 }
 
 @Composable
+private fun CompletionPanel(fixated: Bottleneck) {
+    PulpitPanel(label = stringResource(R.string.audit_completed_label)) {
+        Text(
+            text = stringResource(R.string.audit_completed_header),
+            color = IsaColors.Approve,
+            style = MaterialTheme.typography.headlineLarge,
+            modifier = Modifier.semantics { heading() },
+        )
+        Text(
+            text = stringResource(R.string.audit_completed_subtitle),
+            color = IsaColors.Lattice,
+            style = MaterialTheme.typography.labelMedium,
+        )
+        // Sealed bottleneck — green outline, no click affordance. The
+        // operator can re-read what they fixated but not flip it
+        // without waiting for the next Sunday cycle.
+        Text(
+            text = fixated.displayName,
+            color = IsaColors.Approve,
+            style = MaterialTheme.typography.labelLarge,
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(width = 2.dp, color = IsaColors.Approve)
+                .padding(horizontal = 10.dp, vertical = 10.dp),
+        )
+    }
+}
+
+@Composable
 private fun BottleneckRow(
     bottleneck: Bottleneck,
     selected: Boolean,
@@ -181,5 +228,5 @@ private fun formatHours(millis: Long): String {
     val totalSeconds = millis / 1000
     val h = totalSeconds / 3600
     val m = (totalSeconds % 3600) / 60
-    return "%02d:%02d".format(h, m)
+    return "%02d:%02d".format(java.util.Locale.US, h, m)
 }

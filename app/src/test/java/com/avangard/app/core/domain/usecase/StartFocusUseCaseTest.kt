@@ -11,18 +11,34 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+// Robolectric so the focus-service failure-swallow case can call Log.w
+// without hitting "not mocked" on android.util.Log.
+@RunWith(RobolectricTestRunner::class)
 class StartFocusUseCaseTest {
 
     private lateinit var repository: FakeSessionRepository
     private lateinit var clock: FakeClock
+    private lateinit var focusService: RecordingFocusService
     private lateinit var useCase: StartFocusUseCase
 
     @Before
     fun setUp() {
         clock = FakeClock()
         repository = FakeSessionRepository(clock)
-        useCase = StartFocusUseCase(repository, clock)
+        focusService = RecordingFocusService()
+        useCase = StartFocusUseCase(repository, clock, focusService)
+    }
+
+    private class RecordingFocusService : FocusServiceController {
+        var starts: Int = 0
+            private set
+
+        override fun start() {
+            starts++
+        }
     }
 
     @Test
@@ -31,19 +47,58 @@ class StartFocusUseCaseTest {
         assertTrue(result is DomainResult.Ok)
         val active = repository.findActiveFocus()
         assertEquals(Habit.Generations, active?.habit)
+        // Side effect: the ongoing-notification service was poked exactly once.
+        assertEquals(1, focusService.starts)
     }
 
     @Test
-    fun `Infra is locked when Core is not yet approved`() = runTest {
+    fun `successful Infra start also pokes the focus service`() = runTest {
+        // Sport is a morning habit — no Core required.
         val result = useCase(Habit.Sport)
+        assertTrue(result is DomainResult.Ok)
+        assertEquals(1, focusService.starts)
+    }
+
+    @Test
+    fun `rejected start does not poke the focus service`() = runTest {
+        // Watching is evening, gated by Core Approved. Core idle here.
+        val result = useCase(Habit.Watching)
+        assertEquals(DomainResult.Err(SessionError.InfraLocked), result)
+        assertEquals(0, focusService.starts)
+    }
+
+    @Test
+    fun `start succeeds even when focus service throws`() = runTest {
+        // The persisted row is the source of truth; a failed
+        // startForegroundService (e.g. background restriction edge case)
+        // must not roll back the Ok return — the pulpit recovers state from
+        // the row on next foreground.
+        val throwingService = object : FocusServiceController {
+            override fun start(): Unit = throw IllegalStateException("background restriction")
+        }
+        val resilient = StartFocusUseCase(repository, clock, throwingService)
+        val result = resilient(Habit.Generations)
+        assertTrue(result is DomainResult.Ok)
+        assertEquals(Habit.Generations, repository.findActiveFocus()?.habit)
+    }
+
+    @Test
+    fun `Evening Infra is locked when Core is not yet approved`() = runTest {
+        val result = useCase(Habit.Reading)
         assertEquals(DomainResult.Err(SessionError.InfraLocked), result)
     }
 
     @Test
-    fun `Infra unlocks after Core is approved`() = runTest {
+    fun `Morning Infra is unlocked regardless of Core status`() = runTest {
+        val sportResult = useCase(Habit.Sport)
+        assertTrue(sportResult is DomainResult.Ok)
+    }
+
+    @Test
+    fun `Evening Infra unlocks after Core is approved`() = runTest {
         val today = clock.today().toStartOfDayEpoch(clock.zone())
         repository.approveCore(today, "Сохранённый шот", clock.nowEpochMillis())
-        val result = useCase(Habit.Sport)
+        val result = useCase(Habit.Reading)
         assertTrue(result is DomainResult.Ok)
     }
 

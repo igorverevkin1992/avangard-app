@@ -12,6 +12,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.avangard.app.R
 import com.avangard.app.core.ui.components.HardButton
@@ -40,6 +42,7 @@ fun SabotageProtocolScreen(
             text = stringResource(R.string.sabotage_header),
             color = IsaColors.Signal,
             style = MaterialTheme.typography.headlineLarge,
+            modifier = Modifier.semantics { heading() },
         )
 
         ScriptBlock(

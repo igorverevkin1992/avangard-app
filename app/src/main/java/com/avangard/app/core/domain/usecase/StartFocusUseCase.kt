@@ -12,6 +12,7 @@ import javax.inject.Inject
 class StartFocusUseCase @Inject constructor(
     private val repository: SessionRepository,
     private val clock: Clock,
+    private val focusService: FocusServiceController,
 ) {
     suspend operator fun invoke(habit: Habit): DomainResult<Long, SessionError> {
         // Pre-flight check first — surfaces a clean error when the conflict is
@@ -28,19 +29,31 @@ class StartFocusUseCase @Inject constructor(
             if (session?.coreStatus is CoreStatus.Approved) {
                 return DomainResult.Err(SessionError.AlreadyApproved)
             }
-        } else {
-            if (session?.coreStatus !is CoreStatus.Approved) {
-                return DomainResult.Err(SessionError.InfraLocked)
-            }
+        } else if (habit.requiresCoreApproval &&
+            session?.coreStatus !is CoreStatus.Approved
+        ) {
+            // Morning habits (Spanish, Sport) run before Core by the
+            // operator's schedule and skip the gate. Evening habits
+            // (Watching, Reading) still wait for Core Approval.
+            return DomainResult.Err(SessionError.InfraLocked)
         }
-        return try {
-            val id = repository.startFocus(today, habit, clock.nowEpochMillis())
-            DomainResult.Ok(id)
+        val id = try {
+            repository.startFocus(today, habit, clock.nowEpochMillis())
         } catch (_: IllegalStateException) {
             // Partial unique index uniq_focus_active fired between the pre-flight
             // and the insert — concurrent tap. Surface the same error as the
             // pre-flight branch.
-            DomainResult.Err(SessionError.AnotherFocusActive)
+            return DomainResult.Err(SessionError.AnotherFocusActive)
         }
+        // Bring up the ongoing-notification companion. The service tears
+        // itself down once observeActiveFocus emits null again, so
+        // EndFocusUseCase doesn't need a symmetric stop. The persisted row
+        // is the source of truth — if startForegroundService is blocked
+        // (background restriction edge case), the pulpit still recovers
+        // the session on next foreground and a stale Err here would lie
+        // to the caller. Swallow + log.
+        runCatching { focusService.start() }
+            .onFailure { android.util.Log.w("StartFocus", "FlashForegroundService not started", it) }
+        return DomainResult.Ok(id)
     }
 }

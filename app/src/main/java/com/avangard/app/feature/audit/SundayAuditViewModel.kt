@@ -3,6 +3,7 @@ package com.avangard.app.feature.audit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.avangard.app.core.domain.model.Bottleneck
+import com.avangard.app.core.domain.usecase.ObserveDailySessionUseCase
 import com.avangard.app.core.domain.usecase.SetBottleneckUseCase
 import com.avangard.app.core.domain.usecase.SundayAuditUseCase
 import com.avangard.app.core.domain.usecase.SundayAuditView
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -21,8 +23,13 @@ data class SundayAuditState(
     val view: SundayAuditView? = null,
     val selectedBottleneck: Bottleneck? = null,
     val submitting: Boolean = false,
+    /** Non-null when today's DailySession.bottleneckForNextWeek is set — the
+     *  audit has been fixated. UI switches to a sealed "completed" layout
+     *  rather than showing the picker + submit affordances. */
+    val fixatedBottleneck: Bottleneck? = null,
 ) {
-    val canSubmit: Boolean get() = !submitting && selectedBottleneck != null
+    val isCompleted: Boolean get() = fixatedBottleneck != null
+    val canSubmit: Boolean get() = !submitting && !isCompleted && selectedBottleneck != null
 }
 
 sealed interface SundayAuditEffect {
@@ -32,6 +39,7 @@ sealed interface SundayAuditEffect {
 @HiltViewModel
 class SundayAuditViewModel @Inject constructor(
     audit: SundayAuditUseCase,
+    observeSession: ObserveDailySessionUseCase,
     private val setBottleneck: SetBottleneckUseCase,
 ) : ViewModel() {
 
@@ -45,8 +53,14 @@ class SundayAuditViewModel @Inject constructor(
         audit(),
         selection,
         submitting,
-    ) { view, picked, busy ->
-        SundayAuditState(view = view, selectedBottleneck = picked, submitting = busy)
+        observeSession().map { it.bottleneckForNextWeek },
+    ) { view, picked, busy, fixated ->
+        SundayAuditState(
+            view = view,
+            selectedBottleneck = picked,
+            submitting = busy,
+            fixatedBottleneck = fixated,
+        )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
@@ -54,12 +68,17 @@ class SundayAuditViewModel @Inject constructor(
     )
 
     fun onPickBottleneck(bottleneck: Bottleneck) {
+        // Sealed once the audit is fixated for the day — the picker is hidden
+        // in the UI but guard defensively in case a stale recomposition fires
+        // the callback during the swap.
+        if (state.value.isCompleted) return
         selection.value = bottleneck
     }
 
     fun submit() {
         val picked = selection.value ?: return
         if (submitting.value) return
+        if (state.value.isCompleted) return
         submitting.value = true
         viewModelScope.launch {
             setBottleneck(picked)

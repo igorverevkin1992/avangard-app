@@ -30,6 +30,7 @@ interface SessionRepository {
         recordedAt: Long,
     )
     suspend fun setBottleneck(dateEpoch: Long, bottleneck: Bottleneck)
+    suspend fun setJournalEntry(dateEpoch: Long, entry: String?)
 
     fun observeActiveFocus(): Flow<FocusSession?>
     suspend fun findActiveFocus(): FocusSession?

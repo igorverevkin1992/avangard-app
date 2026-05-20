@@ -82,8 +82,10 @@ class SundayAuditUseCaseTest {
         assertEquals(1, view.defectCount)
         assertEquals(1, view.wasteCount)
         assertEquals(2, view.mvdDays)
-        assertEquals(1, view.virtueSums.justice)   // 1 + 1 + 0
-        assertEquals(0, view.virtueSums.rationality) // 1 + (-1) + 0
+        // Justice virtues across the three closed days: 1 + 1 + 0 = 2.
+        assertEquals(2, view.virtueSums.justice)
+        // Rationality: 1 + (-1) + 0 = 0.
+        assertEquals(0, view.virtueSums.rationality)
         assertEquals(1, view.infraBreakdown[Habit.Sport]?.standard)
     }
 

@@ -26,6 +26,9 @@ abstract class DailySessionDao {
     @Query("DELETE FROM daily_session")
     abstract suspend fun deleteAll()
 
+    @Query("SELECT * FROM daily_session ORDER BY date_epoch ASC")
+    abstract suspend fun getAll(): List<DailySessionEntity>
+
     /**
      * Atomic find-or-insert. Without this, the repository's read+write pattern
      * had a race window where two concurrent callers could both observe the

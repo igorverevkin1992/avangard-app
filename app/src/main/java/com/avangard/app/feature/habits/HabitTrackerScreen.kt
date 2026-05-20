@@ -9,10 +9,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -115,7 +117,7 @@ private fun MonthSelector(year: Int, month: Int, onSelect: (Int) -> Unit) {
                     style = MaterialTheme.typography.labelMedium,
                 )
                 Text(
-                    text = "%02d/12".format(index + 1),
+                    text = "%02d/12".format(java.util.Locale.US, index + 1),
                     color = color,
                     style = MaterialTheme.typography.labelSmall,
                 )
@@ -134,26 +136,32 @@ private fun AggregateRow(view: HabitMonthlyView?) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+            .padding(top = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
+        // Match DayRow / ColumnHeader: same date-column spacer up front so
+        // each habit tile sits exactly above its column of checkboxes.
+        Spacer(Modifier.width(DATE_COL_WIDTH.dp))
         Habit.entries.forEach { habit ->
             val count = view?.completedCount(habit) ?: 0
             val total = view?.daysInMonth ?: 0
             Column(
                 modifier = Modifier
+                    .weight(1f)
                     .border(width = 1.dp, color = IsaColors.Lattice)
-                    .padding(8.dp),
+                    .padding(vertical = 6.dp, horizontal = 4.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(
                     text = "${habit.code}·${habit.shortLabel}",
                     color = IsaColors.Approve,
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.labelSmall,
                 )
                 Text(
                     text = if (total == 0) "—" else "$count/$total",
                     color = IsaColors.LiveMetal,
-                    style = MaterialTheme.typography.labelLarge,
+                    style = MaterialTheme.typography.labelMedium,
                 )
             }
         }
@@ -234,7 +242,7 @@ private fun DayRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            text = "%02d.%02d".format(date.dayOfMonth, date.monthValue),
+            text = "%02d.%02d".format(java.util.Locale.US, date.dayOfMonth, date.monthValue),
             color = dateColor,
             style = MaterialTheme.typography.labelMedium.copy(fontSize = 13.sp),
             modifier = Modifier

@@ -26,4 +26,7 @@ interface HabitLogDao {
 
     @Query("DELETE FROM habit_log")
     suspend fun deleteAll()
+
+    @Query("SELECT * FROM habit_log ORDER BY date_epoch ASC")
+    suspend fun getAll(): List<HabitLogEntity>
 }

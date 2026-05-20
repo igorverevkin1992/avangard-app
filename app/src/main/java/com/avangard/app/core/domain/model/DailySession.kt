@@ -41,6 +41,8 @@ data class DailySession(
     val eveningClosedAt: Long?,
     val virtues: VirtueScores?,
     val bottleneckForNextWeek: Bottleneck?,
+    /** Operator's free-text summary of the day, ≤ JOURNAL_MAX_CHARS. */
+    val journalEntry: String? = null,
 ) {
     /** Hostage Logic predicate: Infra modules unlock only when Core is Approved. */
     val isCoreUnlocked: Boolean get() = coreStatus is CoreStatus.Approved
@@ -51,5 +53,9 @@ data class DailySession(
         Habit.Sport -> infra03
         Habit.Watching -> infra04
         Habit.Reading -> infra05
+    }
+
+    companion object {
+        const val JOURNAL_MAX_CHARS = 500
     }
 }

@@ -1,8 +1,10 @@
 package com.avangard.app.core.data
 
+import androidx.room.withTransaction
 import com.avangard.app.core.common.Clock
 import com.avangard.app.core.common.DAY_MILLIS
 import com.avangard.app.core.common.toStartOfDayEpoch
+import com.avangard.app.core.database.AppDatabase
 import com.avangard.app.core.database.dao.HabitLogDao
 import com.avangard.app.core.database.entity.HabitLogEntity
 import com.avangard.app.core.domain.model.Habit
@@ -19,6 +21,7 @@ import kotlinx.coroutines.flow.map
 
 @Singleton
 class RoomHabitRepository @Inject constructor(
+    private val database: AppDatabase,
     private val dao: HabitLogDao,
     private val clock: Clock,
 ) : HabitRepository {
@@ -38,18 +41,23 @@ class RoomHabitRepository @Inject constructor(
         }
     }
 
+    // exists() then delete()/insert() must be atomic: concurrent toggles on
+    // the same (date, habit) pair would otherwise interleave and leave a
+    // duplicate row or skip the intended delete.
     override suspend fun toggle(date: LocalDate, habit: Habit, recordedAt: Long) {
         val epoch = date.toStartOfDayEpoch(clock.zone())
-        if (dao.exists(epoch, habit.code) != null) {
-            dao.delete(epoch, habit.code)
-        } else {
-            dao.insert(
-                HabitLogEntity(
-                    dateEpoch = epoch,
-                    habitCode = habit.code,
-                    completedAt = recordedAt,
+        database.withTransaction {
+            if (dao.exists(epoch, habit.code) != null) {
+                dao.delete(epoch, habit.code)
+            } else {
+                dao.insert(
+                    HabitLogEntity(
+                        dateEpoch = epoch,
+                        habitCode = habit.code,
+                        completedAt = recordedAt,
+                    )
                 )
-            )
+            }
         }
     }
 

@@ -10,17 +10,19 @@ import androidx.compose.ui.unit.sp
 import com.avangard.app.ui.theme.IsaColors
 
 /**
- * HH:MM:SS read-out. Below the 5-minute cold-start threshold the colour is
- * subdued; at and after the threshold it switches to [IsaColors.Approve] —
- * the visual signal that the amygdala-block has cleared and momentum is intact.
- * No sound is emitted at the crossover, by design.
+ * HH:MM:SS read-out. Below the cold-start threshold the colour is subdued; at
+ * and after the threshold it switches to [IsaColors.Approve] — the visual
+ * signal that the amygdala-block has cleared and momentum is intact. No sound
+ * is emitted at the crossover, by design. The threshold is configurable via
+ * UserPreferences (default 5 min).
  */
 @Composable
 fun CoreTimerDisplay(
     elapsedMillis: Long,
+    thresholdMs: Long = DEFAULT_COLD_START_THRESHOLD_MS,
     modifier: Modifier = Modifier,
 ) {
-    val crossed = elapsedMillis >= COLD_START_THRESHOLD_MS
+    val crossed = elapsedMillis >= thresholdMs
     val color: Color = if (crossed) IsaColors.Approve else IsaColors.LiveMetal
     Text(
         text = format(elapsedMillis),
@@ -34,7 +36,7 @@ fun CoreTimerDisplay(
     )
 }
 
-private const val COLD_START_THRESHOLD_MS = 5L * 60 * 1000
+const val DEFAULT_COLD_START_THRESHOLD_MS: Long = 5L * 60 * 1000
 
 private fun format(millis: Long): String {
     val safe = millis.coerceAtLeast(0L)
@@ -42,5 +44,5 @@ private fun format(millis: Long): String {
     val h = totalSeconds / 3600
     val m = (totalSeconds % 3600) / 60
     val s = totalSeconds % 60
-    return "%02d:%02d:%02d".format(h, m, s)
+    return "%02d:%02d:%02d".format(java.util.Locale.US, h, m, s)
 }

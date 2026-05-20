@@ -161,6 +161,16 @@ class RoomSessionRepository @Inject constructor(
         }
     }
 
+    override suspend fun setJournalEntry(dateEpoch: Long, entry: String?) {
+        // Blank input becomes null on disk so we don't litter the row with
+        // empty strings — the domain treats null and "" identically.
+        val normalised = entry?.trim()?.takeIf { it.isNotEmpty() }
+        database.withTransaction {
+            val current = dailyDao.ensureRow(dateEpoch)
+            dailyDao.upsert(current.copy(journalEntry = normalised))
+        }
+    }
+
     override fun observeActiveFocus(): Flow<FocusSession?> =
         focusDao.observeActive().map { it?.toDomain() }
 
@@ -255,6 +265,7 @@ private fun DailySessionEntity.toDomain(): DailySession = DailySession(
     bottleneckForNextWeek = bottleneckForNextWeek?.let { name ->
         runCatching { Bottleneck.valueOf(name) }.getOrNull()
     },
+    journalEntry = journalEntry,
 )
 
 private fun FocusSessionEntity.toDomain(): FocusSession? {

@@ -17,7 +17,7 @@ import com.avangard.app.core.database.entity.HabitLogEntity
         DailySessionEntity::class,
         FocusSessionEntity::class,
     ],
-    version = 5,
+    version = 6,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -91,13 +91,29 @@ abstract class AppDatabase : RoomDatabase() {
                     """.trimIndent()
                 )
                 db.execSQL(
+                    // Index a constant for every active row: SQLite treats NULLs as
+                    // distinct, so a plain `UNIQUE(ended_at) WHERE ended_at IS NULL`
+                    // would not deduplicate active sessions. The literal-1 expression
+                    // collapses all qualifying rows to the same indexed value, so
+                    // a second active insert hits the UNIQUE constraint.
                     "CREATE UNIQUE INDEX IF NOT EXISTS uniq_focus_active " +
-                        "ON focus_session(ended_at) WHERE ended_at IS NULL"
+                        "ON focus_session((1)) WHERE ended_at IS NULL"
                 )
                 db.execSQL(
                     "CREATE INDEX IF NOT EXISTS index_focus_session_started_at " +
                         "ON focus_session(started_at)"
                 )
+            }
+        }
+
+        /**
+         * v6: adds the per-day journal entry. Capped to 500 chars in the
+         * use-case layer; the column itself is plain TEXT so old rows just
+         * carry NULL until the operator writes one.
+         */
+        val MIGRATION_5_6: Migration = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE daily_session ADD COLUMN journal_entry TEXT")
             }
         }
 

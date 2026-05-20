@@ -11,6 +11,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.disabled
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.avangard.app.ui.theme.IsaColors
@@ -43,6 +47,10 @@ fun HardButton(
         textAlign = TextAlign.Center,
         modifier = modifier
             .fillMaxWidth()
+            .semantics(mergeDescendants = true) {
+                role = Role.Button
+                if (!enabled) disabled()
+            }
             .border(width = if (enabled) 2.dp else 1.dp, color = color)
             .clickable(
                 enabled = enabled,

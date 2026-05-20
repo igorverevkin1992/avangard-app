@@ -37,6 +37,7 @@ import com.avangard.app.core.domain.model.DailySession
 import com.avangard.app.core.domain.model.Habit
 import com.avangard.app.core.domain.model.InfraStatus
 import com.avangard.app.core.ui.components.CoreTimerDisplay
+import com.avangard.app.core.ui.components.DEFAULT_COLD_START_THRESHOLD_MS
 import com.avangard.app.core.ui.components.ExactAlarmPermissionBanner
 import com.avangard.app.core.ui.components.FlashButton
 import com.avangard.app.core.ui.components.HardButton
@@ -58,6 +59,7 @@ fun OperatorPulpitScreen(
     onOpenSabotage: () -> Unit,
     onOpenEveningClose: () -> Unit,
     onOpenSettings: () -> Unit,
+    onOpenQuote: (Int) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: OperatorPulpitViewModel = hiltViewModel(),
 ) {
@@ -74,8 +76,9 @@ fun OperatorPulpitScreen(
     }
 
     OperatorPulpitContent(
-        today = state?.today ?: LocalDate.now(),
+        today = state?.today ?: viewModel.initialToday,
         state = state,
+        nowMsFlow = viewModel.nowMs,
         transientError = state?.transientError,
         onStartFocus = viewModel::onStartFocus,
         onStopFocus = viewModel::onStopFocus,
@@ -85,6 +88,7 @@ fun OperatorPulpitScreen(
         onSabotageClicked = viewModel::onSabotageClicked,
         onCloseShiftClicked = viewModel::onCloseShiftClicked,
         onSettingsLongPress = onOpenSettings,
+        onOpenQuote = onOpenQuote,
         modifier = modifier,
     )
 }
@@ -93,6 +97,7 @@ fun OperatorPulpitScreen(
 internal fun OperatorPulpitContent(
     today: LocalDate,
     state: PulpitState?,
+    nowMsFlow: kotlinx.coroutines.flow.StateFlow<Long>,
     transientError: com.avangard.app.core.domain.model.SessionError?,
     onStartFocus: (Habit) -> Unit,
     onStopFocus: () -> Unit,
@@ -102,6 +107,7 @@ internal fun OperatorPulpitContent(
     onSabotageClicked: () -> Unit,
     onCloseShiftClicked: () -> Unit,
     onSettingsLongPress: () -> Unit = {},
+    onOpenQuote: (Int) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -123,6 +129,27 @@ internal fun OperatorPulpitContent(
         NotificationPermissionBanner()
         ExactAlarmPermissionBanner()
 
+        state?.dailyQuote?.let { quote ->
+            QuoteOfDayCard(quote = quote, onClick = { onOpenQuote(quote.id) })
+        }
+
+        if (state?.shouldNudgeEveningClose == true) {
+            Text(
+                text = stringResource(R.string.pulpit_evening_nudge),
+                color = IsaColors.Signal,
+                style = MaterialTheme.typography.labelLarge,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(width = 2.dp, color = IsaColors.Signal)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = onCloseShiftClicked,
+                    )
+                    .padding(horizontal = 10.dp, vertical = 10.dp),
+            )
+        }
+
         if (transientError != null) {
             Text(
                 text = sessionErrorMessage(transientError),
@@ -137,6 +164,7 @@ internal fun OperatorPulpitContent(
 
         CoreCard(
             state = state,
+            nowMsFlow = nowMsFlow,
             onStartFocus = { onStartFocus(Habit.Generations) },
             onStopFocus = onStopFocus,
             onRequestApproveCore = onRequestApproveCore,
@@ -145,6 +173,7 @@ internal fun OperatorPulpitContent(
         InfraCard(
             habit = Habit.Spanish,
             state = state,
+            nowMsFlow = nowMsFlow,
             onStartFocus = onStartFocus,
             onStopFocus = onStopFocus,
             onMarkInfra = onMarkInfra,
@@ -152,6 +181,7 @@ internal fun OperatorPulpitContent(
         InfraCard(
             habit = Habit.Sport,
             state = state,
+            nowMsFlow = nowMsFlow,
             onStartFocus = onStartFocus,
             onStopFocus = onStopFocus,
             onMarkInfra = onMarkInfra,
@@ -159,6 +189,7 @@ internal fun OperatorPulpitContent(
         InfraCard(
             habit = Habit.Watching,
             state = state,
+            nowMsFlow = nowMsFlow,
             onStartFocus = onStartFocus,
             onStopFocus = onStopFocus,
             onMarkInfra = onMarkInfra,
@@ -166,6 +197,7 @@ internal fun OperatorPulpitContent(
         InfraCard(
             habit = Habit.Reading,
             state = state,
+            nowMsFlow = nowMsFlow,
             onStartFocus = onStartFocus,
             onStopFocus = onStopFocus,
             onMarkInfra = onMarkInfra,
@@ -255,6 +287,7 @@ private fun SabotageChip(onClick: () -> Unit) {
 @Composable
 private fun CoreCard(
     state: PulpitState?,
+    nowMsFlow: kotlinx.coroutines.flow.StateFlow<Long>,
     onStartFocus: () -> Unit,
     onStopFocus: () -> Unit,
     onRequestApproveCore: () -> Unit,
@@ -268,6 +301,12 @@ private fun CoreCard(
         isFailed -> StatusBadgeKind.Fail
         else -> StatusBadgeKind.Idle
     }
+    // Collect the ticker only here so the 1Hz tick scopes its recomp to the
+    // CoreTimerDisplay subtree; sibling InfraCards never recompose on tick.
+    val nowMs by nowMsFlow.collectAsState()
+    val elapsedMs = if (activeOnCore) {
+        state?.activeFocus?.durationMillis(nowMs) ?: 0L
+    } else 0L
     PulpitPanel(
         borderColor = if (isApproved) IsaColors.Approve else IsaColors.Steel,
     ) {
@@ -277,7 +316,8 @@ private fun CoreCard(
             trailing = { StatusBadge(kind = badge) },
         )
         CoreTimerDisplay(
-            elapsedMillis = if (activeOnCore) state?.activeFocusElapsedMs ?: 0L else 0L,
+            elapsedMillis = elapsedMs,
+            thresholdMs = state?.coldStartThresholdMs ?: DEFAULT_COLD_START_THRESHOLD_MS,
         )
         FlashButton(
             label = stringResource(
@@ -287,6 +327,7 @@ private fun CoreCard(
             enabled = !isApproved,
             onClick = if (activeOnCore) onStopFocus else onStartFocus,
         )
+        FocusStatsLine(habit = Habit.Generations, state = state, nowMsFlow = nowMsFlow)
         HardButton(
             label = stringResource(R.string.pulpit_save_shot),
             onClick = onRequestApproveCore,
@@ -300,12 +341,15 @@ private fun CoreCard(
 private fun InfraCard(
     habit: Habit,
     state: PulpitState?,
+    nowMsFlow: kotlinx.coroutines.flow.StateFlow<Long>,
     onStartFocus: (Habit) -> Unit,
     onStopFocus: () -> Unit,
     onMarkInfra: (Habit, InfraStatus) -> Unit,
 ) {
     val session: DailySession? = state?.session
-    val locked = session?.isCoreUnlocked != true
+    // Only evening habits (Watching, Reading) wait for Core. Morning habits
+    // (Spanish, Sport) are always unlocked.
+    val locked = habit.requiresCoreApproval && session?.isCoreUnlocked != true
     val infraStatus = session?.infraStatus(habit) ?: InfraStatus.NotDone
     val activeOnHabit = state?.isFocusActiveOn(habit) == true
     val badge = when {
@@ -344,6 +388,7 @@ private fun InfraCard(
             enabled = state?.activeFocus == null || activeOnHabit,
             onClick = if (activeOnHabit) onStopFocus else { { onStartFocus(habit) } },
         )
+        FocusStatsLine(habit = habit, state = state, nowMsFlow = nowMsFlow)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -363,5 +408,93 @@ private fun InfraCard(
                 modifier = Modifier.weight(1f),
             )
         }
+    }
+}
+
+/**
+ * Shows today's focus totals for a habit and, when a session is active on
+ * this habit, the live elapsed time too. Live tick is scoped to this line
+ * via nowMsFlow.collectAsState(), so a sibling card not currently in
+ * focus doesn't recompose every second.
+ */
+@Composable
+private fun FocusStatsLine(
+    habit: Habit,
+    state: PulpitState?,
+    nowMsFlow: kotlinx.coroutines.flow.StateFlow<Long>,
+) {
+    val completedMs = state?.completedFocusByHabit?.get(habit) ?: 0L
+    val completedCount = state?.completedFocusCountByHabit?.get(habit) ?: 0
+    val activeOnHabit = state?.isFocusActiveOn(habit) == true
+    if (!activeOnHabit && completedCount == 0) return
+
+    val nowMs by nowMsFlow.collectAsState()
+    val activeElapsed = if (activeOnHabit) {
+        state?.activeFocus?.durationMillis(nowMs) ?: 0L
+    } else 0L
+    val displayText = if (activeOnHabit) {
+        stringResource(
+            R.string.pulpit_focus_stats_active,
+            formatHms(activeElapsed),
+            completedCount,
+            formatHms(completedMs),
+        )
+    } else {
+        stringResource(
+            R.string.pulpit_focus_stats_idle,
+            completedCount,
+            formatHms(completedMs),
+        )
+    }
+    Text(
+        text = displayText,
+        color = if (activeOnHabit) IsaColors.Approve else IsaColors.Lattice,
+        style = MaterialTheme.typography.labelSmall,
+        modifier = Modifier.fillMaxWidth(),
+    )
+}
+
+private fun formatHms(millis: Long): String {
+    val total = (millis / 1000).coerceAtLeast(0)
+    val h = total / 3600
+    val m = (total % 3600) / 60
+    val s = total % 60
+    return "%02d:%02d:%02d".format(java.util.Locale.US, h, m, s)
+}
+
+@Composable
+private fun QuoteOfDayCard(
+    quote: com.avangard.app.core.domain.model.Quote,
+    onClick: () -> Unit,
+) {
+    val interactionSource = remember(quote.id) { MutableInteractionSource() }
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(width = 1.dp, color = IsaColors.Steel)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick,
+            )
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Text(
+            text = stringResource(R.string.pulpit_quote_of_day_label),
+            color = IsaColors.Lattice,
+            style = MaterialTheme.typography.labelSmall,
+        )
+        Text(
+            text = quote.text,
+            color = IsaColors.LiveMetal,
+            style = MaterialTheme.typography.bodyMedium,
+            maxLines = 3,
+        )
+        Text(
+            text = quote.source,
+            color = IsaColors.Lattice,
+            style = MaterialTheme.typography.labelSmall,
+        )
     }
 }
