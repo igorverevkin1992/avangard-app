@@ -3,6 +3,8 @@
     <string name="app_name">Prime mover</string>
 
     <!-- Pulpit header. -->
+    <string name="pulpit_global_goal_label">ГЛАВНОЕ ДЕЛО</string>
+    <string name="pulpit_global_goal_text">Моё главное дело — построить собственную технологическую медиаимперию, цель которой — моё личное благополучие и реализация.</string>
     <string name="pulpit_mvd_on">РЕЖИМ MVD: ВКЛ</string>
     <string name="pulpit_mvd_off">РЕЖИМ MVD: ВЫКЛ</string>
     <string name="pulpit_sabotage">САБОТАЖ</string>

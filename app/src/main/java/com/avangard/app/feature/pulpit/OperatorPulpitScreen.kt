@@ -126,6 +126,8 @@ internal fun OperatorPulpitContent(
             onSettingsLongPress = onSettingsLongPress,
         )
 
+        GlobalGoalCard()
+
         NotificationPermissionBanner()
         ExactAlarmPermissionBanner()
 
@@ -460,6 +462,28 @@ private fun formatHms(millis: Long): String {
     val m = (total % 3600) / 60
     val s = total % 60
     return "%02d:%02d:%02d".format(java.util.Locale.US, h, m, s)
+}
+
+@Composable
+private fun GlobalGoalCard() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(width = 2.dp, color = IsaColors.Approve)
+            .padding(horizontal = 12.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(
+            text = stringResource(R.string.pulpit_global_goal_label),
+            color = IsaColors.Approve,
+            style = MaterialTheme.typography.labelMedium,
+        )
+        Text(
+            text = stringResource(R.string.pulpit_global_goal_text),
+            color = IsaColors.LiveMetal,
+            style = MaterialTheme.typography.bodyMedium,
+        )
+    }
 }
 
 @Composable
