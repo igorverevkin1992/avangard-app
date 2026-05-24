@@ -2,12 +2,14 @@ package com.avangard.app.core.data.auth
 
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import com.avangard.app.R
 import com.google.android.gms.auth.GoogleAuthUtil
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.auth.api.signin.GoogleSignInStatusCodes
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.Scope
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -41,7 +43,14 @@ class AuthRepository @Inject constructor(
         GoogleSignIn.getClient(context, signInOptions())
     }
 
-    private val _account = MutableStateFlow(GoogleSignIn.getLastSignedInAccount(context))
+    private val _account = MutableStateFlow(
+        GoogleSignIn.getLastSignedInAccount(context).also { cached ->
+            Log.i(
+                TAG,
+                "AuthRepository init: cached account=${cached?.email ?: "<none>"}",
+            )
+        },
+    )
     val account: StateFlow<GoogleSignInAccount?> = _account.asStateFlow()
 
     val isSignedIn: Boolean
@@ -59,10 +68,28 @@ class AuthRepository @Inject constructor(
         return try {
             val account = GoogleSignIn.getSignedInAccountFromIntent(data)
                 .getResult(ApiException::class.java)
+            Log.i(
+                TAG,
+                "Sign-in OK: email=${account.email}, id=${account.id?.take(6)}…, " +
+                    "idToken=${if (account.idToken.isNullOrBlank()) "absent" else "present"}, " +
+                    "scopes=${account.grantedScopes.joinToString { it.scopeUri }}",
+            )
             _account.value = account
             Result.success(account)
         } catch (e: ApiException) {
+            val code = e.statusCode
+            val codeName = GoogleSignInStatusCodes.getStatusCodeString(code)
+            val statusMsg = e.status.statusMessage
+            Log.e(
+                TAG,
+                "Sign-in FAILED: statusCode=$code ($codeName), statusMessage=$statusMsg, " +
+                    "hasResolution=${e.status.hasResolution()}, dataPresent=${data != null}",
+                e,
+            )
             Result.failure(e)
+        } catch (t: Throwable) {
+            Log.e(TAG, "Sign-in FAILED with unexpected error", t)
+            Result.failure(t)
         }
     }
 
@@ -107,6 +134,7 @@ class AuthRepository @Inject constructor(
     }
 
     companion object {
+        private const val TAG = "AuthRepository"
         private const val DRIVE_APPDATA_SCOPE =
             "https://www.googleapis.com/auth/drive.appdata"
         private const val OAUTH_SCOPE = "oauth2:$DRIVE_APPDATA_SCOPE"
