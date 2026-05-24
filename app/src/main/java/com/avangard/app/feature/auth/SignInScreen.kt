@@ -95,9 +95,10 @@ fun SignInScreen(
                 style = MaterialTheme.typography.labelSmall,
                 textAlign = TextAlign.Center,
             )
-            if (!state.errorMessage.isNullOrBlank()) {
+            val errorMessage = state.errorMessage
+            if (!errorMessage.isNullOrBlank()) {
                 Text(
-                    text = state.errorMessage,
+                    text = errorMessage,
                     color = IsaColors.Lattice,
                     style = MaterialTheme.typography.labelSmall,
                     textAlign = TextAlign.Center,
