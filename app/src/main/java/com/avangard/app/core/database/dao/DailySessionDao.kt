@@ -20,6 +20,9 @@ abstract class DailySessionDao {
     @Query("SELECT * FROM daily_session WHERE date_epoch BETWEEN :from AND :to ORDER BY date_epoch ASC")
     abstract fun observeRange(from: Long, to: Long): Flow<List<DailySessionEntity>>
 
+    @Query("SELECT * FROM daily_session ORDER BY date_epoch ASC")
+    abstract fun observeAll(): Flow<List<DailySessionEntity>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract suspend fun upsert(entity: DailySessionEntity)
 

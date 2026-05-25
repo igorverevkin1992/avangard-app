@@ -14,6 +14,7 @@ sealed interface NavRoute {
     data object HistoryGrid : NavRoute { override val route = "history" }
     data object Settings : NavRoute { override val route = "settings" }
     data object Library : NavRoute { override val route = "library" }
+    data object Chronometer : NavRoute { override val route = "chronometer" }
 
     /** Library → list of quotes filtered by a single VirtueTag.
      *  Argument: VirtueTag.name. */

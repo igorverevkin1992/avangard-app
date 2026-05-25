@@ -38,7 +38,9 @@ class ImportBackupUseCase @Inject constructor(
         } catch (_: IllegalArgumentException) {
             return DomainResult.Err(BackupImportError.NotJson)
         }
-        if (bundle.schemaVersion != BackupBundle.SCHEMA_VERSION) {
+        if (bundle.schemaVersion !in
+            BackupBundle.MIN_SUPPORTED_SCHEMA_VERSION..BackupBundle.SCHEMA_VERSION
+        ) {
             return DomainResult.Err(BackupImportError.UnsupportedSchema(bundle.schemaVersion))
         }
         return try {

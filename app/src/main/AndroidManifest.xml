@@ -72,6 +72,14 @@
         </receiver>
 
         <receiver
+            android:name=".sync.scheduler.IgnitionReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.avangard.app.alarm.IGNITION" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
             android:name=".sync.scheduler.BootCompletedReceiver"
             android:exported="true">
             <intent-filter>

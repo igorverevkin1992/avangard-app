@@ -16,6 +16,7 @@ import com.avangard.app.core.domain.usecase.ExportBackupUseCase
 import com.avangard.app.core.domain.usecase.ImportBackupUseCase
 import com.avangard.app.core.ui.components.DEFAULT_COLD_START_THRESHOLD_MS
 import com.avangard.app.sync.scheduler.EveningCloseScheduler
+import com.avangard.app.sync.scheduler.IgnitionScheduler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -83,6 +84,7 @@ class SettingsViewModel @Inject constructor(
     private val habits: HabitRepository,
     private val preferences: UserPreferencesRepository,
     private val scheduler: EveningCloseScheduler,
+    private val ignitionScheduler: IgnitionScheduler,
     private val exportBackup: ExportBackupUseCase,
     private val importBackup: ImportBackupUseCase,
     private val clock: Clock,
@@ -133,6 +135,34 @@ class SettingsViewModel @Inject constructor(
         if (minutes !in 1..60) return
         viewModelScope.launch {
             preferences.setColdStartThresholdMs(minutes * 60L * 1000)
+        }
+    }
+
+    fun onBirthdayChanged(epochDay: Long?) {
+        viewModelScope.launch {
+            preferences.setBirthday(epochDay)
+        }
+    }
+
+    fun onLifeExpectancyChanged(years: Int) {
+        if (years !in UserPreferences.MIN_LIFE_EXPECTANCY..UserPreferences.MAX_LIFE_EXPECTANCY) return
+        viewModelScope.launch {
+            preferences.setLifeExpectancy(years)
+        }
+    }
+
+    fun onIgnitionEnabledChanged(enabled: Boolean) {
+        viewModelScope.launch {
+            preferences.setIgnitionEnabled(enabled)
+            ignitionScheduler.ensureScheduled()
+        }
+    }
+
+    fun onIgnitionTimeChanged(hour: Int, minute: Int) {
+        if (hour !in 0..23 || minute !in 0..59) return
+        viewModelScope.launch {
+            preferences.setIgnitionTime(hour, minute)
+            ignitionScheduler.ensureScheduled()
         }
     }
 

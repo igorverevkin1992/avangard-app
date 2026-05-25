@@ -9,6 +9,7 @@ import androidx.navigation.compose.composable
 import com.avangard.app.feature.audit.SundayAuditScreen
 import com.avangard.app.feature.auth.RestoringScreen
 import com.avangard.app.feature.auth.SignInScreen
+import com.avangard.app.feature.chronometer.ChronometerScreen
 import com.avangard.app.feature.closing.EveningCloseScreen
 import com.avangard.app.feature.habits.HabitTrackerScreen
 import androidx.navigation.NavType
@@ -64,11 +65,24 @@ fun AvangardNavHost(
                 onOpenSabotage = { navController.navigate(NavRoute.Sabotage.route) },
                 onOpenEveningClose = { navController.navigate(NavRoute.EveningClose.route) },
                 onOpenSettings = { navController.navigate(NavRoute.Settings.route) },
+                onOpenChronometer = { navController.navigate(NavRoute.Chronometer.route) },
                 onOpenQuote = { id -> navController.navigate(NavRoute.QuoteDetail.create(id)) },
             )
         }
         composable(NavRoute.Settings.route) {
             SettingsScreen(onReturn = { navController.popBackStack() })
+        }
+        composable(NavRoute.Chronometer.route) {
+            ChronometerScreen(
+                onReturn = {
+                    if (!navController.popBackStack()) {
+                        navController.navigate(NavRoute.OperatorPulpit.route) {
+                            popUpTo(NavRoute.Chronometer.route) { inclusive = true }
+                        }
+                    }
+                },
+                onOpenSettings = { navController.navigate(NavRoute.Settings.route) },
+            )
         }
         composable(NavRoute.AuthorisationModal.route) {
             AuthorisationModalScreen(

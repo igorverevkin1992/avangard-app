@@ -37,9 +37,21 @@ data class UserPreferences(
      * retried on the next launch.
      */
     val initialRestoreDone: Boolean = false,
+    /** Operator's birthday as LocalDate.toEpochDay(); null until configured. */
+    val birthdayEpochDay: Long? = null,
+    /** Planned resource budget in years for the chronometer grid. */
+    val lifeExpectancyYears: Int = DEFAULT_LIFE_EXPECTANCY,
+    /** Daily ignition notification toggle (chronometer reminder). */
+    val ignitionEnabled: Boolean = true,
+    val ignitionHour: Int = DEFAULT_IGNITION_HOUR,
+    val ignitionMinute: Int = 0,
 ) {
     companion object {
         const val DEFAULT_COLD_START_MS: Long = 5L * 60 * 1000
+        const val DEFAULT_LIFE_EXPECTANCY = 80
+        const val MIN_LIFE_EXPECTANCY = 50
+        const val MAX_LIFE_EXPECTANCY = 100
+        const val DEFAULT_IGNITION_HOUR = 6
     }
 }
 
@@ -92,6 +104,37 @@ class UserPreferencesRepository @Inject constructor(
         }
     }
 
+    suspend fun setBirthday(epochDay: Long?) {
+        context.preferencesStore.edit { prefs ->
+            if (epochDay == null) prefs.remove(KEY_BIRTHDAY_EPOCH_DAY)
+            else prefs[KEY_BIRTHDAY_EPOCH_DAY] = epochDay
+        }
+    }
+
+    suspend fun setLifeExpectancy(years: Int) {
+        require(years in UserPreferences.MIN_LIFE_EXPECTANCY..UserPreferences.MAX_LIFE_EXPECTANCY) {
+            "life expectancy out of range: $years"
+        }
+        context.preferencesStore.edit { prefs ->
+            prefs[KEY_LIFE_EXPECTANCY] = years
+        }
+    }
+
+    suspend fun setIgnitionEnabled(enabled: Boolean) {
+        context.preferencesStore.edit { prefs ->
+            prefs[KEY_IGNITION_ENABLED] = enabled
+        }
+    }
+
+    suspend fun setIgnitionTime(hour: Int, minute: Int) {
+        require(hour in 0..23) { "hour out of range: $hour" }
+        require(minute in 0..59) { "minute out of range: $minute" }
+        context.preferencesStore.edit { prefs ->
+            prefs[KEY_IGNITION_HOUR] = hour
+            prefs[KEY_IGNITION_MINUTE] = minute
+        }
+    }
+
     /**
      * Increment the launch counter and, every [VACUUM_EVERY_LAUNCHES] launches,
      * defragment the SQLite file. Cheap maintenance to keep the DB compact on
@@ -118,6 +161,11 @@ class UserPreferencesRepository @Inject constructor(
         lastSyncedAt = this[KEY_LAST_SYNCED_AT],
         remoteModifiedAt = this[KEY_REMOTE_MODIFIED_AT],
         initialRestoreDone = this[KEY_INITIAL_RESTORE_DONE] ?: false,
+        birthdayEpochDay = this[KEY_BIRTHDAY_EPOCH_DAY],
+        lifeExpectancyYears = this[KEY_LIFE_EXPECTANCY] ?: UserPreferences.DEFAULT_LIFE_EXPECTANCY,
+        ignitionEnabled = this[KEY_IGNITION_ENABLED] ?: true,
+        ignitionHour = this[KEY_IGNITION_HOUR] ?: UserPreferences.DEFAULT_IGNITION_HOUR,
+        ignitionMinute = this[KEY_IGNITION_MINUTE] ?: 0,
     )
 
     companion object {
@@ -128,6 +176,11 @@ class UserPreferencesRepository @Inject constructor(
         private val KEY_LAST_SYNCED_AT = longPreferencesKey("cloud_sync_last_at")
         private val KEY_REMOTE_MODIFIED_AT = longPreferencesKey("cloud_sync_remote_modified_at")
         private val KEY_INITIAL_RESTORE_DONE = booleanPreferencesKey("cloud_sync_initial_restore_done")
+        private val KEY_BIRTHDAY_EPOCH_DAY = longPreferencesKey("chronometer_birthday_epoch_day")
+        private val KEY_LIFE_EXPECTANCY = intPreferencesKey("chronometer_life_expectancy_years")
+        private val KEY_IGNITION_ENABLED = booleanPreferencesKey("chronometer_ignition_enabled")
+        private val KEY_IGNITION_HOUR = intPreferencesKey("chronometer_ignition_hour")
+        private val KEY_IGNITION_MINUTE = intPreferencesKey("chronometer_ignition_minute")
         private const val VACUUM_EVERY_LAUNCHES = 30
     }
 }

@@ -20,6 +20,7 @@ import kotlinx.coroutines.launch
 class BootCompletedReceiver : BroadcastReceiver() {
 
     @Inject lateinit var scheduler: EveningCloseScheduler
+    @Inject lateinit var ignitionScheduler: IgnitionScheduler
 
     override fun onReceive(context: Context, intent: Intent) {
         when (intent.action) {
@@ -30,6 +31,7 @@ class BootCompletedReceiver : BroadcastReceiver() {
                 CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
                     try {
                         scheduler.ensureScheduled()
+                        ignitionScheduler.ensureScheduled()
                     } finally {
                         pending.finish()
                     }

@@ -7,6 +7,7 @@ import com.avangard.app.core.data.UserPreferencesRepository
 import com.avangard.app.core.data.cloud.SyncCoordinator
 import com.avangard.app.sync.notifications.SimpleNotificationPresenter
 import com.avangard.app.sync.scheduler.EveningCloseScheduler
+import com.avangard.app.sync.scheduler.IgnitionScheduler
 import dagger.hilt.android.HiltAndroidApp
 import io.sentry.SentryOptions
 import io.sentry.android.core.SentryAndroid
@@ -20,6 +21,7 @@ import kotlinx.coroutines.launch
 class AvangardApplication : Application(), Configuration.Provider {
 
     @Inject lateinit var scheduler: EveningCloseScheduler
+    @Inject lateinit var ignitionScheduler: IgnitionScheduler
     @Inject lateinit var presenter: SimpleNotificationPresenter
     @Inject lateinit var preferences: UserPreferencesRepository
     @Inject lateinit var syncCoordinator: SyncCoordinator
@@ -40,6 +42,7 @@ class AvangardApplication : Application(), Configuration.Provider {
         applicationScope.launch {
             preferences.incrementAppLaunchAndMaybeVacuum()
             scheduler.ensureScheduled()
+            ignitionScheduler.ensureScheduled()
         }
     }
 

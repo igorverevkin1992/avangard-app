@@ -59,6 +59,7 @@ fun OperatorPulpitScreen(
     onOpenSabotage: () -> Unit,
     onOpenEveningClose: () -> Unit,
     onOpenSettings: () -> Unit,
+    onOpenChronometer: () -> Unit,
     onOpenQuote: (Int) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: OperatorPulpitViewModel = hiltViewModel(),
@@ -88,6 +89,7 @@ fun OperatorPulpitScreen(
         onSabotageClicked = viewModel::onSabotageClicked,
         onCloseShiftClicked = viewModel::onCloseShiftClicked,
         onSettingsLongPress = onOpenSettings,
+        onChronometerClicked = onOpenChronometer,
         onOpenQuote = onOpenQuote,
         modifier = modifier,
     )
@@ -107,6 +109,7 @@ internal fun OperatorPulpitContent(
     onSabotageClicked: () -> Unit,
     onCloseShiftClicked: () -> Unit,
     onSettingsLongPress: () -> Unit = {},
+    onChronometerClicked: () -> Unit = {},
     onOpenQuote: (Int) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
@@ -124,6 +127,7 @@ internal fun OperatorPulpitContent(
             onToggleMvd = onToggleMvd,
             onSabotageClicked = onSabotageClicked,
             onSettingsLongPress = onSettingsLongPress,
+            onChronometerClicked = onChronometerClicked,
         )
 
         NotificationPermissionBanner()
@@ -217,11 +221,12 @@ private fun HeaderStrip(
     onToggleMvd: () -> Unit,
     onSabotageClicked: () -> Unit,
     onSettingsLongPress: () -> Unit,
+    onChronometerClicked: () -> Unit,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         val interactionSource = remember { MutableInteractionSource() }
         val dateA11y = stringResource(R.string.a11y_pulpit_date)
@@ -239,8 +244,29 @@ private fun HeaderStrip(
                 ),
         )
         MvdToggle(active = mvdActive, onClick = onToggleMvd)
+        ChronometerChip(onClick = onChronometerClicked)
         SabotageChip(onClick = onSabotageClicked)
     }
+}
+
+@Composable
+private fun ChronometerChip(onClick: () -> Unit) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val a11y = stringResource(R.string.a11y_chronometer)
+    Text(
+        text = stringResource(R.string.pulpit_chronometer_chip),
+        color = IsaColors.LiveMetal,
+        style = MaterialTheme.typography.labelLarge,
+        modifier = Modifier
+            .semantics { contentDescription = a11y }
+            .border(width = 1.dp, color = IsaColors.LiveMetal)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick,
+            )
+            .padding(horizontal = 10.dp, vertical = 6.dp),
+    )
 }
 
 @Composable
