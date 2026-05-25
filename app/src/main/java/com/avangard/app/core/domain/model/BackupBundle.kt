@@ -14,11 +14,23 @@ data class BackupBundle(
     val dailySessions: List<BackupDailySession>,
     val focusSessions: List<BackupFocusSession>,
     val habitLogs: List<BackupHabitLog>,
+    val chronometer: ChronometerBackup? = null,
 ) {
     companion object {
-        const val SCHEMA_VERSION = 1
+        /** v2 adds the optional chronometer block; v1 snapshots restore with null. */
+        const val SCHEMA_VERSION = 2
+        const val MIN_SUPPORTED_SCHEMA_VERSION = 1
     }
 }
+
+@Serializable
+data class ChronometerBackup(
+    val birthdayEpochDay: Long? = null,
+    val lifeExpectancyYears: Int = 80,
+    val ignitionEnabled: Boolean = true,
+    val ignitionHour: Int = 6,
+    val ignitionMinute: Int = 0,
+)
 
 @Serializable
 data class BackupDailySession(

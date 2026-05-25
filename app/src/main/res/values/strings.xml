@@ -23,7 +23,7 @@
          resValue or a CI-managed override. AuthRepository tolerates an
          empty value by skipping requestIdToken — Drive AppData scope works
          off the Android OAuth client alone. -->
-    <string name="default_web_client_id" translatable="false">523959581530-p5tfm236sjpbfqk2rb6ut7pmbrv7b8j9.apps.googleusercontent.com</string>
+    <string name="default_web_client_id" translatable="false">523959581530-ge2e8g9oo3nuug1hnp8pukfksmja129a.apps.googleusercontent.com</string>
     <string name="signin_title">PRIME MOVER · СИНХРОНИЗАЦИЯ</string>
     <string name="signin_subtitle">Войдите через Google для сохранения данных между устройствами. Резервная копия живёт в скрытой папке Google Drive — она недоступна из обычного Drive-интерфейса и видна только этому приложению.</string>
     <string name="signin_button">ВОЙТИ ЧЕРЕЗ GOOGLE</string>
@@ -214,4 +214,37 @@
     <string name="settings_restore_cancel">ОТМЕНА</string>
     <string name="settings_restore_confirm_message">Все текущие данные будут замещены содержимым копии. Это необратимо.</string>
     <string name="settings_return">ВЕРНУТЬСЯ К ПУЛЬТУ</string>
+
+    <!-- Chronometer. -->
+    <string name="chronometer_header">ХРОНОМЕТР</string>
+    <string name="chronometer_return">ВЕРНУТЬСЯ К ПУЛЬТУ</string>
+    <string name="chronometer_resource_label">РЕСУРС</string>
+    <string name="chronometer_empty_state">ДАТА РОЖДЕНИЯ НЕ УСТАНОВЛЕНА. ОТКРОЙТЕ КОНФИГ → ХРОНОМЕТР.</string>
+    <string name="chronometer_open_settings">КОНФИГ</string>
+    <string name="chronometer_days_lived">СУТКИ ПРОЖИТО</string>
+    <string name="chronometer_days_budget">СУТКИ В РЕСУРСЕ</string>
+    <string name="chronometer_days_remaining">ОСТАТОК</string>
+    <string name="chronometer_days_remaining_value">~%1$s · ~%2$s ЛЕТ</string>
+    <string name="chronometer_extracted">ИЗВЛЕЧЕНО</string>
+    <string name="chronometer_partial">ЧАСТИЧНО</string>
+    <string name="chronometer_burned">СОЖЖЕНО</string>
+    <string name="chronometer_count_with_pct">%1$s  (%2$s%%)</string>
+    <string name="chronometer_grid_label">СЕТКА · 1 ЯЧЕЙКА = 1 НЕДЕЛЯ</string>
+    <string name="chronometer_footer_note">НАСТРОЙКА В КОНФИГЕ · РЕСУРС РАСХОДУЕТСЯ НЕЗАВИСИМО ОТ ИСПОЛЬЗОВАНИЯ.</string>
+    <string name="pulpit_chronometer_chip">ХРОН.</string>
+    <string name="a11y_chronometer">Открыть Хронометр</string>
+
+    <!-- Chronometer settings section. -->
+    <string name="settings_chronometer_label">ХРОНОМЕТР</string>
+    <string name="settings_chronometer_birthday_label">ДАТА РОЖДЕНИЯ</string>
+    <string name="settings_chronometer_birthday_set">УСТАНОВИТЬ</string>
+    <string name="settings_chronometer_birthday_empty">—</string>
+    <string name="settings_chronometer_expectancy_label">РАСЧЁТНЫЙ РЕСУРС (ЛЕТ)</string>
+    <string name="settings_chronometer_ignition_toggle">ПОДЖИГ</string>
+    <string name="settings_chronometer_ignition_hint">Утреннее уведомление с актуальным остатком ресурса.</string>
+
+    <!-- Chronometer notification. -->
+    <string name="notification_ignition_title">СУТКИ #%1$d · ОСТАТОК ~%2$d</string>
+    <string name="notification_ignition_body_extracted">ВЧЕРА ИЗВЛЕЧЕНО.</string>
+    <string name="notification_ignition_body_loss">ВЧЕРА — ПОТЕРЯ.</string>
 </resources>

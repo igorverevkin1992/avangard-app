@@ -12,7 +12,9 @@ import com.avangard.app.core.domain.model.BackupBundle
 import com.avangard.app.core.domain.model.BackupDailySession
 import com.avangard.app.core.domain.model.BackupFocusSession
 import com.avangard.app.core.domain.model.BackupHabitLog
+import com.avangard.app.core.domain.model.ChronometerBackup
 import com.avangard.app.core.domain.repository.BackupRepository
+import com.avangard.app.sync.scheduler.IgnitionScheduler
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -22,15 +24,27 @@ class RoomBackupRepository @Inject constructor(
     private val dailyDao: DailySessionDao,
     private val focusDao: FocusSessionDao,
     private val habitLogDao: HabitLogDao,
+    private val preferences: UserPreferencesRepository,
+    private val ignitionScheduler: IgnitionScheduler,
 ) : BackupRepository {
 
-    override suspend fun snapshot(exportedAt: Long): BackupBundle = database.withTransaction {
-        BackupBundle(
-            exportedAt = exportedAt,
-            dailySessions = dailyDao.getAll().map { it.toBackup() },
-            focusSessions = focusDao.getAll().map { it.toBackup() },
-            habitLogs = habitLogDao.getAll().map { it.toBackup() },
-        )
+    override suspend fun snapshot(exportedAt: Long): BackupBundle {
+        val prefs = preferences.snapshot()
+        return database.withTransaction {
+            BackupBundle(
+                exportedAt = exportedAt,
+                dailySessions = dailyDao.getAll().map { it.toBackup() },
+                focusSessions = focusDao.getAll().map { it.toBackup() },
+                habitLogs = habitLogDao.getAll().map { it.toBackup() },
+                chronometer = ChronometerBackup(
+                    birthdayEpochDay = prefs.birthdayEpochDay,
+                    lifeExpectancyYears = prefs.lifeExpectancyYears,
+                    ignitionEnabled = prefs.ignitionEnabled,
+                    ignitionHour = prefs.ignitionHour,
+                    ignitionMinute = prefs.ignitionMinute,
+                ),
+            )
+        }
     }
 
     override suspend fun restore(bundle: BackupBundle) {
@@ -41,6 +55,18 @@ class RoomBackupRepository @Inject constructor(
             bundle.dailySessions.forEach { dailyDao.upsert(it.toEntity()) }
             bundle.focusSessions.forEach { focusDao.insert(it.toEntity()) }
             bundle.habitLogs.forEach { habitLogDao.insert(it.toEntity()) }
+        }
+        bundle.chronometer?.let { c ->
+            preferences.setBirthday(c.birthdayEpochDay)
+            preferences.setLifeExpectancy(
+                c.lifeExpectancyYears.coerceIn(
+                    com.avangard.app.core.data.UserPreferences.MIN_LIFE_EXPECTANCY,
+                    com.avangard.app.core.data.UserPreferences.MAX_LIFE_EXPECTANCY,
+                ),
+            )
+            preferences.setIgnitionEnabled(c.ignitionEnabled)
+            preferences.setIgnitionTime(c.ignitionHour, c.ignitionMinute)
+            ignitionScheduler.ensureScheduled()
         }
     }
 }

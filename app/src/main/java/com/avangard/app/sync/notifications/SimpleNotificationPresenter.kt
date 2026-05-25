@@ -11,6 +11,8 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.avangard.app.MainActivity
 import com.avangard.app.R
+import com.avangard.app.core.domain.model.ChronometerProgress
+import com.avangard.app.core.domain.model.DayClass
 import com.avangard.app.core.domain.model.FocusSession
 import com.avangard.app.navigation.NavRoute
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -36,6 +38,19 @@ class SimpleNotificationPresenter @Inject constructor(
                 setShowBadge(false)
             }
             manager.createNotificationChannel(channel)
+        }
+        if (manager.getNotificationChannel(IGNITION_CHANNEL_ID) == null) {
+            val ignitionChannel = NotificationChannel(
+                IGNITION_CHANNEL_ID,
+                "Хронометр · поджиг",
+                NotificationManager.IMPORTANCE_DEFAULT,
+            ).apply {
+                description = "Утренний поджиг хронометра"
+                enableLights(false)
+                enableVibration(true)
+                setShowBadge(false)
+            }
+            manager.createNotificationChannel(ignitionChannel)
         }
         if (manager.getNotificationChannel(FOCUS_CHANNEL_ID) == null) {
             val focusChannel = NotificationChannel(
@@ -80,6 +95,43 @@ class SimpleNotificationPresenter @Inject constructor(
             // in OperatorPulpit handles the fallback nudge; Sentry sees the
             // logged warning via its breadcrumb integration.
             Log.w(LOG_TAG, "evening close notification denied", e)
+        }
+    }
+
+    fun presentIgnition(progress: ChronometerProgress) {
+        ensureChannel()
+        if (!progress.configured) return
+        val dayNumber = progress.daysLived + 1
+        val bodyRes = if (progress.yesterdayClass == DayClass.Extracted ||
+            progress.yesterdayClass == DayClass.Partial
+        ) {
+            R.string.notification_ignition_body_extracted
+        } else {
+            R.string.notification_ignition_body_loss
+        }
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra(MainActivity.EXTRA_START_DESTINATION, NavRoute.Chronometer.route)
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            IGNITION_REQUEST_CODE,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val notification = NotificationCompat.Builder(context, IGNITION_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_stat_avangard)
+            .setColor(android.graphics.Color.parseColor("#C0C5CA"))
+            .setContentTitle(context.getString(R.string.notification_ignition_title, dayNumber, progress.daysRemaining))
+            .setContentText(context.getString(bodyRes))
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
+            .build()
+        try {
+            NotificationManagerCompat.from(context).notify(IGNITION_NOTIFICATION_ID, notification)
+        } catch (e: SecurityException) {
+            Log.w(LOG_TAG, "ignition notification denied", e)
         }
     }
 
@@ -133,10 +185,13 @@ class SimpleNotificationPresenter @Inject constructor(
     companion object {
         const val CHANNEL_ID = "channel.evening_close"
         const val FOCUS_CHANNEL_ID = "channel.focus_session"
+        const val IGNITION_CHANNEL_ID = "channel.ignition"
         const val FOCUS_NOTIFICATION_ID = 1004
         private const val NOTIFICATION_ID = 1003
+        private const val IGNITION_NOTIFICATION_ID = 1005
         private const val EVENING_REQUEST_CODE = 5001
         private const val FOCUS_REQUEST_CODE = 5002
+        private const val IGNITION_REQUEST_CODE = 5003
         private const val LOG_TAG = "NotifPresenter"
     }
 }

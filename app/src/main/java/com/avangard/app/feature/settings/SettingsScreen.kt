@@ -14,13 +14,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -34,8 +40,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.avangard.app.R
+import com.avangard.app.core.data.UserPreferences
 import com.avangard.app.core.ui.components.HardButton
 import com.avangard.app.core.ui.components.HardButtonVariant
+import com.avangard.app.core.ui.components.IndustrialToggle
 import com.avangard.app.core.ui.components.PulpitPanel
 import com.avangard.app.ui.theme.IsaColors
 import kotlinx.coroutines.Dispatchers
@@ -91,6 +99,10 @@ fun SettingsScreen(
         state = state,
         onEveningCloseChanged = viewModel::onEveningCloseChanged,
         onColdStartThresholdChanged = viewModel::onColdStartThresholdChanged,
+        onBirthdayChanged = viewModel::onBirthdayChanged,
+        onLifeExpectancyChanged = viewModel::onLifeExpectancyChanged,
+        onIgnitionEnabledChanged = viewModel::onIgnitionEnabledChanged,
+        onIgnitionTimeChanged = viewModel::onIgnitionTimeChanged,
         onRequestWipe = viewModel::requestWipe,
         onConfirmWipe = viewModel::confirmWipe,
         onCancelWipe = viewModel::cancelWipe,
@@ -111,6 +123,10 @@ internal fun SettingsContent(
     state: SettingsState,
     onEveningCloseChanged: (Int, Int) -> Unit,
     onColdStartThresholdChanged: (Int) -> Unit,
+    onBirthdayChanged: (Long?) -> Unit,
+    onLifeExpectancyChanged: (Int) -> Unit,
+    onIgnitionEnabledChanged: (Boolean) -> Unit,
+    onIgnitionTimeChanged: (Int, Int) -> Unit,
     onRequestWipe: () -> Unit,
     onConfirmWipe: () -> Unit,
     onCancelWipe: () -> Unit,
@@ -148,6 +164,14 @@ internal fun SettingsContent(
         ColdStartBlock(
             currentMinutes = (state.preferences.coldStartThresholdMs / 60 / 1000).toInt(),
             onChanged = onColdStartThresholdChanged,
+        )
+
+        ChronometerBlock(
+            preferences = state.preferences,
+            onBirthdayChanged = onBirthdayChanged,
+            onLifeExpectancyChanged = onLifeExpectancyChanged,
+            onIgnitionEnabledChanged = onIgnitionEnabledChanged,
+            onIgnitionTimeChanged = onIgnitionTimeChanged,
         )
 
         CloudSyncPanel(
@@ -511,6 +535,137 @@ private fun Stepper(
                 val next = (value + step).coerceAtMost(range.last)
                 if (next != value) onChange(next)
             })
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ChronometerBlock(
+    preferences: UserPreferences,
+    onBirthdayChanged: (Long?) -> Unit,
+    onLifeExpectancyChanged: (Int) -> Unit,
+    onIgnitionEnabledChanged: (Boolean) -> Unit,
+    onIgnitionTimeChanged: (Int, Int) -> Unit,
+) {
+    var showPicker by remember { mutableStateOf(false) }
+    PulpitPanel(label = stringResource(R.string.settings_chronometer_label)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.settings_chronometer_birthday_label),
+                color = IsaColors.Lattice,
+                style = MaterialTheme.typography.labelMedium,
+                modifier = Modifier.weight(1f),
+            )
+            Text(
+                text = preferences.birthdayEpochDay
+                    ?.let { java.time.LocalDate.ofEpochDay(it).toString() }
+                    ?: stringResource(R.string.settings_chronometer_birthday_empty),
+                color = if (preferences.birthdayEpochDay != null) IsaColors.LiveMetal else IsaColors.Mute,
+                style = MaterialTheme.typography.labelMedium,
+                modifier = Modifier.weight(1f),
+            )
+        }
+        HardButton(
+            label = stringResource(R.string.settings_chronometer_birthday_set),
+            onClick = { showPicker = true },
+        )
+
+        var expectancyDraft by rememberSaveable(preferences.lifeExpectancyYears) {
+            mutableIntStateOf(preferences.lifeExpectancyYears)
+        }
+        Stepper(
+            label = stringResource(R.string.settings_chronometer_expectancy_label),
+            value = expectancyDraft,
+            range = UserPreferences.MIN_LIFE_EXPECTANCY..UserPreferences.MAX_LIFE_EXPECTANCY,
+            onChange = { expectancyDraft = it; onLifeExpectancyChanged(it) },
+        )
+
+        IndustrialToggle(
+            label = stringResource(R.string.settings_chronometer_ignition_toggle),
+            checked = preferences.ignitionEnabled,
+            onCheckedChange = onIgnitionEnabledChanged,
+        )
+        Text(
+            text = stringResource(R.string.settings_chronometer_ignition_hint),
+            color = IsaColors.Lattice,
+            style = MaterialTheme.typography.labelMedium,
+        )
+
+        if (preferences.ignitionEnabled) {
+            var ignitionHourDraft by rememberSaveable(preferences.ignitionHour) {
+                mutableIntStateOf(preferences.ignitionHour)
+            }
+            var ignitionMinuteDraft by rememberSaveable(preferences.ignitionMinute) {
+                mutableIntStateOf(preferences.ignitionMinute)
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Stepper(
+                    label = stringResource(R.string.settings_hour_label),
+                    value = ignitionHourDraft,
+                    range = 0..23,
+                    onChange = {
+                        ignitionHourDraft = it
+                        onIgnitionTimeChanged(it, ignitionMinuteDraft)
+                    },
+                    modifier = Modifier.weight(1f),
+                )
+                Stepper(
+                    label = stringResource(R.string.settings_minute_label),
+                    value = ignitionMinuteDraft,
+                    range = 0..59,
+                    step = 5,
+                    onChange = {
+                        ignitionMinuteDraft = it
+                        onIgnitionTimeChanged(ignitionHourDraft, it)
+                    },
+                    modifier = Modifier.weight(1f),
+                )
+            }
+        }
+    }
+
+    if (showPicker) {
+        val today = java.time.LocalDate.now()
+        val initialMillis = preferences.birthdayEpochDay
+            ?.let { it * 86_400_000L }
+            ?: (today.minusYears(30).toEpochDay() * 86_400_000L)
+        val maxMillis = today.toEpochDay() * 86_400_000L
+        val minMillis = java.time.LocalDate.of(1900, 1, 1).toEpochDay() * 86_400_000L
+        val pickerState = rememberDatePickerState(
+            initialSelectedDateMillis = initialMillis,
+            selectableDates = object : SelectableDates {
+                override fun isSelectableDate(utcTimeMillis: Long): Boolean =
+                    utcTimeMillis in minMillis..maxMillis
+            },
+        )
+        DatePickerDialog(
+            onDismissRequest = { showPicker = false },
+            confirmButton = {
+                HardButton(
+                    label = stringResource(R.string.settings_chronometer_birthday_set),
+                    onClick = {
+                        pickerState.selectedDateMillis?.let { millis ->
+                            onBirthdayChanged(millis / 86_400_000L)
+                        }
+                        showPicker = false
+                    },
+                )
+            },
+            dismissButton = {
+                HardButton(
+                    label = stringResource(R.string.settings_restore_cancel),
+                    onClick = { showPicker = false },
+                )
+            },
+        ) {
+            DatePicker(state = pickerState)
         }
     }
 }

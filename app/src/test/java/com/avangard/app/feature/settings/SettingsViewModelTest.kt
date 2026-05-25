@@ -14,6 +14,7 @@ import com.avangard.app.core.domain.usecase.BackupImportError
 import com.avangard.app.core.domain.usecase.ExportBackupUseCase
 import com.avangard.app.core.domain.usecase.ImportBackupUseCase
 import com.avangard.app.sync.scheduler.EveningCloseScheduler
+import com.avangard.app.sync.scheduler.IgnitionScheduler
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -47,6 +48,7 @@ class SettingsViewModelTest {
     private lateinit var clock: FakeClock
     private lateinit var preferences: UserPreferencesRepository
     private lateinit var scheduler: EveningCloseScheduler
+    private lateinit var ignitionScheduler: IgnitionScheduler
     private lateinit var exportBackup: ExportBackupUseCase
     private lateinit var importBackup: ImportBackupUseCase
     private lateinit var auth: AuthRepository
@@ -64,6 +66,7 @@ class SettingsViewModelTest {
             coEvery { snapshot() } returns UserPreferences()
         }
         scheduler = mockk(relaxed = true)
+        ignitionScheduler = mockk(relaxed = true)
         exportBackup = mockk(relaxed = true)
         importBackup = mockk(relaxed = true)
         coEvery { exportBackup.invoke() } returns "{}".toByteArray()
@@ -76,6 +79,7 @@ class SettingsViewModelTest {
             habits = habits,
             preferences = preferences,
             scheduler = scheduler,
+            ignitionScheduler = ignitionScheduler,
             exportBackup = exportBackup,
             importBackup = importBackup,
             clock = clock,

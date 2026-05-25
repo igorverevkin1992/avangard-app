@@ -43,7 +43,11 @@ fun SignInScreen(
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult(),
     ) { result ->
-        if (result.resultCode == android.app.Activity.RESULT_OK) {
+        // Google Sign-In packs the real status into result.data even when
+        // resultCode is RESULT_CANCELED (e.g. DEVELOPER_ERROR=10, access
+        // denied by consent screen). Always try to parse so the failure
+        // surfaces with a code instead of looking like a silent cancel.
+        if (result.data != null) {
             viewModel.onSignInResult(result.data)
         } else {
             viewModel.onSignInCancelled()
@@ -85,10 +89,21 @@ fun SignInScreen(
                 textAlign = TextAlign.Center,
             )
             Text(
-                text = "code=${state.errorCode}",
+                text = "code=${state.errorCode}" +
+                    (state.errorCodeName?.let { " ($it)" } ?: ""),
                 color = IsaColors.Lattice,
                 style = MaterialTheme.typography.labelSmall,
+                textAlign = TextAlign.Center,
             )
+            val errorMessage = state.errorMessage
+            if (!errorMessage.isNullOrBlank()) {
+                Text(
+                    text = errorMessage,
+                    color = IsaColors.Lattice,
+                    style = MaterialTheme.typography.labelSmall,
+                    textAlign = TextAlign.Center,
+                )
+            }
         }
     }
 }
