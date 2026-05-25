@@ -23,7 +23,7 @@
          resValue or a CI-managed override. AuthRepository tolerates an
          empty value by skipping requestIdToken — Drive AppData scope works
          off the Android OAuth client alone. -->
-    <string name="default_web_client_id" translatable="false"></string>
+    <string name="default_web_client_id" translatable="false">523959581530-ge2e8g9oo3nuug1hnp8pukfksmja129a.apps.googleusercontent.com</string>
     <string name="signin_title">PRIME MOVER · СИНХРОНИЗАЦИЯ</string>
     <string name="signin_subtitle">Войдите через Google для сохранения данных между устройствами. Резервная копия живёт в скрытой папке Google Drive — она недоступна из обычного Drive-интерфейса и видна только этому приложению.</string>
     <string name="signin_button">ВОЙТИ ЧЕРЕЗ GOOGLE</string>
