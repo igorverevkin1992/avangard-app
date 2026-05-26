@@ -225,7 +225,7 @@
     <string name="chronometer_days_budget">СУТКИ В РЕСУРСЕ</string>
     <string name="chronometer_days_remaining">ОСТАТОК</string>
     <string name="chronometer_days_remaining_value">~%1$s · ~%2$s ЛЕТ</string>
-    <string name="chronometer_extracted">ИЗВЛЕЧЕНО</string>
+    <string name="chronometer_extracted">ПРОДУКТИВНО</string>
     <string name="chronometer_partial">ЧАСТИЧНО</string>
     <string name="chronometer_burned">СОЖЖЕНО</string>
     <string name="chronometer_count_with_pct">%1$s  (%2$s%%)</string>
@@ -240,11 +240,11 @@
     <string name="settings_chronometer_birthday_set">УСТАНОВИТЬ</string>
     <string name="settings_chronometer_birthday_empty">—</string>
     <string name="settings_chronometer_expectancy_label">РАСЧЁТНЫЙ РЕСУРС (ЛЕТ)</string>
-    <string name="settings_chronometer_ignition_toggle">ПОДЖИГ</string>
+    <string name="settings_chronometer_ignition_toggle">ЗАПУСК</string>
     <string name="settings_chronometer_ignition_hint">Утреннее уведомление с актуальным остатком ресурса.</string>
 
     <!-- Chronometer notification. -->
     <string name="notification_ignition_title">СУТКИ #%1$d · ОСТАТОК ~%2$d</string>
-    <string name="notification_ignition_body_extracted">ВЧЕРА ИЗВЛЕЧЕНО.</string>
+    <string name="notification_ignition_body_extracted">ВЧЕРА — ПРОДУКТИВНО.</string>
     <string name="notification_ignition_body_loss">ВЧЕРА — ПОТЕРЯ.</string>
 </resources>

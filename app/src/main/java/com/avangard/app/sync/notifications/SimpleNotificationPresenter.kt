@@ -42,10 +42,10 @@ class SimpleNotificationPresenter @Inject constructor(
         if (manager.getNotificationChannel(IGNITION_CHANNEL_ID) == null) {
             val ignitionChannel = NotificationChannel(
                 IGNITION_CHANNEL_ID,
-                "Хронометр · поджиг",
+                "Хронометр · запуск",
                 NotificationManager.IMPORTANCE_DEFAULT,
             ).apply {
-                description = "Утренний поджиг хронометра"
+                description = "Утренний запуск хронометра"
                 enableLights(false)
                 enableVibration(true)
                 setShowBadge(false)
