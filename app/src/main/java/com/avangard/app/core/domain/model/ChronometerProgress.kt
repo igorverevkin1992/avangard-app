@@ -17,6 +17,12 @@ data class ChronometerProgress(
     /** Class of yesterday's day; used by the ignition notification body. */
     val yesterdayClass: DayClass,
     val weeks: List<WeekClass>,
+    /**
+     * Day classes for the last 7 days, oldest first → today last. Drives
+     * the at-a-glance 7-day strip on the pulpit header. Always exactly 7
+     * entries when [configured], empty otherwise.
+     */
+    val lastSevenDays: List<DayClass> = emptyList(),
 ) {
     companion object {
         val EMPTY = ChronometerProgress(
@@ -31,6 +37,7 @@ data class ChronometerProgress(
             todayClass = DayClass.Today,
             yesterdayClass = DayClass.Burned,
             weeks = emptyList(),
+            lastSevenDays = emptyList(),
         )
     }
 }

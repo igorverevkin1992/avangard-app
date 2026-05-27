@@ -5,6 +5,7 @@ import com.avangard.app.core.data.UserPreferences
 import com.avangard.app.core.data.UserPreferencesRepository
 import com.avangard.app.core.domain.FakeClock
 import com.avangard.app.core.domain.FakeSessionRepository
+import com.avangard.app.core.domain.NoopChronometerRepository
 import com.avangard.app.core.domain.NoopStatusNotifier
 import com.avangard.app.core.domain.StatusEventBus
 import com.avangard.app.core.domain.model.Habit
@@ -72,6 +73,7 @@ class OperatorPulpitViewModelTest {
             quotes = quotes,
             sessions = repository,
             statusBus = StatusEventBus(),
+            chronometer = NoopChronometerRepository,
         )
     }
 

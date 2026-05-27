@@ -10,9 +10,12 @@ import com.avangard.app.core.data.UserPreferences
 import com.avangard.app.core.data.UserPreferencesRepository
 import com.avangard.app.core.domain.StatusEventBus
 import com.avangard.app.core.domain.StatusFixedEvent
+import com.avangard.app.core.domain.model.ChronometerProgress
 import com.avangard.app.core.domain.model.CoreMode
 import com.avangard.app.core.domain.model.CoreStatus
 import com.avangard.app.core.domain.model.DailySession
+import com.avangard.app.core.domain.model.DayClass
+import com.avangard.app.core.domain.repository.ChronometerRepository
 import com.avangard.app.core.domain.model.FocusSession
 import com.avangard.app.core.domain.model.Habit
 import com.avangard.app.core.domain.model.InfraStatus
@@ -62,9 +65,19 @@ data class PulpitState(
     val completedFocusByHabit: Map<Habit, Long> = emptyMap(),
     /** Number of completed focus sessions today, per habit. */
     val completedFocusCountByHabit: Map<Habit, Int> = emptyMap(),
+    /** Last-7-days strip (oldest → today). Empty when chronometer is not configured. */
+    val lastSevenDays: List<DayClass> = emptyList(),
+    /** 1-based day-of-life number (`daysLived + 1`). 0 when not configured. */
+    val dayNumber: Int = 0,
+    /** Whole days remaining in the lifetime budget. 0 when not configured. */
+    val daysRemaining: Int = 0,
+    /** True when birthday is set — drives whether the at-a-glance strip renders. */
+    val chronometerConfigured: Boolean = false,
 ) {
     val isCoreUnlocked: Boolean get() = session.isCoreUnlocked
     fun isFocusActiveOn(habit: Habit): Boolean = activeFocus?.habit == habit
+    /** Sum of completed focus across every habit today. */
+    val completedFocusTotalMs: Long get() = completedFocusByHabit.values.sum()
 }
 
 sealed interface PulpitEffect {
@@ -86,6 +99,7 @@ class OperatorPulpitViewModel @Inject constructor(
     quotes: QuoteRepository,
     sessions: SessionRepository,
     statusBus: StatusEventBus,
+    private val chronometer: ChronometerRepository,
 ) : ViewModel() {
 
     /** Latest status-fix event waiting to be shown on the in-app banner.
@@ -112,6 +126,7 @@ class OperatorPulpitViewModel @Inject constructor(
         val prefs: UserPreferences,
         val quote: Quote?,
         val completedFocusToday: List<FocusSession>,
+        val chronometer: ChronometerProgress,
     )
 
     // Today's epoch is recomputed off the ticker so observeFocusForDay
@@ -139,12 +154,13 @@ class OperatorPulpitViewModel @Inject constructor(
             transientError,
             preferences.flow,
         ) { session, focus, _, error, prefs ->
-            Inputs(session, focus, error, prefs, null, emptyList())
+            Inputs(session, focus, error, prefs, null, emptyList(), ChronometerProgress.EMPTY)
         },
         quotes.quoteOfDayFlow(),
         completedFocusTodayFlow,
-    ) { inputs, quote, completed ->
-        inputs.copy(quote = quote, completedFocusToday = completed)
+        chronometer.observeProgress(),
+    ) { inputs, quote, completed, chrono ->
+        inputs.copy(quote = quote, completedFocusToday = completed, chronometer = chrono)
     }
         .map { i ->
             val completedByHabit = i.completedFocusToday.groupBy { it.habit }
@@ -156,6 +172,10 @@ class OperatorPulpitViewModel @Inject constructor(
                 coldStartThresholdMs = i.prefs.coldStartThresholdMs,
                 shouldNudgeEveningClose = computeEveningNudge(i.session, i.prefs),
                 dailyQuote = i.quote,
+                lastSevenDays = i.chronometer.lastSevenDays,
+                dayNumber = if (i.chronometer.configured) i.chronometer.daysLived + 1 else 0,
+                daysRemaining = i.chronometer.daysRemaining,
+                chronometerConfigured = i.chronometer.configured,
                 completedFocusByHabit = completedByHabit.mapValues { (_, list) ->
                     list.sumOf { (it.endedAt ?: 0L) - it.startedAt }
                 },

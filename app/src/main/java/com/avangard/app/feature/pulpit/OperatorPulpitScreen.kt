@@ -158,6 +158,11 @@ internal fun OperatorPulpitContent(
             onChronometerClicked = onChronometerClicked,
         )
 
+        state?.takeIf { it.chronometerConfigured }?.let { s ->
+            AtAGlanceStrip(state = s, onClick = onChronometerClicked)
+            LastSevenDaysStrip(classes = s.lastSevenDays)
+        }
+
         NotificationPermissionBanner()
         ExactAlarmPermissionBanner()
 
@@ -536,6 +541,75 @@ private fun formatHms(millis: Long): String {
     val m = (total % 3600) / 60
     val s = total % 60
     return "%02d:%02d:%02d".format(java.util.Locale.US, h, m, s)
+}
+
+/**
+ * Compact one-row summary on top of the pulpit: day-number, days remaining,
+ * total focus time accumulated today across every habit. Tap routes to the
+ * chronometer for the full grid. Stays out of the layout entirely when
+ * birthday isn't configured.
+ */
+@Composable
+private fun AtAGlanceStrip(state: PulpitState, onClick: () -> Unit) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val russianLocale = java.util.Locale("ru", "RU")
+    val daysFmt = java.text.NumberFormat.getIntegerInstance(russianLocale)
+    val text = buildString {
+        append("СУТКИ #")
+        append(daysFmt.format(state.dayNumber))
+        append("  ·  ОСТ ~")
+        append(daysFmt.format(state.daysRemaining))
+        append("  ·  Σ ")
+        append(formatHms(state.completedFocusTotalMs))
+    }
+    Text(
+        text = text,
+        color = IsaColors.LiveMetal,
+        style = MaterialTheme.typography.labelMedium,
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(width = 1.dp, color = IsaColors.Steel)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick,
+            )
+            .padding(horizontal = 10.dp, vertical = 8.dp),
+    )
+}
+
+/**
+ * Seven-cell strip showing the last week's day classes (oldest → today).
+ * Reuses the chronometer's classification: Approve-green for Extracted /
+ * full-Standard days, Caution-amber for Partial, Mute-grey for past
+ * Burned/Idle days. Today is bordered Signal-red.
+ */
+@Composable
+private fun LastSevenDaysStrip(classes: List<com.avangard.app.core.domain.model.DayClass>) {
+    if (classes.isEmpty()) return
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        classes.forEachIndexed { index, cls ->
+            val isToday = index == classes.lastIndex
+            val fill = when (cls) {
+                com.avangard.app.core.domain.model.DayClass.Extracted -> IsaColors.Approve
+                com.avangard.app.core.domain.model.DayClass.Partial -> IsaColors.Caution
+                com.avangard.app.core.domain.model.DayClass.Burned -> IsaColors.Mute
+                com.avangard.app.core.domain.model.DayClass.Today -> IsaColors.Graphite
+                com.avangard.app.core.domain.model.DayClass.Future -> IsaColors.Graphite
+            }
+            val border = if (isToday) IsaColors.Signal else IsaColors.Steel
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(20.dp)
+                    .border(width = if (isToday) 2.dp else 1.dp, color = border)
+                    .background(fill),
+            )
+        }
+    }
 }
 
 @Composable
