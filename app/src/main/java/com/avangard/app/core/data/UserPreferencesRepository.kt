@@ -75,6 +75,23 @@ class UserPreferencesRepository @Inject constructor(
 
     suspend fun snapshot(): UserPreferences = flow.first()
 
+    /**
+     * Best-effort synchronous read of `initialRestoreDone` for hot paths
+     * (MainActivity start-destination resolution) that must not block the
+     * main thread on DataStore I/O. Defaults to `false` until the first
+     * suspend read populates it — first cold start falls through to the
+     * Restoring overlay, which is the safe default.
+     *
+     * Populated by [warmInitialRestoreCache] from `AvangardApplication.onCreate`.
+     */
+    @Volatile
+    var cachedInitialRestoreDone: Boolean = false
+        private set
+
+    suspend fun warmInitialRestoreCache() {
+        cachedInitialRestoreDone = snapshot().initialRestoreDone
+    }
+
     suspend fun setEveningClose(hour: Int, minute: Int) {
         require(hour in 0..23) { "hour out of range: $hour" }
         require(minute in 0..59) { "minute out of range: $minute" }
@@ -104,12 +121,14 @@ class UserPreferencesRepository @Inject constructor(
             prefs.remove(KEY_REMOTE_MODIFIED_AT)
             prefs.remove(KEY_INITIAL_RESTORE_DONE)
         }
+        cachedInitialRestoreDone = false
     }
 
     suspend fun setInitialRestoreDone() {
         context.preferencesStore.edit { prefs ->
             prefs[KEY_INITIAL_RESTORE_DONE] = true
         }
+        cachedInitialRestoreDone = true
     }
 
     suspend fun setBirthday(epochDay: Long?) {

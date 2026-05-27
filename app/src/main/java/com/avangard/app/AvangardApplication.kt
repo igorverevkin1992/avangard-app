@@ -1,10 +1,14 @@
 package com.avangard.app
 
 import android.app.Application
+import android.util.Log
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
+import com.avangard.app.core.common.Clock
+import com.avangard.app.core.common.toStartOfDayEpoch
 import com.avangard.app.core.data.UserPreferencesRepository
 import com.avangard.app.core.data.cloud.SyncCoordinator
+import com.avangard.app.core.database.dao.FocusSessionDao
 import com.avangard.app.sync.notifications.SimpleNotificationPresenter
 import com.avangard.app.sync.scheduler.EveningCloseScheduler
 import com.avangard.app.sync.scheduler.IgnitionScheduler
@@ -26,6 +30,8 @@ class AvangardApplication : Application(), Configuration.Provider {
     @Inject lateinit var preferences: UserPreferencesRepository
     @Inject lateinit var syncCoordinator: SyncCoordinator
     @Inject lateinit var workerFactory: HiltWorkerFactory
+    @Inject lateinit var focusDao: FocusSessionDao
+    @Inject lateinit var clock: Clock
 
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -40,10 +46,31 @@ class AvangardApplication : Application(), Configuration.Provider {
         presenter.ensureChannel()
         syncCoordinator.start()
         applicationScope.launch {
+            // Warm the synchronous initialRestoreDone cache first so by the
+            // time MainActivity reads it (typically tens of ms later) the
+            // value is populated. First cold launch falls through to false
+            // → Restoring overlay, which is the safe default.
+            preferences.warmInitialRestoreCache()
             preferences.incrementAppLaunchAndMaybeVacuum()
             scheduler.ensureScheduled()
             ignitionScheduler.ensureScheduled()
+            closeStaleFocusOrphans()
         }
+    }
+
+    /**
+     * Crash-or-kill recovery: any focus_session rows started before today
+     * with `ended_at IS NULL` block every subsequent startFocus (partial
+     * unique index `uniq_focus_active`). Close them off so the operator
+     * isn't stuck on a stale ghost session.
+     */
+    private suspend fun closeStaleFocusOrphans() {
+        val todayEpoch = clock.today().toStartOfDayEpoch(clock.zone())
+        val closed = runCatching { focusDao.closeOrphansBefore(todayEpoch) }.getOrElse {
+            Log.w("AvangardApp", "stale focus cleanup failed", it)
+            0
+        }
+        if (closed > 0) Log.i("AvangardApp", "closed $closed stale focus orphan(s)")
     }
 
     /**

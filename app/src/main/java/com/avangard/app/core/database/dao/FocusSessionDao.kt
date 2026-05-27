@@ -33,6 +33,23 @@ interface FocusSessionDao {
     @Query("UPDATE focus_session SET ended_at = :endedAt WHERE id = :id")
     suspend fun endSession(id: Long, endedAt: Long)
 
+    /**
+     * Force-end every active row whose start date is earlier than today.
+     * Run once on app start to clear orphans left by a crash or kill —
+     * the partial unique index uniq_focus_active otherwise refuses every
+     * subsequent startFocus until the operator wipes data.
+     *
+     * `ended_at = started_at` keeps the session as a zero-duration row;
+     * it shows up in the daily ledger as «started and immediately closed»
+     * which is preferable to dropping the start record entirely.
+     */
+    @Query("""
+        UPDATE focus_session
+        SET ended_at = started_at
+        WHERE ended_at IS NULL AND date_epoch < :todayEpoch
+    """)
+    suspend fun closeOrphansBefore(todayEpoch: Long): Int
+
     @Query("DELETE FROM focus_session")
     suspend fun deleteAll()
 
