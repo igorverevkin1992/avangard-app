@@ -94,14 +94,14 @@
     <string name="audit_metric_virtues">СУММА ДОБРОДЕТЕЛЕЙ</string>
     <string name="audit_bottleneck_label">ОГРАНИЧЕНИЕ НА СЛЕДУЮЩУЮ НЕДЕЛЮ</string>
     <string name="audit_submit">ЗАФИКСИРОВАТЬ</string>
-    <string name="audit_open_history">ОТКРЫТЬ ИСТОРИЮ</string>
+    <string name="audit_open_history">ОТКРЫТЬ ТРЕКЕР</string>
     <string name="audit_open_pulpit">ОТКРЫТЬ ПУЛЬТ</string>
 
     <!-- Bottom navigation tabs. -->
     <string name="nav_tab_pulpit">ПУЛЬТ</string>
     <string name="nav_tab_library">БИБЛИОТЕКА</string>
     <string name="nav_tab_audit">ОЦЕНКА</string>
-    <string name="nav_tab_history">ИСТОРИЯ</string>
+    <string name="nav_tab_history">ТРЕКЕР</string>
 
     <!-- Library. -->
     <string name="library_header">БИБЛИОТЕКА</string>
@@ -120,7 +120,7 @@
     <!-- Weekday lock — only the Sunday audit is gated now; the history grid
          is read-only and reachable every day. -->
     <string name="weekday_lock_title">ОЦЕНКА — ВОСКРЕСЕНЬЕ</string>
-    <string name="weekday_lock_body">Оценка недели открывается только в день рефлексии. История и трекер привычек доступны каждый день.</string>
+    <string name="weekday_lock_body">Оценка недели открывается только в день рефлексии. Трекер привычек доступен каждый день.</string>
     <string name="weekday_lock_return">ВЕРНУТЬСЯ К ПУЛЬТУ</string>
 
     <!-- Notification. -->
@@ -151,7 +151,7 @@
     <string name="error_prompt_empty">Промпт не указан</string>
     <string name="error_missing_defect_kind">Выберите тип отклонения</string>
     <string name="error_evening_closed_already">Смена уже закрыта</string>
-    <string name="error_history_locked">История доступна в воскресенье</string>
+    <string name="error_history_locked">Трекер доступен в воскресенье</string>
 
     <!-- Sunday audit empty state. -->
     <string name="audit_empty_state">ДАННЫЕ ОТСУТСТВУЮТ. ЗАЛОЖИТЕ ПЕРВУЮ НЕДЕЛЮ.</string>
