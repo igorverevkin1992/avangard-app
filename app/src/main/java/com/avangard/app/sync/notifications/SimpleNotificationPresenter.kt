@@ -14,6 +14,7 @@ import com.avangard.app.R
 import com.avangard.app.core.domain.model.ChronometerProgress
 import com.avangard.app.core.domain.model.DayClass
 import com.avangard.app.core.domain.model.FocusSession
+import com.avangard.app.core.domain.model.Habit
 import com.avangard.app.navigation.NavRoute
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -64,6 +65,61 @@ class SimpleNotificationPresenter @Inject constructor(
                 setShowBadge(false)
             }
             manager.createNotificationChannel(focusChannel)
+        }
+        if (manager.getNotificationChannel(STATUS_CHANNEL_ID) == null) {
+            val statusChannel = NotificationChannel(
+                STATUS_CHANNEL_ID,
+                "Фиксация статуса",
+                NotificationManager.IMPORTANCE_LOW,
+            ).apply {
+                description = "Уведомление о фиксации СТАНДАРТ или МИНИМУМ"
+                enableLights(false)
+                enableVibration(false)
+                setShowBadge(false)
+            }
+            manager.createNotificationChannel(statusChannel)
+        }
+    }
+
+    /**
+     * Posts a one-shot, low-importance confirmation that an Infra or Core
+     * habit just landed in Standard / Mvd. Channel is muted (no vibration, no
+     * badge) — the signal goes in the shade for cases when the operator
+     * acted from the pulpit but the phone is in their pocket. Auto-cancels
+     * on tap.
+     */
+    fun presentStatusFix(habit: Habit, mode: String) {
+        ensureChannel()
+        val title = context.getString(R.string.notification_status_fix_title, habit.code, habit.displayName)
+        val body = context.getString(R.string.notification_status_fix_body, mode)
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra(MainActivity.EXTRA_START_DESTINATION, NavRoute.OperatorPulpit.route)
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            STATUS_REQUEST_CODE_BASE + habit.code.hashCode(),
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val notification = NotificationCompat.Builder(context, STATUS_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_stat_avangard)
+            .setColor(android.graphics.Color.parseColor("#7BB661"))
+            .setContentTitle(title)
+            .setContentText(body)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setAutoCancel(true)
+            .setTimeoutAfter(STATUS_NOTIFICATION_TIMEOUT_MS)
+            .setContentIntent(pendingIntent)
+            .build()
+        try {
+            // Per-habit id keeps the most recent status replacement, not stacks.
+            NotificationManagerCompat.from(context).notify(
+                STATUS_NOTIFICATION_ID_BASE + habit.code.hashCode(),
+                notification,
+            )
+        } catch (e: SecurityException) {
+            Log.w(LOG_TAG, "status notification denied", e)
         }
     }
 
@@ -186,12 +242,19 @@ class SimpleNotificationPresenter @Inject constructor(
         const val CHANNEL_ID = "channel.evening_close"
         const val FOCUS_CHANNEL_ID = "channel.focus_session"
         const val IGNITION_CHANNEL_ID = "channel.ignition"
+        const val STATUS_CHANNEL_ID = "channel.status"
         const val FOCUS_NOTIFICATION_ID = 1004
         private const val NOTIFICATION_ID = 1003
         private const val IGNITION_NOTIFICATION_ID = 1005
+        private const val STATUS_NOTIFICATION_ID_BASE = 1100
         private const val EVENING_REQUEST_CODE = 5001
         private const val FOCUS_REQUEST_CODE = 5002
         private const val IGNITION_REQUEST_CODE = 5003
+        private const val STATUS_REQUEST_CODE_BASE = 5100
+        // 90 seconds is long enough for the operator to glance at the shade
+        // after putting the phone down, short enough to keep notifications
+        // from piling up across the day.
+        private const val STATUS_NOTIFICATION_TIMEOUT_MS = 90_000L
         private const val LOG_TAG = "NotifPresenter"
     }
 }

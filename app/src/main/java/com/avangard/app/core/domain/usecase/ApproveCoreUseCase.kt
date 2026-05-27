@@ -3,15 +3,21 @@ package com.avangard.app.core.domain.usecase
 import com.avangard.app.core.common.Clock
 import com.avangard.app.core.common.DomainResult
 import com.avangard.app.core.common.toStartOfDayEpoch
+import com.avangard.app.core.domain.StatusEventBus
+import com.avangard.app.core.domain.StatusFixedEvent
 import com.avangard.app.core.domain.model.CoreMode
 import com.avangard.app.core.domain.model.CoreStatus
+import com.avangard.app.core.domain.model.Habit
 import com.avangard.app.core.domain.model.SessionError
 import com.avangard.app.core.domain.repository.SessionRepository
+import com.avangard.app.sync.notifications.StatusNotifier
 import javax.inject.Inject
 
 class ApproveCoreUseCase @Inject constructor(
     private val repository: SessionRepository,
     private val clock: Clock,
+    private val statusBus: StatusEventBus,
+    private val statusNotifier: StatusNotifier,
 ) {
     /**
      * @param authorised the explicit checkbox from the AuthorisationModal —
@@ -34,6 +40,9 @@ class ApproveCoreUseCase @Inject constructor(
             return DomainResult.Err(SessionError.AlreadyApproved)
         }
         repository.approveCore(today, trimmed, mode, clock.nowEpochMillis())
+        val label = if (mode == CoreMode.Mvd) "МИНИМУМ" else "СТАНДАРТ"
+        statusBus.tryEmit(StatusFixedEvent(Habit.Generations, label))
+        statusNotifier.notifyStatusFix(Habit.Generations, label)
         return DomainResult.Ok(Unit)
     }
 }

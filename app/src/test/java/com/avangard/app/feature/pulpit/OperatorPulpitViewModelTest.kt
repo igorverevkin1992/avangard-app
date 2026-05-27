@@ -5,6 +5,8 @@ import com.avangard.app.core.data.UserPreferences
 import com.avangard.app.core.data.UserPreferencesRepository
 import com.avangard.app.core.domain.FakeClock
 import com.avangard.app.core.domain.FakeSessionRepository
+import com.avangard.app.core.domain.NoopStatusNotifier
+import com.avangard.app.core.domain.StatusEventBus
 import com.avangard.app.core.domain.model.Habit
 import com.avangard.app.core.domain.model.CoreMode
 import com.avangard.app.core.domain.model.InfraStatus
@@ -66,9 +68,10 @@ class OperatorPulpitViewModelTest {
             preferences = preferences,
             startFocus = StartFocusUseCase(repository, clock, NoopFocusService),
             endFocus = EndFocusUseCase(repository, clock),
-            setInfraStatus = SetInfraStatusUseCase(repository, clock),
+            setInfraStatus = SetInfraStatusUseCase(repository, clock, StatusEventBus(), NoopStatusNotifier),
             quotes = quotes,
             sessions = repository,
+            statusBus = StatusEventBus(),
         )
     }
 

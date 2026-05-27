@@ -8,6 +8,8 @@ import com.avangard.app.core.common.toStartOfDayEpoch
 import com.avangard.app.core.data.QuoteRepository
 import com.avangard.app.core.data.UserPreferences
 import com.avangard.app.core.data.UserPreferencesRepository
+import com.avangard.app.core.domain.StatusEventBus
+import com.avangard.app.core.domain.StatusFixedEvent
 import com.avangard.app.core.domain.model.CoreMode
 import com.avangard.app.core.domain.model.CoreStatus
 import com.avangard.app.core.domain.model.DailySession
@@ -42,6 +44,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -82,7 +85,14 @@ class OperatorPulpitViewModel @Inject constructor(
     private val setInfraStatus: SetInfraStatusUseCase,
     quotes: QuoteRepository,
     sessions: SessionRepository,
+    statusBus: StatusEventBus,
 ) : ViewModel() {
+
+    /** Latest status-fix event waiting to be shown on the in-app banner.
+     *  WhileSubscribed so off-screen banners get discarded — the system
+     *  notification still fires from the use-case side. */
+    val statusBannerEvents: kotlinx.coroutines.flow.SharedFlow<StatusFixedEvent> =
+        statusBus.events.shareIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), replay = 0)
 
     private val _effects = Channel<PulpitEffect>(Channel.BUFFERED)
     val effects = _effects.receiveAsFlow()

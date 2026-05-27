@@ -19,11 +19,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -77,23 +80,49 @@ fun OperatorPulpitScreen(
         }
     }
 
-    OperatorPulpitContent(
-        today = state?.today ?: viewModel.initialToday,
-        state = state,
-        nowMsFlow = viewModel.nowMs,
-        transientError = state?.transientError,
-        onStartFocus = viewModel::onStartFocus,
-        onStopFocus = viewModel::onStopFocus,
-        onMarkInfra = viewModel::onMarkInfra,
-        onRequestApproveCore = viewModel::onRequestApproveCore,
-        onSabotageClicked = viewModel::onSabotageClicked,
-        onCloseShiftClicked = viewModel::onCloseShiftClicked,
-        onSettingsLongPress = onOpenSettings,
-        onChronometerClicked = onOpenChronometer,
-        onOpenQuote = onOpenQuote,
-        modifier = modifier,
-    )
+    var bannerText by remember { mutableStateOf<String?>(null) }
+    val bannerTemplate = stringResource(R.string.banner_status_fix)
+    LaunchedEffect(Unit) {
+        viewModel.statusBannerEvents.collect { event ->
+            bannerText = bannerTemplate.format(event.habit.code, event.habit.displayName, event.mode)
+            kotlinx.coroutines.delay(BANNER_HOLD_MS)
+            bannerText = null
+        }
+    }
+
+    Box(modifier = modifier.fillMaxSize()) {
+        OperatorPulpitContent(
+            today = state?.today ?: viewModel.initialToday,
+            state = state,
+            nowMsFlow = viewModel.nowMs,
+            transientError = state?.transientError,
+            onStartFocus = viewModel::onStartFocus,
+            onStopFocus = viewModel::onStopFocus,
+            onMarkInfra = viewModel::onMarkInfra,
+            onRequestApproveCore = viewModel::onRequestApproveCore,
+            onSabotageClicked = viewModel::onSabotageClicked,
+            onCloseShiftClicked = viewModel::onCloseShiftClicked,
+            onSettingsLongPress = onOpenSettings,
+            onChronometerClicked = onOpenChronometer,
+            onOpenQuote = onOpenQuote,
+        )
+        bannerText?.let { text ->
+            Text(
+                text = text,
+                color = IsaColors.LiveMetal,
+                style = MaterialTheme.typography.labelLarge,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .background(IsaColors.Carbon)
+                    .border(width = 2.dp, color = IsaColors.Approve)
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+            )
+        }
+    }
 }
+
+private const val BANNER_HOLD_MS = 2_400L
 
 @Composable
 internal fun OperatorPulpitContent(

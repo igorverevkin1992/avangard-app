@@ -243,4 +243,9 @@
     <string name="notification_ignition_title">СУТКИ #%1$d · ОСТАТОК ~%2$d</string>
     <string name="notification_ignition_body_extracted">ВЧЕРА — РЕАЛИЗОВАНО.</string>
     <string name="notification_ignition_body_loss">ВЧЕРА — УКЛОНЕНИЕ.</string>
+
+    <!-- Status fixation notifications + in-app banner. -->
+    <string name="notification_status_fix_title">%1$s · %2$s</string>
+    <string name="notification_status_fix_body">%1$s ЗАФИКСИРОВАН.</string>
+    <string name="banner_status_fix">%1$s · %2$s · %3$s ЗАФИКСИРОВАН</string>
 </resources>

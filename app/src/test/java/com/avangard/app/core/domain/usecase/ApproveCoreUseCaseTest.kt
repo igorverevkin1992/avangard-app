@@ -4,6 +4,8 @@ import com.avangard.app.core.common.DomainResult
 import com.avangard.app.core.common.toStartOfDayEpoch
 import com.avangard.app.core.domain.FakeClock
 import com.avangard.app.core.domain.FakeSessionRepository
+import com.avangard.app.core.domain.NoopStatusNotifier
+import com.avangard.app.core.domain.StatusEventBus
 import com.avangard.app.core.domain.model.CoreStatus
 import com.avangard.app.core.domain.model.CoreMode
 import com.avangard.app.core.domain.model.Habit
@@ -25,7 +27,7 @@ class ApproveCoreUseCaseTest {
     fun setUp() {
         clock = FakeClock()
         repository = FakeSessionRepository(clock)
-        useCase = ApproveCoreUseCase(repository, clock)
+        useCase = ApproveCoreUseCase(repository, clock, StatusEventBus(), NoopStatusNotifier)
     }
 
     @Test
