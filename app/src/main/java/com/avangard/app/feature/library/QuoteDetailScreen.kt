@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.avangard.app.R
 import com.avangard.app.core.domain.model.Quote
@@ -62,13 +63,18 @@ fun QuoteDetailScreen(
                 Text(
                     text = q.text,
                     color = IsaColors.LiveMetal,
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        fontSize = 22.sp,
+                        lineHeight = 30.sp,
+                    ),
                 )
                 Spacer(Modifier.padding(top = 8.dp))
                 Text(
                     text = q.source,
                     color = IsaColors.Lattice,
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.labelMedium.copy(
+                        fontSize = 14.sp,
+                    ),
                 )
             }
             Row(

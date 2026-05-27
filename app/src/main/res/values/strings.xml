@@ -5,10 +5,10 @@
     <!-- Pulpit header. -->
     <string name="pulpit_mvd_on">РЕЖИМ MVD: ВКЛ</string>
     <string name="pulpit_mvd_off">РЕЖИМ MVD: ВЫКЛ</string>
-    <string name="pulpit_sabotage">САБОТАЖ</string>
+    <string name="pulpit_sabotage">УКЛОНЕНИЕ</string>
 
     <!-- Pulpit cards. -->
-    <string name="pulpit_flash_start">ВСПЫШКА</string>
+    <string name="pulpit_flash_start">КОНЦЕНТРАЦИЯ</string>
     <string name="pulpit_flash_stop">ЗАВЕРШИТЬ</string>
     <string name="pulpit_save_shot">СОХРАНИТЬ ШОТ</string>
     <string name="pulpit_mark_standard">STANDARD</string>
@@ -35,14 +35,14 @@
     <string name="restoring_failed_continue">ПРОДОЛЖИТЬ БЕЗ ВОССТАНОВЛЕНИЯ</string>
     <string name="restoring_failed_sign_out">ВЫЙТИ</string>
     <!-- Focus-session daily totals on each habit card. -->
-    <string name="pulpit_focus_stats_active">ВСПЫШКА · %1$s   |   СЕГОДНЯ · %2$d × %3$s</string>
-    <string name="pulpit_focus_stats_idle">СЕГОДНЯ · %1$d ВСПЫШЕК · %2$s</string>
+    <string name="pulpit_focus_stats_active">КОНЦЕНТРАЦИЯ · %1$s   |   СЕГОДНЯ · %2$d × %3$s</string>
+    <string name="pulpit_focus_stats_idle">СЕГОДНЯ · %1$d СЕССИЙ · %2$s</string>
 
     <!-- Authorisation modal. -->
     <string name="auth_title">ОСОЗНАННАЯ АВТОРИЗАЦИЯ</string>
-    <string name="auth_question">Присутствует ли в этом результате мой инженерный расчёт, или это слепой автоматизм?</string>
+    <string name="auth_question">Присутствует ли в этом результате мой рациональный выбор, или это слепой автоматизм?</string>
     <string name="auth_prompt_label">ПРОМПТ / ШОТ</string>
-    <string name="auth_checkbox_label">ПОДТВЕРЖДАЮ ИНЖЕНЕРНЫЙ РАСЧЁТ</string>
+    <string name="auth_checkbox_label">ПОДТВЕРЖДАЮ РАЦИОНАЛЬНЫЙ ВЫБОР</string>
     <string name="auth_submit">ПОДТВЕРДИТЬ И СОХРАНИТЬ</string>
     <string name="auth_cancel">ОТМЕНА</string>
 
@@ -52,7 +52,7 @@
     <string name="earned_pride_axiom">A = A</string>
 
     <!-- Sabotage protocol. -->
-    <string name="sabotage_header">ПРОТОКОЛ САБОТАЖА</string>
+    <string name="sabotage_header">ДИАГНОСТИКА УКЛОНЕНИЯ</string>
     <string name="sabotage_substitution_title">ИМПУЛЬС ПОДМЕНЫ</string>
     <string name="sabotage_substitution_body">Потребление не является производством. Иллюзия работы не производит объективной ценности. Изучение инструмента без его применения есть потеря времени. Вернуться к Ядру.</string>
     <string name="sabotage_defect_title">РЕАКЦИЯ НА БРАК</string>
@@ -69,8 +69,8 @@
     <string name="closing_integrity">ЦЕЛОСТНОСТЬ</string>
     <string name="closing_defect_label">КЛАССИФИКАЦИЯ НУЛЕВОГО РЕЗУЛЬТАТА</string>
     <string name="closing_defect_hint">Ядро не зафиксировано. Выберите тип отклонения.</string>
-    <string name="closing_defect_kind_defect">ДЕФЕКТ</string>
-    <string name="closing_defect_kind_waste">ПОТЕРЯ</string>
+    <string name="closing_defect_kind_defect">ПОМЕХА</string>
+    <string name="closing_defect_kind_waste">УКЛОНЕНИЕ</string>
     <string name="closing_journal_label">ЖУРНАЛ ДНЯ</string>
     <string name="closing_journal_hint">Сжатое резюме смены. До 500 знаков.</string>
     <string name="closing_journal_counter">%1$d / %2$d</string>
@@ -83,25 +83,25 @@
     <string name="virtue_justice">СПРАВЕДЛИВОСТЬ</string>
 
     <!-- Sunday audit. -->
-    <string name="audit_header">АУДИТ PDCA · НЕДЕЛЯ</string>
+    <string name="audit_header">ОЦЕНКА НЕДЕЛИ</string>
     <string name="audit_loading">СБОР МЕТРИК…</string>
     <string name="audit_metrics_label">МЕТРИКИ ЗА 7 ДНЕЙ</string>
     <string name="audit_metric_core_hours">ЧАСЫ ЯДРА</string>
     <string name="audit_metric_days_approved">ДНЕЙ С APPROVED</string>
-    <string name="audit_metric_defects">ДЕФЕКТЫ</string>
-    <string name="audit_metric_wastes">ПОТЕРИ</string>
+    <string name="audit_metric_defects">ПОМЕХИ</string>
+    <string name="audit_metric_wastes">УКЛОНЕНИЯ</string>
     <string name="audit_metric_mvd_days">ДНИ MVD</string>
     <string name="audit_metric_virtues">СУММА ДОБРОДЕТЕЛЕЙ</string>
-    <string name="audit_bottleneck_label">УЗКОЕ МЕСТО НА СЛЕДУЮЩУЮ НЕДЕЛЮ</string>
+    <string name="audit_bottleneck_label">ОГРАНИЧЕНИЕ НА СЛЕДУЮЩУЮ НЕДЕЛЮ</string>
     <string name="audit_submit">ЗАФИКСИРОВАТЬ</string>
-    <string name="audit_open_history">ОТКРЫТЬ ИСТОРИЮ</string>
+    <string name="audit_open_history">ОТКРЫТЬ ТРЕКЕР</string>
     <string name="audit_open_pulpit">ОТКРЫТЬ ПУЛЬТ</string>
 
     <!-- Bottom navigation tabs. -->
     <string name="nav_tab_pulpit">ПУЛЬТ</string>
     <string name="nav_tab_library">БИБЛИОТЕКА</string>
-    <string name="nav_tab_audit">АУДИТ</string>
-    <string name="nav_tab_history">ИСТОРИЯ</string>
+    <string name="nav_tab_audit">ОЦЕНКА</string>
+    <string name="nav_tab_history">ТРЕКЕР</string>
 
     <!-- Library. -->
     <string name="library_header">БИБЛИОТЕКА</string>
@@ -112,28 +112,28 @@
     <string name="library_back">НАЗАД</string>
     <string name="library_share">ПОДЕЛИТЬСЯ</string>
     <string name="library_quote_not_found">Цитата не найдена. Возможно, обновлён каталог.</string>
-    <string name="audit_submitted_confirmation">✓ ЗАФИКСИРОВАНО · УЗКОЕ МЕСТО СОХРАНЕНО</string>
-    <string name="audit_completed_label">СОСТОЯНИЕ АУДИТА</string>
-    <string name="audit_completed_header">АУДИТ ЗАВЕРШЁН</string>
-    <string name="audit_completed_subtitle">Узкое место для следующей недели зафиксировано. Изменение возможно только в следующий цикл.</string>
+    <string name="audit_submitted_confirmation">✓ ЗАФИКСИРОВАНО · ОГРАНИЧЕНИЕ СОХРАНЕНО</string>
+    <string name="audit_completed_label">СОСТОЯНИЕ ОЦЕНКИ</string>
+    <string name="audit_completed_header">ОЦЕНКА ЗАВЕРШЕНА</string>
+    <string name="audit_completed_subtitle">Ограничение для следующей недели зафиксировано. Изменение возможно только в следующий цикл.</string>
 
     <!-- Weekday lock — only the Sunday audit is gated now; the history grid
          is read-only and reachable every day. -->
-    <string name="weekday_lock_title">АУДИТ — ВОСКРЕСЕНЬЕ</string>
-    <string name="weekday_lock_body">PDCA-ревизия недели открывается только в день рефлексии. История и трекер привычек доступны каждый день.</string>
+    <string name="weekday_lock_title">ОЦЕНКА — ВОСКРЕСЕНЬЕ</string>
+    <string name="weekday_lock_body">Оценка недели открывается только в день рефлексии. Трекер привычек доступен каждый день.</string>
     <string name="weekday_lock_return">ВЕРНУТЬСЯ К ПУЛЬТУ</string>
 
     <!-- Notification. -->
     <string name="notification_evening_title">ТРЕБУЕТСЯ ЗАКРЫТИЕ СМЕНЫ</string>
     <string name="notification_evening_body">Зафиксируйте состояние Ядра и добродетели.</string>
-    <string name="focus_notification_title">ВСПЫШКА · %1$s</string>
+    <string name="focus_notification_title">КОНЦЕНТРАЦИЯ · %1$s</string>
     <string name="focus_notification_body">Активная фокус-сессия. Тап — пульт.</string>
-    <string name="focus_notification_placeholder_title">ВСПЫШКА</string>
+    <string name="focus_notification_placeholder_title">КОНЦЕНТРАЦИЯ</string>
 
     <!-- Quick Settings Tile. -->
-    <string name="tile_flash_label">ВСПЫШКА</string>
-    <string name="tile_flash_active">АКТИВНА ВСПЫШКА</string>
-    <string name="tile_flash_idle">ЗАПУСТИТЬ ВСПЫШКУ</string>
+    <string name="tile_flash_label">КОНЦЕНТРАЦИЯ</string>
+    <string name="tile_flash_active">АКТИВНА КОНЦЕНТРАЦИЯ</string>
+    <string name="tile_flash_idle">ЗАПУСТИТЬ КОНЦЕНТРАЦИЮ</string>
 
     <!-- Permission banners on the pulpit. -->
     <string name="permission_notifications_title">УВЕДОМЛЕНИЯ ВЫКЛЮЧЕНЫ</string>
@@ -151,7 +151,7 @@
     <string name="error_prompt_empty">Промпт не указан</string>
     <string name="error_missing_defect_kind">Выберите тип отклонения</string>
     <string name="error_evening_closed_already">Смена уже закрыта</string>
-    <string name="error_history_locked">История доступна в воскресенье</string>
+    <string name="error_history_locked">Трекер доступен в воскресенье</string>
 
     <!-- Sunday audit empty state. -->
     <string name="audit_empty_state">ДАННЫЕ ОТСУТСТВУЮТ. ЗАЛОЖИТЕ ПЕРВУЮ НЕДЕЛЮ.</string>
@@ -171,7 +171,7 @@
     <string name="a11y_flash_start">Запустить фокус-сессию: %1$s</string>
     <string name="a11y_flash_stop">Завершить активную фокус-сессию</string>
     <string name="a11y_save_shot">Сохранить шот Ядра — открыть осознанную авторизацию</string>
-    <string name="a11y_sabotage">Открыть протокол саботажа</string>
+    <string name="a11y_sabotage">Открыть диагностику уклонения</string>
     <string name="a11y_mvd_on">MVD-режим активен. Нажмите чтобы выключить.</string>
     <string name="a11y_mvd_off">MVD-режим выключен. Нажмите чтобы активировать.</string>
     <string name="a11y_infra_locked">%1$s заблокировано до утверждения Ядра</string>
@@ -225,9 +225,9 @@
     <string name="chronometer_days_budget">СУТКИ В РЕСУРСЕ</string>
     <string name="chronometer_days_remaining">ОСТАТОК</string>
     <string name="chronometer_days_remaining_value">~%1$s · ~%2$s ЛЕТ</string>
-    <string name="chronometer_extracted">ИЗВЛЕЧЕНО</string>
+    <string name="chronometer_extracted">РЕАЛИЗОВАНО</string>
     <string name="chronometer_partial">ЧАСТИЧНО</string>
-    <string name="chronometer_burned">СОЖЖЕНО</string>
+    <string name="chronometer_burned">УПУЩЕНО</string>
     <string name="chronometer_count_with_pct">%1$s  (%2$s%%)</string>
     <string name="chronometer_grid_label">СЕТКА · 1 ЯЧЕЙКА = 1 НЕДЕЛЯ</string>
     <string name="chronometer_footer_note">НАСТРОЙКА В КОНФИГЕ · РЕСУРС РАСХОДУЕТСЯ НЕЗАВИСИМО ОТ ИСПОЛЬЗОВАНИЯ.</string>
@@ -240,11 +240,11 @@
     <string name="settings_chronometer_birthday_set">УСТАНОВИТЬ</string>
     <string name="settings_chronometer_birthday_empty">—</string>
     <string name="settings_chronometer_expectancy_label">РАСЧЁТНЫЙ РЕСУРС (ЛЕТ)</string>
-    <string name="settings_chronometer_ignition_toggle">ПОДЖИГ</string>
+    <string name="settings_chronometer_ignition_toggle">УТРЕННИЙ СИГНАЛ</string>
     <string name="settings_chronometer_ignition_hint">Утреннее уведомление с актуальным остатком ресурса.</string>
 
     <!-- Chronometer notification. -->
     <string name="notification_ignition_title">СУТКИ #%1$d · ОСТАТОК ~%2$d</string>
-    <string name="notification_ignition_body_extracted">ВЧЕРА ИЗВЛЕЧЕНО.</string>
-    <string name="notification_ignition_body_loss">ВЧЕРА — ПОТЕРЯ.</string>
+    <string name="notification_ignition_body_extracted">ВЧЕРА — РЕАЛИЗОВАНО.</string>
+    <string name="notification_ignition_body_loss">ВЧЕРА — УКЛОНЕНИЕ.</string>
 </resources>
