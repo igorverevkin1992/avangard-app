@@ -1,6 +1,7 @@
 package com.avangard.app.core.domain.repository
 
 import com.avangard.app.core.domain.model.Bottleneck
+import com.avangard.app.core.domain.model.CoreMode
 import com.avangard.app.core.domain.model.DailySession
 import com.avangard.app.core.domain.model.DefectKind
 import com.avangard.app.core.domain.model.FocusSession
@@ -20,8 +21,7 @@ interface SessionRepository {
     fun observeRange(fromEpoch: Long, toEpoch: Long): Flow<List<DailySession>>
     suspend fun findForDate(dateEpoch: Long): DailySession?
 
-    suspend fun toggleMvd(dateEpoch: Long)
-    suspend fun approveCore(dateEpoch: Long, prompt: String, approvedAt: Long)
+    suspend fun approveCore(dateEpoch: Long, prompt: String, mode: CoreMode, approvedAt: Long)
     suspend fun setInfraStatus(dateEpoch: Long, habit: Habit, status: InfraStatus, recordedAt: Long)
     suspend fun closeEvening(
         dateEpoch: Long,

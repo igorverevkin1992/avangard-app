@@ -10,6 +10,7 @@ import com.avangard.app.core.domain.FakeClock
 import com.avangard.app.core.domain.FakeHabitRepository
 import com.avangard.app.core.domain.FakeSessionRepository
 import com.avangard.app.core.domain.model.Habit
+import com.avangard.app.core.domain.model.CoreMode
 import com.avangard.app.core.domain.usecase.BackupImportError
 import com.avangard.app.core.domain.usecase.ExportBackupUseCase
 import com.avangard.app.core.domain.usecase.ImportBackupUseCase
@@ -104,7 +105,7 @@ class SettingsViewModelTest {
     @Test
     fun `confirm wipes both session and habit stores`() = runTest(dispatcher) {
         val today = clock.today().toStartOfDayEpoch(clock.zone())
-        sessions.approveCore(today, "Шот", clock.nowEpochMillis())
+        sessions.approveCore(today, "Шот", CoreMode.Standard, clock.nowEpochMillis())
         habits.toggle(clock.today(), Habit.Sport, clock.nowEpochMillis())
 
         viewModel.requestWipe()

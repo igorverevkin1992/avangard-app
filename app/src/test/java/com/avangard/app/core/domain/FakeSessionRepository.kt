@@ -2,6 +2,7 @@ package com.avangard.app.core.domain
 
 import com.avangard.app.core.common.toStartOfDayEpoch
 import com.avangard.app.core.domain.model.Bottleneck
+import com.avangard.app.core.domain.model.CoreMode
 import com.avangard.app.core.domain.model.CoreStatus
 import com.avangard.app.core.domain.model.DailySession
 import com.avangard.app.core.domain.model.DefectKind
@@ -58,13 +59,14 @@ class FakeSessionRepository(
 
     override suspend fun findForDate(dateEpoch: Long): DailySession? = sessions.value[dateEpoch]
 
-    override suspend fun toggleMvd(dateEpoch: Long) {
-        mutate(dateEpoch) { it.copy(mvdActive = !it.mvdActive) }
-    }
-
-    override suspend fun approveCore(dateEpoch: Long, prompt: String, approvedAt: Long) {
+    override suspend fun approveCore(
+        dateEpoch: Long,
+        prompt: String,
+        mode: CoreMode,
+        approvedAt: Long,
+    ) {
         mutate(dateEpoch) {
-            it.copy(coreStatus = CoreStatus.Approved(prompt, approvedAt))
+            it.copy(coreStatus = CoreStatus.Approved(prompt, approvedAt, mode))
         }
         focus.value = focus.value.map { f ->
             if (f.endedAt == null) f.copy(endedAt = approvedAt) else f

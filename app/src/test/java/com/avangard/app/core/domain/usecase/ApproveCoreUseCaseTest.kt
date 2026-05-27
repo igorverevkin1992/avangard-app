@@ -5,6 +5,7 @@ import com.avangard.app.core.common.toStartOfDayEpoch
 import com.avangard.app.core.domain.FakeClock
 import com.avangard.app.core.domain.FakeSessionRepository
 import com.avangard.app.core.domain.model.CoreStatus
+import com.avangard.app.core.domain.model.CoreMode
 import com.avangard.app.core.domain.model.Habit
 import com.avangard.app.core.domain.model.SessionError
 import kotlinx.coroutines.test.runTest
@@ -29,21 +30,21 @@ class ApproveCoreUseCaseTest {
 
     @Test
     fun `approval fails without the authorisation checkbox`() = runTest {
-        val result = useCase(prompt = "Сохранённый шот", authorised = false)
+        val result = useCase(prompt = "Сохранённый шот", authorised = false, mode = CoreMode.Standard)
         assertEquals(DomainResult.Err(SessionError.NotAuthorised), result)
     }
 
     @Test
     fun `approval fails on an empty prompt`() = runTest {
-        val result = useCase(prompt = "   ", authorised = true)
+        val result = useCase(prompt = "   ", authorised = true, mode = CoreMode.Standard)
         assertEquals(DomainResult.Err(SessionError.PromptEmpty), result)
     }
 
     @Test
     fun `approval is rejected when Core is already Approved`() = runTest {
         val today = clock.today().toStartOfDayEpoch(clock.zone())
-        repository.approveCore(today, "Шот первый", clock.nowEpochMillis())
-        val result = useCase(prompt = "Шот второй", authorised = true)
+        repository.approveCore(today, "Шот первый", CoreMode.Standard, clock.nowEpochMillis())
+        val result = useCase(prompt = "Шот второй", authorised = true, mode = CoreMode.Standard)
         assertEquals(DomainResult.Err(SessionError.AlreadyApproved), result)
         val stored = repository.findForDate(today)!!
         // Existing prompt must be preserved.
@@ -54,7 +55,7 @@ class ApproveCoreUseCaseTest {
     fun `approval transitions Idle to Approved and closes active focus`() = runTest {
         val today = clock.today().toStartOfDayEpoch(clock.zone())
         val focusId = repository.startFocus(today, Habit.Generations, clock.nowEpochMillis())
-        val result = useCase(prompt = "Шот пять", authorised = true)
+        val result = useCase(prompt = "Шот пять", authorised = true, mode = CoreMode.Standard)
         assertTrue(result is DomainResult.Ok)
         val stored = repository.findForDate(today)!!
         assertTrue(stored.coreStatus is CoreStatus.Approved)
@@ -63,5 +64,14 @@ class ApproveCoreUseCaseTest {
         assertNull(repository.findActiveFocus())
         // And the id sequence stays valid.
         assertTrue(focusId > 0)
+    }
+
+    @Test
+    fun `approval records the chosen mode`() = runTest {
+        val today = clock.today().toStartOfDayEpoch(clock.zone())
+        val result = useCase(prompt = "Минимум", authorised = true, mode = CoreMode.Mvd)
+        assertTrue(result is DomainResult.Ok)
+        val approved = repository.findForDate(today)!!.coreStatus as CoreStatus.Approved
+        assertEquals(CoreMode.Mvd, approved.mode)
     }
 }

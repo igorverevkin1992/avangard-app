@@ -78,6 +78,7 @@ private fun DailySessionEntity.toBackup() = BackupDailySession(
     corePrompt = corePrompt,
     coreAuthorizedAt = coreAuthorizedAt,
     coreDefectKind = coreDefectKind,
+    coreMode = coreMode,
     infra02Status = infra02Status,
     infra03Status = infra03Status,
     infra04Status = infra04Status,
@@ -92,26 +93,37 @@ private fun DailySessionEntity.toBackup() = BackupDailySession(
     journalEntry = journalEntry,
 )
 
-private fun BackupDailySession.toEntity() = DailySessionEntity(
-    dateEpoch = dateEpoch,
-    mvdActive = mvdActive,
-    coreStatus = coreStatus,
-    corePrompt = corePrompt,
-    coreAuthorizedAt = coreAuthorizedAt,
-    coreDefectKind = coreDefectKind,
-    infra02Status = infra02Status,
-    infra03Status = infra03Status,
-    infra04Status = infra04Status,
-    infra05Status = infra05Status,
-    eveningClosed = eveningClosed,
-    eveningClosedAt = eveningClosedAt,
-    virtRationality = virtRationality,
-    virtIndependence = virtIndependence,
-    virtHonesty = virtHonesty,
-    virtJustice = virtJustice,
-    bottleneckForNextWeek = bottleneckForNextWeek,
-    journalEntry = journalEntry,
-)
+private fun BackupDailySession.toEntity(): DailySessionEntity {
+    // Mirror MIGRATION_6_7: on v1/v2 snapshots, coreMode is missing — derive
+    // it from the legacy mvdActive flag so chronometer classification is
+    // preserved across restore.
+    val resolvedMode = coreMode ?: when {
+        coreStatus == 1 && mvdActive == 1 -> "Mvd"
+        coreStatus == 1 -> "Standard"
+        else -> null
+    }
+    return DailySessionEntity(
+        dateEpoch = dateEpoch,
+        mvdActive = mvdActive,
+        coreStatus = coreStatus,
+        corePrompt = corePrompt,
+        coreAuthorizedAt = coreAuthorizedAt,
+        coreDefectKind = coreDefectKind,
+        coreMode = resolvedMode,
+        infra02Status = infra02Status,
+        infra03Status = infra03Status,
+        infra04Status = infra04Status,
+        infra05Status = infra05Status,
+        eveningClosed = eveningClosed,
+        eveningClosedAt = eveningClosedAt,
+        virtRationality = virtRationality,
+        virtIndependence = virtIndependence,
+        virtHonesty = virtHonesty,
+        virtJustice = virtJustice,
+        bottleneckForNextWeek = bottleneckForNextWeek,
+        journalEntry = journalEntry,
+    )
+}
 
 private fun FocusSessionEntity.toBackup() = BackupFocusSession(
     id = id,

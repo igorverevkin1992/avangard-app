@@ -135,6 +135,38 @@ class MigrationTest {
     }
 
     @Test
+    fun migration_6_to_7_backfillsCoreModeFromLegacyMvdActive() {
+        val (db, helper) = createV6()
+        // Three v6 rows:
+        //   * Approved + mvd_active=1 → core_mode "Mvd"
+        //   * Approved + mvd_active=0 → core_mode "Standard"
+        //   * Idle (core_status=0)    → core_mode NULL
+        db.execSQL(
+            "INSERT INTO daily_session(date_epoch, mvd_active, core_status) " +
+                "VALUES(1700000000000, 1, 1)"
+        )
+        db.execSQL(
+            "INSERT INTO daily_session(date_epoch, mvd_active, core_status) " +
+                "VALUES(1700000000001, 0, 1)"
+        )
+        db.execSQL(
+            "INSERT INTO daily_session(date_epoch, mvd_active, core_status) " +
+                "VALUES(1700000000002, 0, 0)"
+        )
+
+        AppDatabase.MIGRATION_6_7.migrate(db)
+
+        db.query(
+            "SELECT date_epoch, core_mode FROM daily_session ORDER BY date_epoch"
+        ).use { c ->
+            assertTrue(c.moveToNext()); assertEquals("Mvd", c.getString(1))
+            assertTrue(c.moveToNext()); assertEquals("Standard", c.getString(1))
+            assertTrue(c.moveToNext()); assertTrue("Idle row stays NULL", c.isNull(1))
+        }
+        helper.close()
+    }
+
+    @Test
     fun migration_5_to_6_addsJournalEntryColumn() {
         val (db, helper) = createV5()
         // Seed a v5 daily row — column doesn't exist yet.
@@ -225,6 +257,12 @@ class MigrationTest {
         }
         val db = helper.writableDatabase
         AppDatabase.MIGRATION_4_5.migrate(db)
+        return db to helper
+    }
+
+    private fun createV6(): Pair<SupportSQLiteDatabase, SupportSQLiteOpenHelper> {
+        val (db, helper) = createV5()
+        AppDatabase.MIGRATION_5_6.migrate(db)
         return db to helper
     }
 

@@ -4,8 +4,10 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.avangard.app.core.common.DomainResult
+import com.avangard.app.core.domain.model.CoreMode
 import com.avangard.app.core.domain.model.SessionError
 import com.avangard.app.core.domain.usecase.ApproveCoreUseCase
+import com.avangard.app.navigation.NavRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.channels.Channel
@@ -22,6 +24,7 @@ data class AuthorisationModalState(
     val authorised: Boolean = false,
     val submitting: Boolean = false,
     val error: SessionError? = null,
+    val mode: CoreMode = CoreMode.Standard,
 ) {
     val canSubmit: Boolean
         get() = !submitting && authorised && prompt.trim().isNotEmpty()
@@ -44,6 +47,14 @@ class AuthorisationModalViewModel @Inject constructor(
     private val authorisedFlow: StateFlow<Boolean> =
         savedState.getStateFlow(KEY_AUTHORISED, false)
 
+    // Picked on the pulpit (СТАНДАРТ / МИНИМУМ button) and passed via nav arg.
+    // Fallback to Standard for safety — a missing/invalid arg means the operator
+    // landed here through a degraded path; treat the saved shot as Standard
+    // rather than silently downgrading it.
+    private val mode: CoreMode = savedState.get<String>(NavRoute.AuthorisationModal.ARG_MODE)
+        ?.let { runCatching { CoreMode.valueOf(it) }.getOrNull() }
+        ?: CoreMode.Standard
+
     // Submitting flag and transient error are intentionally NOT persisted —
     // they belong to the current submission attempt, not the user's intent.
     private val submitting = MutableStateFlow(false)
@@ -63,6 +74,7 @@ class AuthorisationModalViewModel @Inject constructor(
             authorised = authorised,
             submitting = submitting,
             error = error,
+            mode = mode,
         )
     }.stateIn(
         scope = viewModelScope,
@@ -70,6 +82,7 @@ class AuthorisationModalViewModel @Inject constructor(
         initialValue = AuthorisationModalState(
             prompt = promptFlow.value,
             authorised = authorisedFlow.value,
+            mode = mode,
         ),
     )
 
@@ -97,7 +110,11 @@ class AuthorisationModalViewModel @Inject constructor(
         submitting.value = true
         error.value = null
         viewModelScope.launch {
-            when (val result = approveCore(prompt = currentPrompt, authorised = currentAuthorised)) {
+            when (val result = approveCore(
+                prompt = currentPrompt,
+                authorised = currentAuthorised,
+                mode = mode,
+            )) {
                 is DomainResult.Ok -> {
                     submitting.value = false
                     _effects.send(AuthorisationEffect.Submitted)

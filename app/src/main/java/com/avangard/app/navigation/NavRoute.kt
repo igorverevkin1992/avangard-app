@@ -6,7 +6,12 @@ sealed interface NavRoute {
     data object SignIn : NavRoute { override val route = "auth/signin" }
     data object Restoring : NavRoute { override val route = "auth/restoring" }
     data object OperatorPulpit : NavRoute { override val route = "pulpit" }
-    data object AuthorisationModal : NavRoute { override val route = "pulpit/authorise" }
+    /** Core approval modal. `mode` arg is CoreMode.name() — "Standard" or "Mvd". */
+    data object AuthorisationModal : NavRoute {
+        override val route = "pulpit/authorise/{mode}"
+        const val ARG_MODE = "mode"
+        fun create(mode: String): String = "pulpit/authorise/$mode"
+    }
     data object EarnedPride : NavRoute { override val route = "pulpit/earned-pride" }
     data object Sabotage : NavRoute { override val route = "sabotage" }
     data object EveningClose : NavRoute { override val route = "closing" }

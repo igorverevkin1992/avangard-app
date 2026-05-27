@@ -86,7 +86,10 @@ class SundayAuditUseCase @Inject constructor(
             val cs = it.coreStatus
             cs is CoreStatus.Failed && cs.kind == DefectKind.Waste
         }
-        val mvdDays = weekSessions.count { it.mvdActive }
+        val mvdDays = weekSessions.count {
+            val cs = it.coreStatus
+            cs is CoreStatus.Approved && cs.mode == com.avangard.app.core.domain.model.CoreMode.Mvd
+        }
 
         val infraBreakdown = listOf(Habit.Spanish, Habit.Sport, Habit.Watching, Habit.Reading)
             .associateWith { habit ->

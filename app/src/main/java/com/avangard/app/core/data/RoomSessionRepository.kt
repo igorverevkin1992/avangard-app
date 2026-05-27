@@ -12,6 +12,7 @@ import com.avangard.app.core.database.entity.DailySessionEntity
 import com.avangard.app.core.database.entity.FocusSessionEntity
 import com.avangard.app.core.database.entity.HabitLogEntity
 import com.avangard.app.core.domain.model.Bottleneck
+import com.avangard.app.core.domain.model.CoreMode
 import com.avangard.app.core.domain.model.CoreStatus
 import com.avangard.app.core.domain.model.DailySession
 import com.avangard.app.core.domain.model.DefectKind
@@ -67,14 +68,12 @@ class RoomSessionRepository @Inject constructor(
     override suspend fun findForDate(dateEpoch: Long): DailySession? =
         dailyDao.findByDate(dateEpoch)?.toDomain()
 
-    override suspend fun toggleMvd(dateEpoch: Long) {
-        database.withTransaction {
-            val current = dailyDao.ensureRow(dateEpoch)
-            dailyDao.upsert(current.copy(mvdActive = if (current.mvdActive == 1) 0 else 1))
-        }
-    }
-
-    override suspend fun approveCore(dateEpoch: Long, prompt: String, approvedAt: Long) {
+    override suspend fun approveCore(
+        dateEpoch: Long,
+        prompt: String,
+        mode: CoreMode,
+        approvedAt: Long,
+    ) {
         database.withTransaction {
             val current = dailyDao.ensureRow(dateEpoch)
             // Re-read under tx — defends against approve-after-approve race within the use case layer.
@@ -84,6 +83,7 @@ class RoomSessionRepository @Inject constructor(
                     corePrompt = prompt,
                     coreAuthorizedAt = approvedAt,
                     coreDefectKind = null,
+                    coreMode = mode.name,
                 )
             )
             focusDao.findActive()?.let { focusDao.endSession(it.id, approvedAt) }
@@ -244,7 +244,14 @@ private fun DailySessionEntity.toDomain(): DailySession = DailySession(
     dateEpoch = dateEpoch,
     mvdActive = mvdActive == 1,
     coreStatus = when (coreStatus) {
-        1 -> CoreStatus.Approved(prompt = corePrompt.orEmpty(), authorizedAt = coreAuthorizedAt ?: 0L)
+        1 -> CoreStatus.Approved(
+            prompt = corePrompt.orEmpty(),
+            authorizedAt = coreAuthorizedAt ?: 0L,
+            // Tolerate unknown / NULL persisted values (legacy rows on the cusp
+            // of MIGRATION_6_7) by defaulting to Standard.
+            mode = coreMode?.let { runCatching { CoreMode.valueOf(it) }.getOrNull() }
+                ?: CoreMode.Standard,
+        )
         2 -> CoreStatus.Failed(kind = if (coreDefectKind == 1) DefectKind.Waste else DefectKind.Defect)
         else -> CoreStatus.Idle
     },

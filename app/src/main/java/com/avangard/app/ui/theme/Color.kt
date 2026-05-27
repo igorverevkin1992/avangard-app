@@ -25,4 +25,6 @@ object IsaColors {
     val Signal = Color(0xFFD03A2D)
     /** Sparse confirmation green: Earned Pride flashes, Approved status badges. */
     val Approve = Color(0xFF7BB661)
+    /** Industrial amber: «Minimum» status — fixed, but below standard. */
+    val Caution = Color(0xFFC8A800)
 }

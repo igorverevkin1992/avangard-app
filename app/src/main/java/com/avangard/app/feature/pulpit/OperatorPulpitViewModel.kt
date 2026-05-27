@@ -8,6 +8,7 @@ import com.avangard.app.core.common.toStartOfDayEpoch
 import com.avangard.app.core.data.QuoteRepository
 import com.avangard.app.core.data.UserPreferences
 import com.avangard.app.core.data.UserPreferencesRepository
+import com.avangard.app.core.domain.model.CoreMode
 import com.avangard.app.core.domain.model.CoreStatus
 import com.avangard.app.core.domain.model.DailySession
 import com.avangard.app.core.domain.model.FocusSession
@@ -21,7 +22,6 @@ import com.avangard.app.core.domain.usecase.ObserveActiveFocusUseCase
 import com.avangard.app.core.domain.usecase.ObserveDailySessionUseCase
 import com.avangard.app.core.domain.usecase.SetInfraStatusUseCase
 import com.avangard.app.core.domain.usecase.StartFocusUseCase
-import com.avangard.app.core.domain.usecase.ToggleMvdUseCase
 import com.avangard.app.core.ui.components.DEFAULT_COLD_START_THRESHOLD_MS
 import com.avangard.app.core.ui.components.tickerFlow
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -65,7 +65,7 @@ data class PulpitState(
 }
 
 sealed interface PulpitEffect {
-    data object OpenAuthorisationModal : PulpitEffect
+    data class OpenAuthorisationModal(val mode: CoreMode) : PulpitEffect
     data object OpenSabotage : PulpitEffect
     data object OpenEveningClose : PulpitEffect
 }
@@ -79,7 +79,6 @@ class OperatorPulpitViewModel @Inject constructor(
     preferences: UserPreferencesRepository,
     private val startFocus: StartFocusUseCase,
     private val endFocus: EndFocusUseCase,
-    private val toggleMvd: ToggleMvdUseCase,
     private val setInfraStatus: SetInfraStatusUseCase,
     quotes: QuoteRepository,
     sessions: SessionRepository,
@@ -190,13 +189,6 @@ class OperatorPulpitViewModel @Inject constructor(
         endFocus(id)
     }
 
-    fun onToggleMvd() = viewModelScope.launch {
-        when (val r = toggleMvd()) {
-            is DomainResult.Err -> raise(r.error)
-            is DomainResult.Ok -> Unit
-        }
-    }
-
     fun onMarkInfra(habit: Habit, status: InfraStatus) = viewModelScope.launch {
         when (val r = setInfraStatus(habit, status)) {
             is DomainResult.Err -> raise(r.error)
@@ -204,8 +196,8 @@ class OperatorPulpitViewModel @Inject constructor(
         }
     }
 
-    fun onRequestApproveCore() {
-        viewModelScope.launch { _effects.send(PulpitEffect.OpenAuthorisationModal) }
+    fun onRequestApproveCore(mode: CoreMode) {
+        viewModelScope.launch { _effects.send(PulpitEffect.OpenAuthorisationModal(mode)) }
     }
 
     fun onSabotageClicked() {

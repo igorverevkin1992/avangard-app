@@ -5,6 +5,7 @@ import com.avangard.app.core.common.toStartOfDayEpoch
 import com.avangard.app.core.domain.FakeClock
 import com.avangard.app.core.domain.FakeSessionRepository
 import com.avangard.app.core.domain.model.DefectKind
+import com.avangard.app.core.domain.model.CoreMode
 import com.avangard.app.core.domain.usecase.CloseEveningUseCase
 import com.avangard.app.core.domain.usecase.ObserveDailySessionUseCase
 import com.avangard.app.core.domain.usecase.SetJournalUseCase
@@ -71,7 +72,7 @@ class EveningCloseViewModelTest {
     @Test
     fun `Approved core does not require defect kind`() = runTest(dispatcher) {
         val today = clock.today().toStartOfDayEpoch(clock.zone())
-        repository.approveCore(today, "Шот", clock.nowEpochMillis())
+        repository.approveCore(today, "Шот", CoreMode.Standard, clock.nowEpochMillis())
         // Allow observeSession to flush the Approved state into the viewmodel.
         advanceUntilIdle()
         assertFalse(viewModel.state.value.needsDefectKind)

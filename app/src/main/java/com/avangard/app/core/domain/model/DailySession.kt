@@ -2,9 +2,16 @@ package com.avangard.app.core.domain.model
 
 enum class DefectKind { Defect, Waste }
 
+/** Quality mode picked at Core approval. Determines Extracted vs Partial in chronometer. */
+enum class CoreMode { Standard, Mvd }
+
 sealed interface CoreStatus {
     data object Idle : CoreStatus
-    data class Approved(val prompt: String, val authorizedAt: Long) : CoreStatus
+    data class Approved(
+        val prompt: String,
+        val authorizedAt: Long,
+        val mode: CoreMode = CoreMode.Standard,
+    ) : CoreStatus
     data class Failed(val kind: DefectKind) : CoreStatus
 }
 

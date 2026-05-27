@@ -6,6 +6,7 @@ import com.avangard.app.core.data.UserPreferencesRepository
 import com.avangard.app.core.domain.FakeClock
 import com.avangard.app.core.domain.FakeSessionRepository
 import com.avangard.app.core.domain.model.Habit
+import com.avangard.app.core.domain.model.CoreMode
 import com.avangard.app.core.domain.model.InfraStatus
 import com.avangard.app.core.domain.model.SessionError
 import com.avangard.app.core.domain.usecase.EndFocusUseCase
@@ -14,7 +15,6 @@ import com.avangard.app.core.domain.usecase.ObserveActiveFocusUseCase
 import com.avangard.app.core.domain.usecase.ObserveDailySessionUseCase
 import com.avangard.app.core.domain.usecase.SetInfraStatusUseCase
 import com.avangard.app.core.domain.usecase.StartFocusUseCase
-import com.avangard.app.core.domain.usecase.ToggleMvdUseCase
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -66,7 +66,6 @@ class OperatorPulpitViewModelTest {
             preferences = preferences,
             startFocus = StartFocusUseCase(repository, clock, NoopFocusService),
             endFocus = EndFocusUseCase(repository, clock),
-            toggleMvd = ToggleMvdUseCase(repository, clock),
             setInfraStatus = SetInfraStatusUseCase(repository, clock),
             quotes = quotes,
             sessions = repository,
@@ -134,19 +133,11 @@ class OperatorPulpitViewModelTest {
     @Test
     fun `mark evening Infra succeeds after Core approval`() = runTest(dispatcher) {
         val today = clock.today().toStartOfDayEpoch(clock.zone())
-        repository.approveCore(today, "Шот", clock.nowEpochMillis())
+        repository.approveCore(today, "Шот", CoreMode.Standard, clock.nowEpochMillis())
         viewModel.onMarkInfra(Habit.Reading, InfraStatus.Standard)
         advanceUntilIdle()
         val stored = repository.findForDate(today)!!
         assertEquals(InfraStatus.Standard, stored.infra05)
-    }
-
-    @Test
-    fun `toggle MVD flips the flag`() = runTest(dispatcher) {
-        viewModel.onToggleMvd()
-        advanceUntilIdle()
-        val today = clock.today().toStartOfDayEpoch(clock.zone())
-        assertTrue(repository.findForDate(today)!!.mvdActive)
     }
 
     @Test
@@ -179,7 +170,7 @@ class OperatorPulpitViewModelTest {
     @Test
     fun `nudge flag is false before target time on approved shift`() = runTest(dispatcher) {
         val today = clock.today().toStartOfDayEpoch(clock.zone())
-        repository.approveCore(today, "Шот", clock.nowEpochMillis())
+        repository.approveCore(today, "Шот", CoreMode.Standard, clock.nowEpochMillis())
         clock.time = java.time.LocalTime.of(15, 0)
 
         val state = viewModel.state.filterNotNull().first()
@@ -189,7 +180,7 @@ class OperatorPulpitViewModelTest {
     @Test
     fun `nudge flag is true after target time on unclosed approved shift`() = runTest(dispatcher) {
         val today = clock.today().toStartOfDayEpoch(clock.zone())
-        repository.approveCore(today, "Шот", clock.nowEpochMillis())
+        repository.approveCore(today, "Шот", CoreMode.Standard, clock.nowEpochMillis())
         clock.time = java.time.LocalTime.of(21, 1)
 
         val state = viewModel.state.filterNotNull().first()
@@ -209,7 +200,7 @@ class OperatorPulpitViewModelTest {
     @Test
     fun `nudge flag is false after closeEvening`() = runTest(dispatcher) {
         val today = clock.today().toStartOfDayEpoch(clock.zone())
-        repository.approveCore(today, "Шот", clock.nowEpochMillis())
+        repository.approveCore(today, "Шот", CoreMode.Standard, clock.nowEpochMillis())
         repository.closeEvening(
             dateEpoch = today,
             virtues = com.avangard.app.core.domain.model.VirtueScores(0, 0, 0, 0),

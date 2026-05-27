@@ -3,16 +3,13 @@
     <string name="app_name">Prime mover</string>
 
     <!-- Pulpit header. -->
-    <string name="pulpit_mvd_on">РЕЖИМ MVD: ВКЛ</string>
-    <string name="pulpit_mvd_off">РЕЖИМ MVD: ВЫКЛ</string>
     <string name="pulpit_sabotage">УКЛОНЕНИЕ</string>
 
     <!-- Pulpit cards. -->
     <string name="pulpit_flash_start">КОНЦЕНТРАЦИЯ</string>
     <string name="pulpit_flash_stop">ЗАВЕРШИТЬ</string>
-    <string name="pulpit_save_shot">СОХРАНИТЬ ШОТ</string>
-    <string name="pulpit_mark_standard">STANDARD</string>
-    <string name="pulpit_mark_mvd">MVD</string>
+    <string name="pulpit_mark_standard">СТАНДАРТ</string>
+    <string name="pulpit_mark_mvd">МИНИМУМ</string>
     <string name="pulpit_hostage_banner">ЗАБЛОКИРОВАНО ДО ПЕРВОГО ЯДРА</string>
     <string name="pulpit_close_shift">ЗАКРЫТЬ СМЕНУ</string>
     <string name="pulpit_evening_nudge">СМЕНА НЕ ЗАКРЫТА · ТАП ДЛЯ ВЕЧЕРНЕГО ЗАКРЫТИЯ</string>
@@ -40,6 +37,8 @@
 
     <!-- Authorisation modal. -->
     <string name="auth_title">ОСОЗНАННАЯ АВТОРИЗАЦИЯ</string>
+    <string name="auth_mode_standard">РЕЖИМ: СТАНДАРТ</string>
+    <string name="auth_mode_mvd">РЕЖИМ: МИНИМУМ</string>
     <string name="auth_question">Присутствует ли в этом результате мой рациональный выбор, или это слепой автоматизм?</string>
     <string name="auth_prompt_label">ПРОМПТ / ШОТ</string>
     <string name="auth_checkbox_label">ПОДТВЕРЖДАЮ РАЦИОНАЛЬНЫЙ ВЫБОР</string>
@@ -162,18 +161,15 @@
     <string name="a11y_state_on">включено</string>
     <string name="a11y_state_off">выключено</string>
     <string name="a11y_status_idle">статус Idle — действий не выполнено</string>
-    <string name="a11y_status_standard">статус Standard — стандартная отметка</string>
-    <string name="a11y_status_mvd">статус MVD — минимально-достаточное действие</string>
+    <string name="a11y_status_standard">статус Стандарт — отметка о полном выполнении</string>
+    <string name="a11y_status_mvd">статус Минимум — минимально-достаточное действие</string>
     <string name="a11y_status_approved">статус Approved — Ядро зафиксировано</string>
     <string name="a11y_status_fail">статус Fail — Ядро провалено</string>
     <string name="a11y_status_locked">заблокировано до утверждения Ядра</string>
     <string name="a11y_pulpit_date">Дата текущей смены. Долгое нажатие — конфиг.</string>
     <string name="a11y_flash_start">Запустить фокус-сессию: %1$s</string>
     <string name="a11y_flash_stop">Завершить активную фокус-сессию</string>
-    <string name="a11y_save_shot">Сохранить шот Ядра — открыть осознанную авторизацию</string>
     <string name="a11y_sabotage">Открыть диагностику уклонения</string>
-    <string name="a11y_mvd_on">MVD-режим активен. Нажмите чтобы выключить.</string>
-    <string name="a11y_mvd_off">MVD-режим выключен. Нажмите чтобы активировать.</string>
     <string name="a11y_infra_locked">%1$s заблокировано до утверждения Ядра</string>
 
     <!-- Settings (long-press on date strip to reach). -->

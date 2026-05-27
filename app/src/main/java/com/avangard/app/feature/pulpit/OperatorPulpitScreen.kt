@@ -32,6 +32,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.avangard.app.R
+import com.avangard.app.core.domain.model.CoreMode
 import com.avangard.app.core.domain.model.CoreStatus
 import com.avangard.app.core.domain.model.DailySession
 import com.avangard.app.core.domain.model.Habit
@@ -55,7 +56,7 @@ private val pulpitDateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern
 
 @Composable
 fun OperatorPulpitScreen(
-    onOpenAuthorisation: () -> Unit,
+    onOpenAuthorisation: (CoreMode) -> Unit,
     onOpenSabotage: () -> Unit,
     onOpenEveningClose: () -> Unit,
     onOpenSettings: () -> Unit,
@@ -69,7 +70,7 @@ fun OperatorPulpitScreen(
     LaunchedEffect(Unit) {
         viewModel.effects.collect { effect ->
             when (effect) {
-                PulpitEffect.OpenAuthorisationModal -> onOpenAuthorisation()
+                is PulpitEffect.OpenAuthorisationModal -> onOpenAuthorisation(effect.mode)
                 PulpitEffect.OpenSabotage -> onOpenSabotage()
                 PulpitEffect.OpenEveningClose -> onOpenEveningClose()
             }
@@ -83,7 +84,6 @@ fun OperatorPulpitScreen(
         transientError = state?.transientError,
         onStartFocus = viewModel::onStartFocus,
         onStopFocus = viewModel::onStopFocus,
-        onToggleMvd = viewModel::onToggleMvd,
         onMarkInfra = viewModel::onMarkInfra,
         onRequestApproveCore = viewModel::onRequestApproveCore,
         onSabotageClicked = viewModel::onSabotageClicked,
@@ -103,9 +103,8 @@ internal fun OperatorPulpitContent(
     transientError: com.avangard.app.core.domain.model.SessionError?,
     onStartFocus: (Habit) -> Unit,
     onStopFocus: () -> Unit,
-    onToggleMvd: () -> Unit,
     onMarkInfra: (Habit, InfraStatus) -> Unit,
-    onRequestApproveCore: () -> Unit,
+    onRequestApproveCore: (CoreMode) -> Unit,
     onSabotageClicked: () -> Unit,
     onCloseShiftClicked: () -> Unit,
     onSettingsLongPress: () -> Unit = {},
@@ -123,8 +122,6 @@ internal fun OperatorPulpitContent(
     ) {
         HeaderStrip(
             today = today,
-            mvdActive = state?.session?.mvdActive == true,
-            onToggleMvd = onToggleMvd,
             onSabotageClicked = onSabotageClicked,
             onSettingsLongPress = onSettingsLongPress,
             onChronometerClicked = onChronometerClicked,
@@ -217,8 +214,6 @@ internal fun OperatorPulpitContent(
 @Composable
 private fun HeaderStrip(
     today: LocalDate,
-    mvdActive: Boolean,
-    onToggleMvd: () -> Unit,
     onSabotageClicked: () -> Unit,
     onSettingsLongPress: () -> Unit,
     onChronometerClicked: () -> Unit,
@@ -243,7 +238,6 @@ private fun HeaderStrip(
                     onLongClick = onSettingsLongPress,
                 ),
         )
-        MvdToggle(active = mvdActive, onClick = onToggleMvd)
         ChronometerChip(onClick = onChronometerClicked)
         SabotageChip(onClick = onSabotageClicked)
     }
@@ -260,27 +254,6 @@ private fun ChronometerChip(onClick: () -> Unit) {
         modifier = Modifier
             .semantics { contentDescription = a11y }
             .border(width = 1.dp, color = IsaColors.LiveMetal)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                onClick = onClick,
-            )
-            .padding(horizontal = 10.dp, vertical = 6.dp),
-    )
-}
-
-@Composable
-private fun MvdToggle(active: Boolean, onClick: () -> Unit) {
-    val color = if (active) IsaColors.Approve else IsaColors.Lattice
-    val interactionSource = remember { MutableInteractionSource() }
-    val a11y = stringResource(if (active) R.string.a11y_mvd_on else R.string.a11y_mvd_off)
-    Text(
-        text = stringResource(if (active) R.string.pulpit_mvd_on else R.string.pulpit_mvd_off),
-        color = color,
-        style = MaterialTheme.typography.labelLarge,
-        modifier = Modifier
-            .semantics { contentDescription = a11y }
-            .border(width = 1.dp, color = color)
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
@@ -316,16 +289,24 @@ private fun CoreCard(
     nowMsFlow: kotlinx.coroutines.flow.StateFlow<Long>,
     onStartFocus: () -> Unit,
     onStopFocus: () -> Unit,
-    onRequestApproveCore: () -> Unit,
+    onRequestApproveCore: (CoreMode) -> Unit,
 ) {
     val session = state?.session
-    val isApproved = session?.coreStatus is CoreStatus.Approved
-    val isFailed = session?.coreStatus is CoreStatus.Failed
+    val coreStatus = session?.coreStatus
+    val isApproved = coreStatus is CoreStatus.Approved
+    val approvedMode = (coreStatus as? CoreStatus.Approved)?.mode
+    val isFailed = coreStatus is CoreStatus.Failed
     val activeOnCore = state?.isFocusActiveOn(Habit.Generations) == true
     val badge = when {
-        isApproved -> StatusBadgeKind.Approved
+        isApproved && approvedMode == CoreMode.Mvd -> StatusBadgeKind.Mvd
+        isApproved -> StatusBadgeKind.Standard
         isFailed -> StatusBadgeKind.Fail
         else -> StatusBadgeKind.Idle
+    }
+    val coreBorder = when {
+        isApproved && approvedMode == CoreMode.Mvd -> IsaColors.Caution
+        isApproved -> IsaColors.Approve
+        else -> IsaColors.Steel
     }
     // Collect the ticker only here so the 1Hz tick scopes its recomp to the
     // CoreTimerDisplay subtree; sibling InfraCards never recompose on tick.
@@ -333,9 +314,7 @@ private fun CoreCard(
     val elapsedMs = if (activeOnCore) {
         state?.activeFocus?.durationMillis(nowMs) ?: 0L
     } else 0L
-    PulpitPanel(
-        borderColor = if (isApproved) IsaColors.Approve else IsaColors.Steel,
-    ) {
+    PulpitPanel(borderColor = coreBorder) {
         LabelStrip(
             code = Habit.Generations.code,
             name = Habit.Generations.displayName,
@@ -350,16 +329,29 @@ private fun CoreCard(
                 if (activeOnCore) R.string.pulpit_flash_stop else R.string.pulpit_flash_start
             ),
             active = activeOnCore,
-            enabled = !isApproved,
+            enabled = state?.activeFocus == null || activeOnCore,
             onClick = if (activeOnCore) onStopFocus else onStartFocus,
         )
         FocusStatsLine(habit = Habit.Generations, state = state, nowMsFlow = nowMsFlow)
-        HardButton(
-            label = stringResource(R.string.pulpit_save_shot),
-            onClick = onRequestApproveCore,
-            enabled = !isApproved && !isFailed,
-            variant = HardButtonVariant.Primary,
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            HardButton(
+                label = stringResource(R.string.pulpit_mark_standard),
+                onClick = { onRequestApproveCore(CoreMode.Standard) },
+                enabled = !isApproved && !isFailed,
+                variant = HardButtonVariant.Primary,
+                modifier = Modifier.weight(1f),
+            )
+            HardButton(
+                label = stringResource(R.string.pulpit_mark_mvd),
+                onClick = { onRequestApproveCore(CoreMode.Mvd) },
+                enabled = !isApproved && !isFailed,
+                variant = HardButtonVariant.Default,
+                modifier = Modifier.weight(1f),
+            )
+        }
     }
 }
 
@@ -384,8 +376,14 @@ private fun InfraCard(
         infraStatus == InfraStatus.Mvd -> StatusBadgeKind.Mvd
         else -> StatusBadgeKind.Idle
     }
+    val infraBorder = when {
+        locked -> IsaColors.HostageGray
+        infraStatus == InfraStatus.Standard -> IsaColors.Approve
+        infraStatus == InfraStatus.Mvd -> IsaColors.Caution
+        else -> IsaColors.Steel
+    }
     PulpitPanel(
-        borderColor = if (locked) IsaColors.HostageGray else IsaColors.Steel,
+        borderColor = infraBorder,
     ) {
         LabelStrip(
             code = habit.code,

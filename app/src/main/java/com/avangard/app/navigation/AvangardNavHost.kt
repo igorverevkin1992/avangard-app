@@ -61,7 +61,9 @@ fun AvangardNavHost(
         }
         composable(NavRoute.OperatorPulpit.route) {
             OperatorPulpitScreen(
-                onOpenAuthorisation = { navController.navigate(NavRoute.AuthorisationModal.route) },
+                onOpenAuthorisation = { mode ->
+                    navController.navigate(NavRoute.AuthorisationModal.create(mode.name))
+                },
                 onOpenSabotage = { navController.navigate(NavRoute.Sabotage.route) },
                 onOpenEveningClose = { navController.navigate(NavRoute.EveningClose.route) },
                 onOpenSettings = { navController.navigate(NavRoute.Settings.route) },
@@ -84,7 +86,12 @@ fun AvangardNavHost(
                 onOpenSettings = { navController.navigate(NavRoute.Settings.route) },
             )
         }
-        composable(NavRoute.AuthorisationModal.route) {
+        composable(
+            route = NavRoute.AuthorisationModal.route,
+            arguments = listOf(
+                navArgument(NavRoute.AuthorisationModal.ARG_MODE) { type = NavType.StringType },
+            ),
+        ) {
             AuthorisationModalScreen(
                 onAuthorised = {
                     navController.navigate(NavRoute.EarnedPride.route) {
