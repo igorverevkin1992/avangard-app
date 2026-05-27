@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.avangard.app.R
 import com.avangard.app.core.domain.model.Bottleneck
+import com.avangard.app.core.domain.model.EvasionKind
 import com.avangard.app.core.domain.model.Habit
 import com.avangard.app.core.domain.usecase.SundayAuditView
 import com.avangard.app.core.ui.components.HardButton
@@ -97,6 +98,10 @@ internal fun SundayAuditContent(
             else -> MetricsTable(view = view)
         }
 
+        if (view != null && state.evasionsThisWeek.values.sum() > 0) {
+            EvasionsRow(evasions = state.evasionsThisWeek)
+        }
+
         if (state.isCompleted) {
             CompletionPanel(fixated = state.fixatedBottleneck!!)
         } else {
@@ -136,39 +141,97 @@ internal fun SundayAuditContent(
 
 @Composable
 private fun MetricsTable(view: SundayAuditView) {
+    val prev = view.previous?.takeIf { it.populated }
     PulpitPanel(label = stringResource(R.string.audit_metrics_label)) {
         MetricRow(
-            stringResource(R.string.audit_metric_core_hours),
-            formatHours(view.coreHoursMillis),
+            label = stringResource(R.string.audit_metric_core_hours),
+            value = formatHours(view.coreHoursMillis),
+            delta = prev?.let { formatDeltaHours(view.coreHoursMillis - it.coreHoursMillis) },
         )
-        MetricRow(stringResource(R.string.audit_metric_days_approved), view.daysApproved.toString())
-        MetricRow(stringResource(R.string.audit_metric_defects), view.defectCount.toString())
-        MetricRow(stringResource(R.string.audit_metric_wastes), view.wasteCount.toString())
-        MetricRow(stringResource(R.string.audit_metric_mvd_days), view.mvdDays.toString())
+        MetricRow(
+            label = stringResource(R.string.audit_metric_days_approved),
+            value = view.daysApproved.toString(),
+            delta = prev?.let { formatDelta(view.daysApproved - it.daysApproved) },
+        )
+        MetricRow(
+            label = stringResource(R.string.audit_metric_defects),
+            value = view.defectCount.toString(),
+            delta = prev?.let { formatDeltaInverse(view.defectCount - it.defectCount) },
+        )
+        MetricRow(
+            label = stringResource(R.string.audit_metric_wastes),
+            value = view.wasteCount.toString(),
+            delta = prev?.let { formatDeltaInverse(view.wasteCount - it.wasteCount) },
+        )
+        MetricRow(
+            label = stringResource(R.string.audit_metric_mvd_days),
+            value = view.mvdDays.toString(),
+            delta = prev?.let { formatDelta(view.mvdDays - it.mvdDays) },
+        )
         listOf(Habit.Spanish, Habit.Sport, Habit.Watching, Habit.Reading).forEach { habit ->
             val b = view.infraBreakdown[habit] ?: return@forEach
             MetricRow(
                 label = "${habit.code}·${habit.shortLabel}",
                 value = "${b.standard}/${b.mvd}/${b.notDone}",
+                delta = null,
             )
         }
+        val currentVirtues = view.virtueSums.rationality + view.virtueSums.independence +
+            view.virtueSums.honesty + view.virtueSums.justice
         MetricRow(
-            stringResource(R.string.audit_metric_virtues),
-            "R:${view.virtueSums.rationality} I:${view.virtueSums.independence} " +
+            label = stringResource(R.string.audit_metric_virtues),
+            value = "R:${view.virtueSums.rationality} I:${view.virtueSums.independence} " +
                 "H:${view.virtueSums.honesty} J:${view.virtueSums.justice}",
+            delta = prev?.let { formatDelta(currentVirtues - it.virtueSum) },
         )
     }
 }
 
 @Composable
-private fun MetricRow(label: String, value: String) {
+private fun MetricRow(label: String, value: String, delta: String?) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Text(text = label, color = IsaColors.LiveMetal, style = MaterialTheme.typography.bodyMedium)
-        Text(text = value, color = IsaColors.Approve, style = MaterialTheme.typography.labelLarge)
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(
+                text = value,
+                color = IsaColors.Approve,
+                style = MaterialTheme.typography.labelLarge,
+            )
+            if (delta != null) {
+                Text(
+                    text = delta,
+                    color = IsaColors.Lattice,
+                    style = MaterialTheme.typography.labelSmall,
+                )
+            }
+        }
     }
+}
+
+private fun formatDelta(diff: Int): String = when {
+    diff > 0 -> "(↑+$diff)"
+    diff < 0 -> "(↓$diff)"
+    else -> "(=)"
+}
+
+/** Inverse delta for metrics where less is better (defects, wastes): down is good. */
+private fun formatDeltaInverse(diff: Int): String = when {
+    diff > 0 -> "(↑+$diff)"
+    diff < 0 -> "(↓$diff)"
+    else -> "(=)"
+}
+
+private fun formatDeltaHours(diffMs: Long): String {
+    if (diffMs == 0L) return "(=)"
+    val sign = if (diffMs > 0) "↑+" else "↓"
+    val absMs = if (diffMs > 0) diffMs else -diffMs
+    val totalSeconds = absMs / 1000
+    val h = totalSeconds / 3600
+    val m = (totalSeconds % 3600) / 60
+    return "(${sign}%02d:%02d)".format(java.util.Locale.US, h, m)
 }
 
 @Composable
@@ -222,6 +285,21 @@ private fun BottleneckRow(
             )
             .padding(horizontal = 10.dp, vertical = 10.dp),
     )
+}
+
+@Composable
+private fun EvasionsRow(evasions: Map<EvasionKind, Int>) {
+    val total = evasions.values.sum()
+    val sub = evasions[EvasionKind.Substitution] ?: 0
+    val def = evasions[EvasionKind.Defect] ?: 0
+    val cmp = evasions[EvasionKind.Comparison] ?: 0
+    PulpitPanel(label = stringResource(R.string.audit_evasions_label)) {
+        Text(
+            text = stringResource(R.string.audit_evasions_summary, total, sub, def, cmp),
+            color = IsaColors.Signal,
+            style = MaterialTheme.typography.labelMedium,
+        )
+    }
 }
 
 private fun formatHours(millis: Long): String {

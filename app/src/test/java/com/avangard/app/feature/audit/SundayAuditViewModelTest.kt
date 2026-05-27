@@ -39,6 +39,13 @@ class SundayAuditViewModelTest {
             audit = SundayAuditUseCase(repository, clock),
             observeSession = ObserveDailySessionUseCase(repository),
             setBottleneck = SetBottleneckUseCase(repository, clock),
+            preferences = io.mockk.mockk(relaxed = true) {
+                io.mockk.every { flow } returns
+                    kotlinx.coroutines.flow.MutableStateFlow(
+                        com.avangard.app.core.data.UserPreferences()
+                    )
+            },
+            clock = clock,
         )
     }
 

@@ -2,7 +2,10 @@ package com.avangard.app.feature.audit
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.avangard.app.core.common.Clock
+import com.avangard.app.core.data.UserPreferencesRepository
 import com.avangard.app.core.domain.model.Bottleneck
+import com.avangard.app.core.domain.model.EvasionKind
 import com.avangard.app.core.domain.usecase.ObserveDailySessionUseCase
 import com.avangard.app.core.domain.usecase.SetBottleneckUseCase
 import com.avangard.app.core.domain.usecase.SundayAuditUseCase
@@ -27,6 +30,8 @@ data class SundayAuditState(
      *  audit has been fixated. UI switches to a sealed "completed" layout
      *  rather than showing the picker + submit affordances. */
     val fixatedBottleneck: Bottleneck? = null,
+    /** Count of evasion diagnoses recorded in the last 7 days, by kind. */
+    val evasionsThisWeek: Map<EvasionKind, Int> = emptyMap(),
 ) {
     val isCompleted: Boolean get() = fixatedBottleneck != null
     val canSubmit: Boolean get() = !submitting && !isCompleted && selectedBottleneck != null
@@ -41,6 +46,8 @@ class SundayAuditViewModel @Inject constructor(
     audit: SundayAuditUseCase,
     observeSession: ObserveDailySessionUseCase,
     private val setBottleneck: SetBottleneckUseCase,
+    preferences: UserPreferencesRepository,
+    clock: Clock,
 ) : ViewModel() {
 
     private val selection = MutableStateFlow<Bottleneck?>(null)
@@ -54,12 +61,21 @@ class SundayAuditViewModel @Inject constructor(
         selection,
         submitting,
         observeSession().map { it.bottleneckForNextWeek },
-    ) { view, picked, busy, fixated ->
+        preferences.flow.map { prefs ->
+            // Bucket events within the last 7 days by kind for the audit row.
+            val cutoff = clock.nowEpochMillis() - 7L * 24 * 60 * 60 * 1000
+            prefs.evasionLog
+                .filter { it.timestampMs >= cutoff }
+                .groupingBy { it.kind }
+                .eachCount()
+        },
+    ) { view, picked, busy, fixated, evasions ->
         SundayAuditState(
             view = view,
             selectedBottleneck = picked,
             submitting = busy,
             fixatedBottleneck = fixated,
+            evasionsThisWeek = evasions,
         )
     }.stateIn(
         scope = viewModelScope,

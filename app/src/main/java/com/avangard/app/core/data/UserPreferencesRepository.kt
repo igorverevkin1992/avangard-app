@@ -10,6 +10,8 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.avangard.app.core.database.AppDatabase
+import com.avangard.app.core.domain.model.EvasionEvent
+import com.avangard.app.core.domain.model.EvasionKind
 import com.avangard.app.core.domain.model.HabitStandard
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -19,6 +21,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
@@ -53,6 +56,8 @@ data class UserPreferences(
     val ignitionMinute: Int = 0,
     /** Operator-defined «СТАНДАРТ» / «МИНИМУМ» criteria per habit code. */
     val habitStandards: Map<String, HabitStandard> = emptyMap(),
+    /** Ring buffer of recent evasion-diagnostic events (newest first). */
+    val evasionLog: List<EvasionEvent> = emptyList(),
 ) {
     companion object {
         const val DEFAULT_COLD_START_MS: Long = 5L * 60 * 1000
@@ -176,6 +181,15 @@ class UserPreferencesRepository @Inject constructor(
         }
     }
 
+    /** Append an evasion-diagnostic event; ring-buffered to [EVASION_LOG_CAP]. */
+    suspend fun appendEvasion(kind: EvasionKind, timestampMs: Long) {
+        context.preferencesStore.edit { prefs ->
+            val current = prefs[KEY_EVASION_LOG]?.let(::decodeEvasionLog) ?: emptyList()
+            val updated = (listOf(EvasionEvent(timestampMs, kind)) + current).take(EVASION_LOG_CAP)
+            prefs[KEY_EVASION_LOG] = encodeEvasionLog(updated)
+        }
+    }
+
     /**
      * Increment the launch counter and, every [VACUUM_EVERY_LAUNCHES] launches,
      * defragment the SQLite file. Cheap maintenance to keep the DB compact on
@@ -208,6 +222,7 @@ class UserPreferencesRepository @Inject constructor(
         ignitionHour = this[KEY_IGNITION_HOUR] ?: UserPreferences.DEFAULT_IGNITION_HOUR,
         ignitionMinute = this[KEY_IGNITION_MINUTE] ?: 0,
         habitStandards = this[KEY_HABIT_STANDARDS]?.let(::decodeHabitStandards) ?: emptyMap(),
+        evasionLog = this[KEY_EVASION_LOG]?.let(::decodeEvasionLog) ?: emptyList(),
     )
 
     private fun encodeHabitStandards(map: Map<String, HabitStandard>): String =
@@ -221,6 +236,17 @@ class UserPreferencesRepository @Inject constructor(
             // fall back to empty so the rest of the app still functions.
             Log.w("UserPrefs", "habit_standards decode failed", it)
             emptyMap()
+        }
+
+    private fun encodeEvasionLog(list: List<EvasionEvent>): String =
+        JSON.encodeToString(EVASION_LOG_SERIALIZER, list)
+
+    private fun decodeEvasionLog(value: String): List<EvasionEvent> =
+        runCatching {
+            JSON.decodeFromString(EVASION_LOG_SERIALIZER, value)
+        }.getOrElse {
+            Log.w("UserPrefs", "evasion_log decode failed", it)
+            emptyList()
         }
 
     companion object {
@@ -237,10 +263,14 @@ class UserPreferencesRepository @Inject constructor(
         private val KEY_IGNITION_HOUR = intPreferencesKey("chronometer_ignition_hour")
         private val KEY_IGNITION_MINUTE = intPreferencesKey("chronometer_ignition_minute")
         private val KEY_HABIT_STANDARDS = stringPreferencesKey("habit_standards_json")
+        private val KEY_EVASION_LOG = stringPreferencesKey("evasion_log_json")
         private const val VACUUM_EVERY_LAUNCHES = 30
+        private const val EVASION_LOG_CAP = 50
 
         private val JSON = Json { ignoreUnknownKeys = true }
         private val HABIT_STANDARDS_SERIALIZER =
             MapSerializer(String.serializer(), HabitStandard.serializer())
+        private val EVASION_LOG_SERIALIZER =
+            ListSerializer(EvasionEvent.serializer())
     }
 }

@@ -58,6 +58,8 @@
     <string name="sabotage_defect_body">Артефакт машины — это математическая погрешность весов модели, а не личное оскорбление оператора. Брак подлежит инженерному алгоритмическому исправлению. Эмоции не меняют пиксели.</string>
     <string name="sabotage_comparison_title">СОЦИАЛЬНОЕ СРАВНЕНИЕ</string>
     <string name="sabotage_comparison_body">Чужой результат есть закономерное следствие чужого вложенного времени. Сравнение несопоставимых переменных логически ошибочно и ведёт исключительно к нейробиологической потере.</string>
+    <string name="sabotage_acknowledge">ЗАФИКСИРОВАТЬ ДИАГНОЗ</string>
+    <string name="sabotage_acknowledged">✓ ЗАФИКСИРОВАНО</string>
     <string name="sabotage_return">ВЕРНУТЬСЯ К ПУЛЬТУ</string>
 
     <!-- Evening close. -->
@@ -92,6 +94,8 @@
     <string name="audit_metric_mvd_days">ДНИ MVD</string>
     <string name="audit_metric_virtues">СУММА ДОБРОДЕТЕЛЕЙ</string>
     <string name="audit_bottleneck_label">ОГРАНИЧЕНИЕ НА СЛЕДУЮЩУЮ НЕДЕЛЮ</string>
+    <string name="audit_evasions_label">ДИАГНОЗЫ УКЛОНЕНИЯ</string>
+    <string name="audit_evasions_summary">ЗА НЕДЕЛЮ ЗАФИКСИРОВАНО %1$d (ПОДМЕНА %2$d · БРАК %3$d · СРАВНЕНИЕ %4$d)</string>
     <string name="audit_submit">ЗАФИКСИРОВАТЬ</string>
     <string name="audit_open_history">ОТКРЫТЬ ТРЕКЕР</string>
     <string name="audit_open_pulpit">ОТКРЫТЬ ПУЛЬТ</string>
