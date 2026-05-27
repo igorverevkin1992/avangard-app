@@ -1,6 +1,7 @@
 package com.avangard.app.core.domain.repository
 
 import com.avangard.app.core.domain.model.Bottleneck
+import com.avangard.app.core.domain.model.BottleneckFollowup
 import com.avangard.app.core.domain.model.CoreMode
 import com.avangard.app.core.domain.model.DailySession
 import com.avangard.app.core.domain.model.DefectKind
@@ -30,6 +31,7 @@ interface SessionRepository {
         recordedAt: Long,
     )
     suspend fun setBottleneck(dateEpoch: Long, bottleneck: Bottleneck)
+    suspend fun setBottleneckFollowup(dateEpoch: Long, followup: BottleneckFollowup)
     suspend fun setJournalEntry(dateEpoch: Long, entry: String?)
 
     fun observeActiveFocus(): Flow<FocusSession?>

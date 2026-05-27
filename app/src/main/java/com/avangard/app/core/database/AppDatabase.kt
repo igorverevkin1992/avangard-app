@@ -17,7 +17,7 @@ import com.avangard.app.core.database.entity.HabitLogEntity
         DailySessionEntity::class,
         FocusSessionEntity::class,
     ],
-    version = 7,
+    version = 8,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -114,6 +114,17 @@ abstract class AppDatabase : RoomDatabase() {
         val MIGRATION_5_6: Migration = object : Migration(5, 6) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE daily_session ADD COLUMN journal_entry TEXT")
+            }
+        }
+
+        /**
+         * v8: stores the operator's verdict on last week's bottleneck so the
+         * PDCA loop closes inside one audit screen. Plain TEXT column, NULL
+         * until the next weekly audit logs an answer.
+         */
+        val MIGRATION_7_8: Migration = object : Migration(7, 8) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE daily_session ADD COLUMN bottleneck_followup TEXT")
             }
         }
 

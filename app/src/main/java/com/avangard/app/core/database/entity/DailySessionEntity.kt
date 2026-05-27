@@ -52,4 +52,11 @@ data class DailySessionEntity(
      * operator writes one.
      */
     @ColumnInfo(name = "journal_entry") val journalEntry: String? = null,
+
+    /**
+     * `BottleneckFollowup.name()` (Yes / Partial / No) recording the verdict
+     * on the bottleneck set on last Sunday's audit. NULL until the next
+     * Sunday closes. Lets the audit screen surface a one-row PDCA close.
+     */
+    @ColumnInfo(name = "bottleneck_followup") val bottleneckFollowup: String? = null,
 )

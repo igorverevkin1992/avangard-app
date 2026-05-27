@@ -12,6 +12,7 @@ import com.avangard.app.core.database.entity.DailySessionEntity
 import com.avangard.app.core.database.entity.FocusSessionEntity
 import com.avangard.app.core.database.entity.HabitLogEntity
 import com.avangard.app.core.domain.model.Bottleneck
+import com.avangard.app.core.domain.model.BottleneckFollowup
 import com.avangard.app.core.domain.model.CoreMode
 import com.avangard.app.core.domain.model.CoreStatus
 import com.avangard.app.core.domain.model.DailySession
@@ -161,6 +162,13 @@ class RoomSessionRepository @Inject constructor(
         }
     }
 
+    override suspend fun setBottleneckFollowup(dateEpoch: Long, followup: BottleneckFollowup) {
+        database.withTransaction {
+            val current = dailyDao.ensureRow(dateEpoch)
+            dailyDao.upsert(current.copy(bottleneckFollowup = followup.name))
+        }
+    }
+
     override suspend fun setJournalEntry(dateEpoch: Long, entry: String?) {
         // Blank input becomes null on disk so we don't litter the row with
         // empty strings — the domain treats null and "" identically.
@@ -273,6 +281,9 @@ private fun DailySessionEntity.toDomain(): DailySession = DailySession(
         runCatching { Bottleneck.valueOf(name) }.getOrNull()
     },
     journalEntry = journalEntry,
+    bottleneckFollowup = bottleneckFollowup?.let { name ->
+        runCatching { BottleneckFollowup.valueOf(name) }.getOrNull()
+    },
 )
 
 private fun FocusSessionEntity.toDomain(): FocusSession? {

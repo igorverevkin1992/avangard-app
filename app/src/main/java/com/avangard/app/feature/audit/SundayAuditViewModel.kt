@@ -3,9 +3,13 @@ package com.avangard.app.feature.audit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.avangard.app.core.common.Clock
+import com.avangard.app.core.common.DAY_MILLIS
+import com.avangard.app.core.common.toStartOfDayEpoch
 import com.avangard.app.core.data.UserPreferencesRepository
 import com.avangard.app.core.domain.model.Bottleneck
+import com.avangard.app.core.domain.model.BottleneckFollowup
 import com.avangard.app.core.domain.model.EvasionKind
+import com.avangard.app.core.domain.repository.SessionRepository
 import com.avangard.app.core.domain.usecase.ObserveDailySessionUseCase
 import com.avangard.app.core.domain.usecase.SetBottleneckUseCase
 import com.avangard.app.core.domain.usecase.SundayAuditUseCase
@@ -32,6 +36,10 @@ data class SundayAuditState(
     val fixatedBottleneck: Bottleneck? = null,
     /** Count of evasion diagnoses recorded in the last 7 days, by kind. */
     val evasionsThisWeek: Map<EvasionKind, Int> = emptyMap(),
+    /** Last week's bottleneck — what the operator now answers Yes/Partial/No against. */
+    val priorBottleneck: Bottleneck? = null,
+    /** Currently saved verdict on the prior bottleneck. Null until the operator picks one. */
+    val priorBottleneckFollowup: BottleneckFollowup? = null,
 ) {
     val isCompleted: Boolean get() = fixatedBottleneck != null
     val canSubmit: Boolean get() = !submitting && !isCompleted && selectedBottleneck != null
@@ -47,7 +55,8 @@ class SundayAuditViewModel @Inject constructor(
     observeSession: ObserveDailySessionUseCase,
     private val setBottleneck: SetBottleneckUseCase,
     preferences: UserPreferencesRepository,
-    clock: Clock,
+    private val clock: Clock,
+    private val sessions: SessionRepository,
 ) : ViewModel() {
 
     private val selection = MutableStateFlow<Bottleneck?>(null)
@@ -56,32 +65,64 @@ class SundayAuditViewModel @Inject constructor(
     private val _effects = Channel<SundayAuditEffect>(Channel.BUFFERED)
     val effects = _effects.receiveAsFlow()
 
+    // Look back 14 days for the latest bottleneck the operator set. Today
+    // is excluded so the audit can't reference itself before submit.
+    private val priorFlow = run {
+        val today = clock.today().toStartOfDayEpoch(clock.zone())
+        sessions.observeRange(today - 13 * DAY_MILLIS, today - 1)
+            .map { rows ->
+                rows.asReversed().firstOrNull { it.bottleneckForNextWeek != null }
+                    ?.bottleneckForNextWeek
+            }
+    }
+
+    private data class CurrentInputs(
+        val view: SundayAuditView,
+        val picked: Bottleneck?,
+        val busy: Boolean,
+        val today: com.avangard.app.core.domain.model.DailySession,
+        val evasions: Map<EvasionKind, Int>,
+    )
+
     val state: StateFlow<SundayAuditState> = combine(
-        audit(),
-        selection,
-        submitting,
-        observeSession().map { it.bottleneckForNextWeek },
-        preferences.flow.map { prefs ->
-            // Bucket events within the last 7 days by kind for the audit row.
-            val cutoff = clock.nowEpochMillis() - 7L * 24 * 60 * 60 * 1000
-            prefs.evasionLog
-                .filter { it.timestampMs >= cutoff }
-                .groupingBy { it.kind }
-                .eachCount()
+        combine(
+            audit(),
+            selection,
+            submitting,
+            observeSession(),
+            preferences.flow.map { prefs ->
+                val cutoff = clock.nowEpochMillis() - 7L * 24 * 60 * 60 * 1000
+                prefs.evasionLog
+                    .filter { it.timestampMs >= cutoff }
+                    .groupingBy { it.kind }
+                    .eachCount()
+            },
+        ) { view, picked, busy, today, evasions ->
+            CurrentInputs(view, picked, busy, today, evasions)
         },
-    ) { view, picked, busy, fixated, evasions ->
+        priorFlow,
+    ) { current, prior ->
         SundayAuditState(
-            view = view,
-            selectedBottleneck = picked,
-            submitting = busy,
-            fixatedBottleneck = fixated,
-            evasionsThisWeek = evasions,
+            view = current.view,
+            selectedBottleneck = current.picked,
+            submitting = current.busy,
+            fixatedBottleneck = current.today.bottleneckForNextWeek,
+            evasionsThisWeek = current.evasions,
+            priorBottleneck = prior,
+            priorBottleneckFollowup = current.today.bottleneckFollowup,
         )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = SundayAuditState(),
     )
+
+    fun onPickFollowup(answer: BottleneckFollowup) {
+        viewModelScope.launch {
+            val today = clock.today().toStartOfDayEpoch(clock.zone())
+            sessions.setBottleneckFollowup(today, answer)
+        }
+    }
 
     fun onPickBottleneck(bottleneck: Bottleneck) {
         // Sealed once the audit is fixated for the day — the picker is hidden

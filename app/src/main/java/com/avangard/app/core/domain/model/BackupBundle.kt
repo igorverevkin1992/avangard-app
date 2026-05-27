@@ -68,6 +68,8 @@ data class BackupDailySession(
     val virtJustice: Int? = null,
     val bottleneckForNextWeek: String? = null,
     val journalEntry: String? = null,
+    /** Operator's verdict on last week's bottleneck (Yes/Partial/No); v3+. */
+    val bottleneckFollowup: String? = null,
 )
 
 @Serializable

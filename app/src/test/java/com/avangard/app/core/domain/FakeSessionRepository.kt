@@ -2,6 +2,7 @@ package com.avangard.app.core.domain
 
 import com.avangard.app.core.common.toStartOfDayEpoch
 import com.avangard.app.core.domain.model.Bottleneck
+import com.avangard.app.core.domain.model.BottleneckFollowup
 import com.avangard.app.core.domain.model.CoreMode
 import com.avangard.app.core.domain.model.CoreStatus
 import com.avangard.app.core.domain.model.DailySession
@@ -111,6 +112,10 @@ class FakeSessionRepository(
 
     override suspend fun setBottleneck(dateEpoch: Long, bottleneck: Bottleneck) {
         mutate(dateEpoch) { it.copy(bottleneckForNextWeek = bottleneck) }
+    }
+
+    override suspend fun setBottleneckFollowup(dateEpoch: Long, followup: BottleneckFollowup) {
+        mutate(dateEpoch) { it.copy(bottleneckFollowup = followup) }
     }
 
     override suspend fun setJournalEntry(dateEpoch: Long, entry: String?) {

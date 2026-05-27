@@ -96,6 +96,8 @@
     <string name="audit_bottleneck_label">ОГРАНИЧЕНИЕ НА СЛЕДУЮЩУЮ НЕДЕЛЮ</string>
     <string name="audit_evasions_label">ДИАГНОЗЫ УКЛОНЕНИЯ</string>
     <string name="audit_evasions_summary">ЗА НЕДЕЛЮ ЗАФИКСИРОВАНО %1$d (ПОДМЕНА %2$d · БРАК %3$d · СРАВНЕНИЕ %4$d)</string>
+    <string name="audit_prior_label">ОГРАНИЧЕНИЕ ПРОШЛОЙ НЕДЕЛИ</string>
+    <string name="audit_prior_question">Выполнено?</string>
     <string name="audit_submit">ЗАФИКСИРОВАТЬ</string>
     <string name="audit_open_history">ОТКРЫТЬ ТРЕКЕР</string>
     <string name="audit_open_pulpit">ОТКРЫТЬ ПУЛЬТ</string>

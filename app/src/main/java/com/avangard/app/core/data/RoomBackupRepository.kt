@@ -93,6 +93,7 @@ private fun DailySessionEntity.toBackup() = BackupDailySession(
     virtJustice = virtJustice,
     bottleneckForNextWeek = bottleneckForNextWeek,
     journalEntry = journalEntry,
+    bottleneckFollowup = bottleneckFollowup,
 )
 
 private fun BackupDailySession.toEntity(): DailySessionEntity {
@@ -124,6 +125,7 @@ private fun BackupDailySession.toEntity(): DailySessionEntity {
         virtJustice = virtJustice,
         bottleneckForNextWeek = bottleneckForNextWeek,
         journalEntry = journalEntry,
+        bottleneckFollowup = bottleneckFollowup,
     )
 }
 

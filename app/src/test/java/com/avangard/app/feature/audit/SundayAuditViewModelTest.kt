@@ -46,6 +46,7 @@ class SundayAuditViewModelTest {
                     )
             },
             clock = clock,
+            sessions = repository,
         )
     }
 

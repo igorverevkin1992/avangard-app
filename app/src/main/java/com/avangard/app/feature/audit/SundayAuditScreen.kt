@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.avangard.app.R
 import com.avangard.app.core.domain.model.Bottleneck
+import com.avangard.app.core.domain.model.BottleneckFollowup
 import com.avangard.app.core.domain.model.EvasionKind
 import com.avangard.app.core.domain.model.Habit
 import com.avangard.app.core.domain.usecase.SundayAuditView
@@ -48,6 +49,7 @@ fun SundayAuditScreen(
     SundayAuditContent(
         state = state,
         onPickBottleneck = viewModel::onPickBottleneck,
+        onPickFollowup = viewModel::onPickFollowup,
         onSubmit = viewModel::submit,
         onOpenHistory = onOpenHistory,
         onOpenPulpit = onOpenPulpit,
@@ -59,6 +61,7 @@ fun SundayAuditScreen(
 internal fun SundayAuditContent(
     state: SundayAuditState,
     onPickBottleneck: (Bottleneck) -> Unit,
+    onPickFollowup: (BottleneckFollowup) -> Unit = {},
     onSubmit: () -> Unit,
     onOpenHistory: () -> Unit,
     onOpenPulpit: () -> Unit,
@@ -100,6 +103,14 @@ internal fun SundayAuditContent(
 
         if (view != null && state.evasionsThisWeek.values.sum() > 0) {
             EvasionsRow(evasions = state.evasionsThisWeek)
+        }
+
+        state.priorBottleneck?.let { prior ->
+            PriorBottleneckPanel(
+                prior = prior,
+                answer = state.priorBottleneckFollowup,
+                onPick = onPickFollowup,
+            )
         }
 
         if (state.isCompleted) {
@@ -284,6 +295,69 @@ private fun BottleneckRow(
                 onClick = onClick,
             )
             .padding(horizontal = 10.dp, vertical = 10.dp),
+    )
+}
+
+@Composable
+private fun PriorBottleneckPanel(
+    prior: Bottleneck,
+    answer: BottleneckFollowup?,
+    onPick: (BottleneckFollowup) -> Unit,
+) {
+    PulpitPanel(label = stringResource(R.string.audit_prior_label)) {
+        Text(
+            text = prior.displayName,
+            color = IsaColors.LiveMetal,
+            style = MaterialTheme.typography.labelLarge,
+        )
+        Text(
+            text = stringResource(R.string.audit_prior_question),
+            color = IsaColors.Lattice,
+            style = MaterialTheme.typography.labelSmall,
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            BottleneckFollowup.entries.forEach { option ->
+                FollowupChip(
+                    option = option,
+                    selected = answer == option,
+                    onClick = { onPick(option) },
+                    modifier = Modifier.weight(1f),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun FollowupChip(
+    option: BottleneckFollowup,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val color = when {
+        selected && option == BottleneckFollowup.Yes -> IsaColors.Approve
+        selected && option == BottleneckFollowup.Partial -> IsaColors.Caution
+        selected && option == BottleneckFollowup.No -> IsaColors.Signal
+        else -> IsaColors.Lattice
+    }
+    val interactionSource = remember(option) { MutableInteractionSource() }
+    Text(
+        text = option.displayName,
+        color = color,
+        style = MaterialTheme.typography.labelLarge,
+        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+        modifier = modifier
+            .border(width = if (selected) 2.dp else 1.dp, color = color)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick,
+            )
+            .padding(horizontal = 10.dp, vertical = 8.dp),
     )
 }
 

@@ -50,6 +50,8 @@ data class DailySession(
     val bottleneckForNextWeek: Bottleneck?,
     /** Operator's free-text summary of the day, ≤ JOURNAL_MAX_CHARS. */
     val journalEntry: String? = null,
+    /** Retrospective verdict on the bottleneck set on last Sunday. */
+    val bottleneckFollowup: BottleneckFollowup? = null,
 ) {
     /** Hostage Logic predicate: Infra modules unlock only when Core is Approved. */
     val isCoreUnlocked: Boolean get() = coreStatus is CoreStatus.Approved
