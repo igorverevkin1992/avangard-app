@@ -1,13 +1,16 @@
 package com.avangard.app.core.data
 
 import android.content.Context
+import android.util.Log
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.avangard.app.core.database.AppDatabase
+import com.avangard.app.core.domain.model.HabitStandard
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -16,6 +19,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.builtins.MapSerializer
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.json.Json
 
 /**
  * Snapshot of the operator-controlled knobs persisted across launches.
@@ -45,6 +51,8 @@ data class UserPreferences(
     val ignitionEnabled: Boolean = true,
     val ignitionHour: Int = DEFAULT_IGNITION_HOUR,
     val ignitionMinute: Int = 0,
+    /** Operator-defined «СТАНДАРТ» / «МИНИМУМ» criteria per habit code. */
+    val habitStandards: Map<String, HabitStandard> = emptyMap(),
 ) {
     companion object {
         const val DEFAULT_COLD_START_MS: Long = 5L * 60 * 1000
@@ -135,6 +143,20 @@ class UserPreferencesRepository @Inject constructor(
         }
     }
 
+    suspend fun setHabitStandard(habitCode: String, standard: HabitStandard) {
+        context.preferencesStore.edit { prefs ->
+            val current = prefs[KEY_HABIT_STANDARDS]?.let(::decodeHabitStandards) ?: emptyMap()
+            val updated = if (standard.isEmpty) current - habitCode else current + (habitCode to standard)
+            prefs[KEY_HABIT_STANDARDS] = encodeHabitStandards(updated)
+        }
+    }
+
+    suspend fun replaceHabitStandards(map: Map<String, HabitStandard>) {
+        context.preferencesStore.edit { prefs ->
+            prefs[KEY_HABIT_STANDARDS] = encodeHabitStandards(map)
+        }
+    }
+
     /**
      * Increment the launch counter and, every [VACUUM_EVERY_LAUNCHES] launches,
      * defragment the SQLite file. Cheap maintenance to keep the DB compact on
@@ -166,7 +188,21 @@ class UserPreferencesRepository @Inject constructor(
         ignitionEnabled = this[KEY_IGNITION_ENABLED] ?: true,
         ignitionHour = this[KEY_IGNITION_HOUR] ?: UserPreferences.DEFAULT_IGNITION_HOUR,
         ignitionMinute = this[KEY_IGNITION_MINUTE] ?: 0,
+        habitStandards = this[KEY_HABIT_STANDARDS]?.let(::decodeHabitStandards) ?: emptyMap(),
     )
+
+    private fun encodeHabitStandards(map: Map<String, HabitStandard>): String =
+        JSON.encodeToString(HABIT_STANDARDS_SERIALIZER, map)
+
+    private fun decodeHabitStandards(value: String): Map<String, HabitStandard> =
+        runCatching {
+            JSON.decodeFromString(HABIT_STANDARDS_SERIALIZER, value)
+        }.getOrElse {
+            // Corrupt JSON in DataStore (manual edit, bad migration): swallow and
+            // fall back to empty so the rest of the app still functions.
+            Log.w("UserPrefs", "habit_standards decode failed", it)
+            emptyMap()
+        }
 
     companion object {
         private val KEY_EVENING_HOUR = intPreferencesKey("evening_close_hour")
@@ -181,6 +217,11 @@ class UserPreferencesRepository @Inject constructor(
         private val KEY_IGNITION_ENABLED = booleanPreferencesKey("chronometer_ignition_enabled")
         private val KEY_IGNITION_HOUR = intPreferencesKey("chronometer_ignition_hour")
         private val KEY_IGNITION_MINUTE = intPreferencesKey("chronometer_ignition_minute")
+        private val KEY_HABIT_STANDARDS = stringPreferencesKey("habit_standards_json")
         private const val VACUUM_EVERY_LAUNCHES = 30
+
+        private val JSON = Json { ignoreUnknownKeys = true }
+        private val HABIT_STANDARDS_SERIALIZER =
+            MapSerializer(String.serializer(), HabitStandard.serializer())
     }
 }

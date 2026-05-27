@@ -248,4 +248,10 @@
     <string name="notification_status_fix_title">%1$s · %2$s</string>
     <string name="notification_status_fix_body">%1$s ЗАФИКСИРОВАН.</string>
     <string name="banner_status_fix">%1$s · %2$s · %3$s ЗАФИКСИРОВАН</string>
+
+    <!-- Standards (definitions of what counts as Standard / Minimum per habit). -->
+    <string name="settings_standards_label">СТАНДАРТЫ</string>
+    <string name="settings_standards_hint">Что считается СТАНДАРТОМ и МИНИМУМОМ для каждой привычки. Пишется один раз и пересматривается на воскресной оценке.</string>
+    <string name="settings_standards_field_standard">СТАНДАРТ</string>
+    <string name="settings_standards_field_mvd">МИНИМУМ</string>
 </resources>

@@ -43,6 +43,7 @@ class RoomBackupRepository @Inject constructor(
                     ignitionHour = prefs.ignitionHour,
                     ignitionMinute = prefs.ignitionMinute,
                 ),
+                habitStandards = prefs.habitStandards.takeIf { it.isNotEmpty() },
             )
         }
     }
@@ -68,6 +69,7 @@ class RoomBackupRepository @Inject constructor(
             preferences.setIgnitionTime(c.ignitionHour, c.ignitionMinute)
             ignitionScheduler.ensureScheduled()
         }
+        bundle.habitStandards?.let { preferences.replaceHabitStandards(it) }
     }
 }
 

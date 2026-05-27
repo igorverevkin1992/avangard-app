@@ -15,6 +15,8 @@ data class BackupBundle(
     val focusSessions: List<BackupFocusSession>,
     val habitLogs: List<BackupHabitLog>,
     val chronometer: ChronometerBackup? = null,
+    /** Operator-defined criteria per habit code; v3+. */
+    val habitStandards: Map<String, HabitStandard>? = null,
 ) {
     companion object {
         /**
