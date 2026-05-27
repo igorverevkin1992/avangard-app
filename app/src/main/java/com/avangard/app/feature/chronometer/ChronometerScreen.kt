@@ -18,6 +18,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
@@ -159,9 +162,7 @@ private fun ResourcePanel(progress: ChronometerProgress) {
 private fun GridPanel(progress: ChronometerProgress) {
     // Tap a week in the grid to inspect that week's class without losing
     // the at-a-glance overview. Popup closes on outside-tap.
-    var pickedWeek by androidx.compose.runtime.remember {
-        androidx.compose.runtime.mutableStateOf<Int?>(null)
-    }
+    var pickedWeek by remember { mutableStateOf<Int?>(null) }
     PulpitPanel(label = stringResource(R.string.chronometer_grid_label)) {
         LifeGrid(
             weeks = progress.weeks,
