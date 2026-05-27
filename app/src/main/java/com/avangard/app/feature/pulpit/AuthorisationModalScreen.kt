@@ -20,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -49,6 +50,12 @@ fun AuthorisationModalScreen(
         modifier = modifier
             .fillMaxSize()
             .background(IsaColors.Carbon)
+            // Modal screens (this one, evening close, sabotage, earned pride)
+            // are full-screen routes rather than Dialog composables, so they
+            // can't take the system Dialog role. Marking the surface as a
+            // traversal group still keeps TalkBack's swipe navigation
+            // contained to the modal contents.
+            .semantics { isTraversalGroup = true }
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {

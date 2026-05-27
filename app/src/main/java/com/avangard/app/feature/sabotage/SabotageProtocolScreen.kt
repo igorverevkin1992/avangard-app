@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.avangard.app.R
@@ -34,6 +35,7 @@ fun SabotageProtocolScreen(
         modifier = modifier
             .fillMaxSize()
             .background(IsaColors.Graphite)
+            .semantics { isTraversalGroup = true }
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),

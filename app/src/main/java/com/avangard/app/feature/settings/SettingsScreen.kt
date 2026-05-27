@@ -161,47 +161,68 @@ internal fun SettingsContent(
             modifier = Modifier.semantics { heading() },
         )
 
-        EveningCloseBlock(
-            hour = state.preferences.eveningCloseHour,
-            minute = state.preferences.eveningCloseMinute,
-            onChanged = onEveningCloseChanged,
-        )
+        CollapsibleSection(label = stringResource(R.string.settings_evening_close_label)) {
+            EveningCloseBlock(
+                hour = state.preferences.eveningCloseHour,
+                minute = state.preferences.eveningCloseMinute,
+                onChanged = onEveningCloseChanged,
+            )
+        }
 
-        ColdStartBlock(
-            currentMinutes = (state.preferences.coldStartThresholdMs / 60 / 1000).toInt(),
-            onChanged = onColdStartThresholdChanged,
-        )
+        CollapsibleSection(label = stringResource(R.string.settings_cold_start_label)) {
+            ColdStartBlock(
+                currentMinutes = (state.preferences.coldStartThresholdMs / 60 / 1000).toInt(),
+                onChanged = onColdStartThresholdChanged,
+            )
+        }
 
-        ChronometerBlock(
-            preferences = state.preferences,
-            onBirthdayChanged = onBirthdayChanged,
-            onLifeExpectancyChanged = onLifeExpectancyChanged,
-            onIgnitionEnabledChanged = onIgnitionEnabledChanged,
-            onIgnitionTimeChanged = onIgnitionTimeChanged,
-        )
+        CollapsibleSection(label = stringResource(R.string.settings_chronometer_label)) {
+            ChronometerBlock(
+                preferences = state.preferences,
+                onBirthdayChanged = onBirthdayChanged,
+                onLifeExpectancyChanged = onLifeExpectancyChanged,
+                onIgnitionEnabledChanged = onIgnitionEnabledChanged,
+                onIgnitionTimeChanged = onIgnitionTimeChanged,
+            )
+        }
 
-        HabitStandardsBlock(
-            standards = state.preferences.habitStandards,
-            onChanged = onHabitStandardChanged,
-        )
+        CollapsibleSection(
+            label = stringResource(R.string.settings_standards_label),
+            initiallyOpen = false,
+        ) {
+            HabitStandardsBlock(
+                standards = state.preferences.habitStandards,
+                onChanged = onHabitStandardChanged,
+            )
+        }
 
-        CloudSyncPanel(
-            email = state.signedInEmail,
-            lastSyncedAt = state.preferences.lastSyncedAt,
-            onForceSync = onForceSync,
-            onSignOut = onSignOut,
-        )
+        CollapsibleSection(label = stringResource(R.string.settings_cloud_label)) {
+            CloudSyncPanel(
+                email = state.signedInEmail,
+                lastSyncedAt = state.preferences.lastSyncedAt,
+                onForceSync = onForceSync,
+                onSignOut = onSignOut,
+            )
+        }
 
-        BackupBlock(
-            state = state,
-            onExportClick = onExportClick,
-            onImportClick = onImportClick,
-            onConfirmImport = onConfirmImport,
-            onCancelImport = onCancelImport,
-            onDismissBackupStatus = onDismissBackupStatus,
-        )
+        CollapsibleSection(
+            label = stringResource(R.string.settings_backup_label),
+            initiallyOpen = false,
+        ) {
+            BackupBlock(
+                state = state,
+                onExportClick = onExportClick,
+                onImportClick = onImportClick,
+                onConfirmImport = onConfirmImport,
+                onCancelImport = onCancelImport,
+                onDismissBackupStatus = onDismissBackupStatus,
+            )
+        }
 
-        PulpitPanel(label = stringResource(R.string.settings_wipe_label)) {
+        CollapsibleSection(
+            label = stringResource(R.string.settings_wipe_label),
+            initiallyOpen = false,
+        ) {
             if (!state.confirmingWipe) {
                 HardButton(
                     label = stringResource(R.string.settings_wipe_request),
@@ -256,7 +277,7 @@ private fun BackupBlock(
     onCancelImport: () -> Unit,
     onDismissBackupStatus: () -> Unit,
 ) {
-    PulpitPanel(label = stringResource(R.string.settings_backup_label)) {
+    PulpitPanel {
         Text(
             text = stringResource(R.string.settings_backup_hint),
             color = IsaColors.Lattice,
@@ -362,7 +383,7 @@ private fun CloudSyncPanel(
     onSignOut: () -> Unit,
 ) {
     val signedIn = email != null
-    PulpitPanel(label = stringResource(R.string.settings_cloud_label)) {
+    PulpitPanel {
         LabelValueRow(
             label = stringResource(R.string.settings_cloud_account_label),
             value = email ?: stringResource(R.string.settings_cloud_account_empty),
@@ -438,7 +459,7 @@ private fun EveningCloseBlock(
     var hourDraft by rememberSaveable(hour) { mutableIntStateOf(hour) }
     var minuteDraft by rememberSaveable(minute) { mutableIntStateOf(minute) }
 
-    PulpitPanel(label = stringResource(R.string.settings_evening_close_label)) {
+    PulpitPanel {
         Text(
             text = stringResource(R.string.settings_evening_close_hint),
             color = IsaColors.Lattice,
@@ -472,7 +493,7 @@ private fun ColdStartBlock(
     currentMinutes: Int,
     onChanged: (Int) -> Unit,
 ) {
-    PulpitPanel(label = stringResource(R.string.settings_cold_start_label)) {
+    PulpitPanel {
         Text(
             text = stringResource(R.string.settings_cold_start_hint),
             color = IsaColors.Lattice,
@@ -560,7 +581,7 @@ private fun ChronometerBlock(
     onIgnitionTimeChanged: (Int, Int) -> Unit,
 ) {
     var showPicker by remember { mutableStateOf(false) }
-    PulpitPanel(label = stringResource(R.string.settings_chronometer_label)) {
+    PulpitPanel {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -681,6 +702,64 @@ private fun ChronometerBlock(
     }
 }
 
+/**
+ * Settings page is a long scroll of unrelated sections; wrapping each block
+ * in a collapsible strip cuts the visible surface to roughly the headers
+ * after the first paint and lets the operator jump straight to the section
+ * they want. Default state is preserved per-section via the `initiallyOpen`
+ * argument — write-once sections (Standards, Backup, Wipe) start closed,
+ * tunable knobs stay open.
+ */
+/**
+ * Settings page is a long scroll of unrelated sections; wrapping each block
+ * in a collapsible header strip cuts the visible surface to roughly the
+ * header rows after the first paint and lets the operator jump straight to
+ * the section they want. Write-once sections (Standards, Backup, Wipe)
+ * start collapsed; tunable knobs (evening close, chronometer, …) stay open.
+ *
+ * The header row sits outside the inner PulpitPanel's own border — no
+ * double frame, no visual noise.
+ */
+@Composable
+private fun CollapsibleSection(
+    label: String,
+    initiallyOpen: Boolean = true,
+    content: @Composable () -> Unit,
+) {
+    var open by rememberSaveable(label) { mutableStateOf(initiallyOpen) }
+    val interactionSource = remember(label) { MutableInteractionSource() }
+    val chevron = if (open) "▼" else "▶"
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null,
+                    onClick = { open = !open },
+                )
+                .padding(vertical = 6.dp),
+            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text(
+                text = label,
+                color = IsaColors.LiveMetal,
+                style = MaterialTheme.typography.titleLarge,
+            )
+            Text(
+                text = chevron,
+                color = IsaColors.Lattice,
+                style = MaterialTheme.typography.labelLarge,
+            )
+        }
+        if (open) content()
+    }
+}
+
 @Composable
 private fun StepperButton(symbol: String, onClick: () -> Unit) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -704,7 +783,7 @@ private fun HabitStandardsBlock(
     standards: Map<String, HabitStandard>,
     onChanged: (String, String, String) -> Unit,
 ) {
-    PulpitPanel(label = stringResource(R.string.settings_standards_label)) {
+    PulpitPanel {
         Text(
             text = stringResource(R.string.settings_standards_hint),
             color = IsaColors.Lattice,

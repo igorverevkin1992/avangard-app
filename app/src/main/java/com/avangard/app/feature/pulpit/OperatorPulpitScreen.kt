@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalFoundationApi::class)
+@file:OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
 
 package com.avangard.app.feature.pulpit
 
@@ -10,6 +10,8 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -247,10 +249,13 @@ private fun HeaderStrip(
     onSettingsLongPress: () -> Unit,
     onChronometerClicked: () -> Unit,
 ) {
-    Row(
+    // FlowRow wraps to a second line on narrow screens (small phones in
+    // landscape, split-screen, etc.) rather than letting the rightmost chip
+    // overflow the viewport.
+    FlowRow(
         modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         val interactionSource = remember { MutableInteractionSource() }
         val dateA11y = stringResource(R.string.a11y_pulpit_date)
@@ -411,14 +416,32 @@ private fun InfraCard(
         infraStatus == InfraStatus.Mvd -> IsaColors.Caution
         else -> IsaColors.Steel
     }
-    PulpitPanel(
-        borderColor = infraBorder,
-    ) {
-        LabelStrip(
-            code = habit.code,
-            name = habit.displayName,
-            trailing = { StatusBadge(kind = badge) },
-        )
+    // Cards collapse to a 1-row strip when there's nothing happening on them
+    // (Idle, no active focus, not locked). User can tap to expand manually;
+    // active focus or a marked status auto-expands.
+    val autoExpanded = activeOnHabit || infraStatus != InfraStatus.NotDone || locked
+    var manuallyExpanded by rememberSaveable(habit.code) { mutableStateOf(false) }
+    val expanded = autoExpanded || manuallyExpanded
+    PulpitPanel(borderColor = infraBorder) {
+        val labelInteraction = remember(habit.code) { MutableInteractionSource() }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(
+                    interactionSource = labelInteraction,
+                    indication = null,
+                    onClick = { manuallyExpanded = !manuallyExpanded },
+                ),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            LabelStrip(
+                code = habit.code,
+                name = habit.displayName,
+                trailing = { StatusBadge(kind = badge) },
+                modifier = Modifier.weight(1f),
+            )
+        }
+        if (!expanded) return@PulpitPanel
         if (locked) {
             val a11yLocked = stringResource(R.string.a11y_infra_locked, habit.displayName)
             Text(
@@ -542,7 +565,8 @@ private fun QuoteOfDayCard(
             text = quote.text,
             color = IsaColors.LiveMetal,
             style = MaterialTheme.typography.bodyMedium,
-            maxLines = 3,
+            // Full text — short quotes don't get the truncation ellipsis, long
+            // ones still fit thanks to the panel's vertical scroll context.
         )
         Text(
             text = quote.source,

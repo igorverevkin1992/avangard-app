@@ -69,9 +69,14 @@ fun AvangardNavigationBar(navController: NavHostController, modifier: Modifier =
                     }
                 },
                 icon = {
+                    // Material3 already wires the label to the item's a11y
+                    // name, but TalkBack reads contentDescription on the icon
+                    // first when focus lands on it directly via swipe — keep
+                    // it populated so the label and icon describe the same
+                    // thing instead of "unlabeled".
                     Icon(
                         painter = painterResource(tab.iconRes),
-                        contentDescription = null,
+                        contentDescription = stringResource(tab.labelRes),
                     )
                 },
                 label = {
