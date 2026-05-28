@@ -14,6 +14,8 @@ data class FocusSession(
     val habit: Habit,
     val startedAt: Long,
     val endedAt: Long?,
+    /** Operator-typed pre-start note ("что именно сделаю"); null when blank. */
+    val intent: String? = null,
 ) {
     val isActive: Boolean get() = endedAt == null
     fun durationMillis(now: Long): Long = (endedAt ?: now) - startedAt

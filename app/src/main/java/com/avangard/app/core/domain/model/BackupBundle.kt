@@ -79,6 +79,8 @@ data class BackupFocusSession(
     val habitCode: String,
     val startedAt: Long,
     val endedAt: Long? = null,
+    /** Operator's pre-start intent note; v3+, NULL on legacy rows. */
+    val intent: String? = null,
 )
 
 @Serializable

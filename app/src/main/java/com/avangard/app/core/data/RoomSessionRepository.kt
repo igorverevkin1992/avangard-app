@@ -199,7 +199,12 @@ class RoomSessionRepository @Inject constructor(
      * `ended_at IS NULL` row. The use case layer translates the throw into
      * [com.avangard.app.core.domain.model.SessionError.AnotherFocusActive].
      */
-    override suspend fun startFocus(dateEpoch: Long, habit: Habit, startedAt: Long): Long =
+    override suspend fun startFocus(
+        dateEpoch: Long,
+        habit: Habit,
+        startedAt: Long,
+        intent: String?,
+    ): Long =
         try {
             focusDao.insert(
                 FocusSessionEntity(
@@ -207,6 +212,7 @@ class RoomSessionRepository @Inject constructor(
                     habitCode = habit.code,
                     startedAt = startedAt,
                     endedAt = null,
+                    intent = intent?.trim()?.takeIf { it.isNotEmpty() },
                 )
             )
         } catch (_: SQLiteConstraintException) {
@@ -294,5 +300,6 @@ private fun FocusSessionEntity.toDomain(): FocusSession? {
         habit = habit,
         startedAt = startedAt,
         endedAt = endedAt,
+        intent = intent,
     )
 }

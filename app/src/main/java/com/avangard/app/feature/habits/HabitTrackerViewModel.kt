@@ -30,6 +30,8 @@ data class DayDetail(
     val focusByHabit: Map<Habit, Long>,
     val focusCountByHabit: Map<Habit, Int>,
     val journal: String?,
+    /** Per-habit list of non-blank intent notes for the day's sessions. */
+    val intentsByHabit: Map<Habit, List<String>> = emptyMap(),
 )
 
 data class HabitTrackerState(
@@ -114,6 +116,9 @@ class HabitTrackerViewModel @Inject constructor(
                 },
                 focusCountByHabit = focusByHabit.mapValues { (_, list) -> list.size },
                 journal = session?.journalEntry,
+                intentsByHabit = focusByHabit.mapValues { (_, list) ->
+                    list.mapNotNull { it.intent?.takeIf { s -> s.isNotBlank() } }
+                }.filterValues { it.isNotEmpty() },
             )
         }
     }

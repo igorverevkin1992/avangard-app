@@ -135,6 +135,7 @@ private fun FocusSessionEntity.toBackup() = BackupFocusSession(
     habitCode = habitCode,
     startedAt = startedAt,
     endedAt = endedAt,
+    intent = intent,
 )
 
 private fun BackupFocusSession.toEntity() = FocusSessionEntity(
@@ -143,6 +144,7 @@ private fun BackupFocusSession.toEntity() = FocusSessionEntity(
     habitCode = habitCode,
     startedAt = startedAt,
     endedAt = endedAt,
+    intent = intent,
 )
 
 private fun HabitLogEntity.toBackup() = BackupHabitLog(

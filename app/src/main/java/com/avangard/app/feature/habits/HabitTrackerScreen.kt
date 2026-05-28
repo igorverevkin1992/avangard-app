@@ -416,6 +416,14 @@ private fun DayDetailPanel(detail: DayDetail, onClose: () -> Unit) {
                     style = MaterialTheme.typography.labelSmall,
                 )
             }
+            detail.intentsByHabit[habit]?.forEach { intent ->
+                Text(
+                    text = "  → $intent",
+                    color = IsaColors.Lattice,
+                    style = MaterialTheme.typography.labelSmall,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
         }
         if (detail.focusByHabit.isEmpty()) {
             Text(

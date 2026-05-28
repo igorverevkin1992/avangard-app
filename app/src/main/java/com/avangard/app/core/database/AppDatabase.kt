@@ -17,7 +17,7 @@ import com.avangard.app.core.database.entity.HabitLogEntity
         DailySessionEntity::class,
         FocusSessionEntity::class,
     ],
-    version = 8,
+    version = 9,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -125,6 +125,17 @@ abstract class AppDatabase : RoomDatabase() {
         val MIGRATION_7_8: Migration = object : Migration(7, 8) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE daily_session ADD COLUMN bottleneck_followup TEXT")
+            }
+        }
+
+        /**
+         * v9: focus_session gains an optional `intent` TEXT — operator's
+         * pre-start "что именно сделаю" note. NULL on legacy rows; the
+         * tracker drill-down surfaces it only when non-blank.
+         */
+        val MIGRATION_8_9: Migration = object : Migration(8, 9) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE focus_session ADD COLUMN intent TEXT")
             }
         }
 

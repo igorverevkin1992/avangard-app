@@ -7,6 +7,7 @@
 
     <!-- Pulpit cards. -->
     <string name="pulpit_flash_start">КОНЦЕНТРАЦИЯ</string>
+    <string name="pulpit_intent_placeholder">Что именно сделаю (опционально)</string>
     <string name="pulpit_flash_stop">ЗАВЕРШИТЬ</string>
     <string name="pulpit_mark_standard">СТАНДАРТ</string>
     <string name="pulpit_mark_mvd">МИНИМУМ</string>

@@ -133,7 +133,7 @@ internal fun OperatorPulpitContent(
     state: PulpitState?,
     nowMsFlow: kotlinx.coroutines.flow.StateFlow<Long>,
     transientError: com.avangard.app.core.domain.model.SessionError?,
-    onStartFocus: (Habit) -> Unit,
+    onStartFocus: (Habit, String?) -> Unit,
     onStopFocus: () -> Unit,
     onMarkInfra: (Habit, InfraStatus) -> Unit,
     onRequestApproveCore: (CoreMode) -> Unit,
@@ -203,7 +203,7 @@ internal fun OperatorPulpitContent(
         CoreCard(
             state = state,
             nowMsFlow = nowMsFlow,
-            onStartFocus = { onStartFocus(Habit.Generations) },
+            onStartFocus = { intent -> onStartFocus(Habit.Generations, intent) },
             onStopFocus = onStopFocus,
             onRequestApproveCore = onRequestApproveCore,
         )
@@ -327,7 +327,7 @@ private fun SabotageChip(onClick: () -> Unit) {
 private fun CoreCard(
     state: PulpitState?,
     nowMsFlow: kotlinx.coroutines.flow.StateFlow<Long>,
-    onStartFocus: () -> Unit,
+    onStartFocus: (String?) -> Unit,
     onStopFocus: () -> Unit,
     onRequestApproveCore: (CoreMode) -> Unit,
 ) {
@@ -364,13 +364,14 @@ private fun CoreCard(
             elapsedMillis = elapsedMs,
             thresholdMs = state?.coldStartThresholdMs ?: DEFAULT_COLD_START_THRESHOLD_MS,
         )
-        FlashButton(
-            label = stringResource(
-                if (activeOnCore) R.string.pulpit_flash_stop else R.string.pulpit_flash_start
-            ),
+        val activeIntent = if (activeOnCore) state?.activeFocus?.intent else null
+        IntentField(
+            habit = Habit.Generations,
+            activeIntent = activeIntent,
+            onStartWithIntent = onStartFocus,
+            startEnabled = state?.activeFocus == null,
             active = activeOnCore,
-            enabled = state?.activeFocus == null || activeOnCore,
-            onClick = if (activeOnCore) onStopFocus else onStartFocus,
+            onStop = onStopFocus,
         )
         FocusStatsLine(habit = Habit.Generations, state = state, nowMsFlow = nowMsFlow)
         Row(
@@ -400,7 +401,7 @@ private fun InfraCard(
     habit: Habit,
     state: PulpitState?,
     nowMsFlow: kotlinx.coroutines.flow.StateFlow<Long>,
-    onStartFocus: (Habit) -> Unit,
+    onStartFocus: (Habit, String?) -> Unit,
     onStopFocus: () -> Unit,
     onMarkInfra: (Habit, InfraStatus) -> Unit,
 ) {
@@ -462,13 +463,14 @@ private fun InfraCard(
             )
             return@PulpitPanel
         }
-        FlashButton(
-            label = stringResource(
-                if (activeOnHabit) R.string.pulpit_flash_stop else R.string.pulpit_flash_start
-            ),
+        val activeIntent = if (activeOnHabit) state?.activeFocus?.intent else null
+        IntentField(
+            habit = habit,
+            activeIntent = activeIntent,
+            onStartWithIntent = { intent -> onStartFocus(habit, intent) },
+            startEnabled = state?.activeFocus == null,
             active = activeOnHabit,
-            enabled = state?.activeFocus == null || activeOnHabit,
-            onClick = if (activeOnHabit) onStopFocus else { { onStartFocus(habit) } },
+            onStop = onStopFocus,
         )
         FocusStatsLine(habit = habit, state = state, nowMsFlow = nowMsFlow)
         Row(
@@ -542,6 +544,74 @@ private fun formatHms(millis: Long): String {
     val m = (total % 3600) / 60
     val s = total % 60
     return "%02d:%02d:%02d".format(java.util.Locale.US, h, m, s)
+}
+
+/**
+ * FlashButton + optional pre-start intent text field. Combined into one
+ * composable so each card on the pulpit gets the same affordance without
+ * separately wiring focus state and rememberSaveable per habit. While a
+ * session is active, the intent (if any) is read-only above the stop
+ * button.
+ */
+@Composable
+private fun IntentField(
+    habit: Habit,
+    activeIntent: String?,
+    onStartWithIntent: (String?) -> Unit,
+    startEnabled: Boolean,
+    active: Boolean,
+    onStop: () -> Unit,
+) {
+    if (active) {
+        if (!activeIntent.isNullOrBlank()) {
+            Text(
+                text = "→ $activeIntent",
+                color = IsaColors.Lattice,
+                style = MaterialTheme.typography.labelSmall,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(width = 1.dp, color = IsaColors.Steel)
+                    .padding(horizontal = 10.dp, vertical = 6.dp),
+            )
+        }
+        FlashButton(
+            label = stringResource(R.string.pulpit_flash_stop),
+            active = true,
+            enabled = true,
+            onClick = onStop,
+        )
+        return
+    }
+    var intentDraft by rememberSaveable(habit.code) { mutableStateOf("") }
+    androidx.compose.foundation.text.BasicTextField(
+        value = intentDraft,
+        onValueChange = { intentDraft = it },
+        textStyle = MaterialTheme.typography.bodyMedium.copy(color = IsaColors.LiveMetal),
+        decorationBox = { inner ->
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(width = 1.dp, color = IsaColors.Steel)
+                    .padding(horizontal = 10.dp, vertical = 10.dp),
+            ) {
+                if (intentDraft.isEmpty()) {
+                    Text(
+                        text = stringResource(R.string.pulpit_intent_placeholder),
+                        color = IsaColors.Lattice,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+                inner()
+            }
+        },
+        modifier = Modifier.fillMaxWidth(),
+    )
+    FlashButton(
+        label = stringResource(R.string.pulpit_flash_start),
+        active = false,
+        enabled = startEnabled,
+        onClick = { onStartWithIntent(intentDraft.takeIf { it.isNotBlank() }) },
+    )
 }
 
 /**

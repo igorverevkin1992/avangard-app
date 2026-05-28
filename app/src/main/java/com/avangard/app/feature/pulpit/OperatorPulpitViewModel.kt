@@ -226,8 +226,8 @@ class OperatorPulpitViewModel @Inject constructor(
         return !clock.localTime().isBefore(target)
     }
 
-    fun onStartFocus(habit: Habit) = viewModelScope.launch {
-        when (val r = startFocus(habit)) {
+    fun onStartFocus(habit: Habit, intent: String? = null) = viewModelScope.launch {
+        when (val r = startFocus(habit, intent)) {
             is DomainResult.Err -> raise(r.error)
             is DomainResult.Ok -> Unit
         }

@@ -135,6 +135,31 @@ class MigrationTest {
     }
 
     @Test
+    fun migration_8_to_9_addsIntentColumnToFocusSession() {
+        val (db, helper) = createV8()
+        db.execSQL(
+            "INSERT INTO focus_session(date_epoch, habit_code, started_at, ended_at) " +
+                "VALUES(1700000000000, '01', 1700000010000, 1700000050000)"
+        )
+        AppDatabase.MIGRATION_8_9.migrate(db)
+        db.query("SELECT intent FROM focus_session WHERE date_epoch = 1700000000000").use { c ->
+            assertTrue(c.moveToFirst())
+            assertTrue("legacy row should carry NULL intent", c.isNull(0))
+        }
+        db.execSQL(
+            "INSERT INTO focus_session(date_epoch, habit_code, started_at, ended_at, intent) " +
+                "VALUES(1700000060000, '02', 1700000070000, 1700000090000, 'выучить 10 фраз')"
+        )
+        db.query(
+            "SELECT intent FROM focus_session WHERE date_epoch = 1700000060000"
+        ).use { c ->
+            assertTrue(c.moveToFirst())
+            assertEquals("выучить 10 фраз", c.getString(0))
+        }
+        helper.close()
+    }
+
+    @Test
     fun migration_6_to_7_backfillsCoreModeFromLegacyMvdActive() {
         val (db, helper) = createV6()
         // Three v6 rows:
@@ -263,6 +288,13 @@ class MigrationTest {
     private fun createV6(): Pair<SupportSQLiteDatabase, SupportSQLiteOpenHelper> {
         val (db, helper) = createV5()
         AppDatabase.MIGRATION_5_6.migrate(db)
+        return db to helper
+    }
+
+    private fun createV8(): Pair<SupportSQLiteDatabase, SupportSQLiteOpenHelper> {
+        val (db, helper) = createV6()
+        AppDatabase.MIGRATION_6_7.migrate(db)
+        AppDatabase.MIGRATION_7_8.migrate(db)
         return db to helper
     }
 

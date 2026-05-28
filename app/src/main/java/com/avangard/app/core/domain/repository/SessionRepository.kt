@@ -39,7 +39,12 @@ interface SessionRepository {
     fun observeFocusForDay(dateEpoch: Long): Flow<List<FocusSession>>
     fun observeFocusRange(fromEpoch: Long, toEpoch: Long): Flow<List<FocusSession>>
     suspend fun sumFocusDurationFor(dateEpoch: Long, habit: Habit): Long
-    suspend fun startFocus(dateEpoch: Long, habit: Habit, startedAt: Long): Long
+    suspend fun startFocus(
+        dateEpoch: Long,
+        habit: Habit,
+        startedAt: Long,
+        intent: String? = null,
+    ): Long
     suspend fun endFocus(id: Long, endedAt: Long)
 
     suspend fun wipe()

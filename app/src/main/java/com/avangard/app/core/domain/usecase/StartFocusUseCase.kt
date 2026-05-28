@@ -14,7 +14,10 @@ class StartFocusUseCase @Inject constructor(
     private val clock: Clock,
     private val focusService: FocusServiceController,
 ) {
-    suspend operator fun invoke(habit: Habit): DomainResult<Long, SessionError> {
+    suspend operator fun invoke(
+        habit: Habit,
+        intent: String? = null,
+    ): DomainResult<Long, SessionError> {
         // Pre-flight check first — surfaces a clean error when the conflict is
         // already visible in the read model. The partial unique index in
         // MIGRATION_4_5 is the actual atomic guarantor — catch it below too.
@@ -38,7 +41,7 @@ class StartFocusUseCase @Inject constructor(
             return DomainResult.Err(SessionError.InfraLocked)
         }
         val id = try {
-            repository.startFocus(today, habit, clock.nowEpochMillis())
+            repository.startFocus(today, habit, clock.nowEpochMillis(), intent)
         } catch (_: IllegalStateException) {
             // Partial unique index uniq_focus_active fired between the pre-flight
             // and the insert — concurrent tap. Surface the same error as the
