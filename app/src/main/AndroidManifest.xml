@@ -88,6 +88,14 @@
         </receiver>
 
         <receiver
+            android:name=".sync.notifications.FocusNotificationDismissReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.avangard.app.notification.FOCUS_DISMISSED" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
             android:name=".sync.scheduler.BootCompletedReceiver"
             android:exported="true">
             <intent-filter>

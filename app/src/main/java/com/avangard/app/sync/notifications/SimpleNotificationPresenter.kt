@@ -266,6 +266,20 @@ class SimpleNotificationPresenter @Inject constructor(
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
+        // Re-post the same notification immediately if the user swipes it
+        // away — focus-session ongoing notifications should feel sticky.
+        // MIUI / Samsung allow dismissal of low-importance foreground
+        // service notifications; this receiver papers over that.
+        val dismissIntent = Intent(
+            context,
+            FocusNotificationDismissReceiver::class.java,
+        ).apply { action = FocusNotificationDismissReceiver.ACTION_DISMISSED }
+        val dismissPending = PendingIntent.getBroadcast(
+            context,
+            FOCUS_DISMISS_REQUEST_CODE,
+            dismissIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
         return NotificationCompat.Builder(context, FOCUS_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_avangard)
             .setContentTitle(context.getString(R.string.focus_notification_title, focus.habit.displayName))
@@ -276,6 +290,7 @@ class SimpleNotificationPresenter @Inject constructor(
             .setShowWhen(true)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setContentIntent(pendingIntent)
+            .setDeleteIntent(dismissPending)
             .build()
     }
 
@@ -294,6 +309,7 @@ class SimpleNotificationPresenter @Inject constructor(
         private const val FOCUS_REQUEST_CODE = 5002
         private const val IGNITION_REQUEST_CODE = 5003
         private const val MIDDAY_REQUEST_CODE = 5004
+        private const val FOCUS_DISMISS_REQUEST_CODE = 5005
         private const val STATUS_REQUEST_CODE_BASE = 5100
         // 90 seconds is long enough for the operator to glance at the shade
         // after putting the phone down, short enough to keep notifications
