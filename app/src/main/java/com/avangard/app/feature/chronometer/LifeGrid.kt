@@ -32,7 +32,7 @@ fun LifeGrid(
             .fillMaxWidth()
             .aspectRatio(aspect, matchHeightConstraintsFirst = false)
             .pointerInput(weeks.size) {
-                androidx.compose.foundation.gestures.detectTapGestures { offset ->
+                detectTapGestures { offset ->
                     val gap = 1.dp.toPx()
                     val cellW = (size.width - gap * (WEEKS_PER_ROW - 1)) / WEEKS_PER_ROW
                     val cellH = (size.height - gap * (rows - 1)) / rows
