@@ -45,7 +45,9 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
@@ -121,25 +123,33 @@ class OperatorPulpitViewModel @Inject constructor(
     private var transientErrorClearJob: Job? = null
 
     init {
-        // Pomodoro auto-stop watchdog: while a focus session is active and
-        // pomodoro is enabled in prefs, end the session once its duration
-        // crosses the configured threshold. The combine re-evaluates on
-        // each minute tick so we don't end mid-second on a stale read.
-        viewModelScope.launch {
-            combine(
-                observeActiveFocus(),
-                preferences.flow,
-                tickerFlow(clock, intervalMs = 30_000L),
-            ) { focus, prefs, _ ->
-                Triple(focus, prefs.pomodoroEnabled, prefs.pomodoroMinutes)
-            }.collect { (focus, enabled, minutes) ->
-                if (!enabled || focus == null) return@collect
-                val elapsedMs = clock.nowEpochMillis() - focus.startedAt
-                if (elapsedMs >= minutes * 60_000L) {
-                    endFocus(focus.id)
+        // Pomodoro auto-stop watchdog. Gated through flatMapLatest on the
+        // active-focus flow so that *no* delay is scheduled when there's no
+        // session running — important for tests, where a perpetually parked
+        // 30-second timer would otherwise leave runTest with a pending
+        // dispatch task. When focus is null the inner flow completes
+        // immediately; when focus arrives we read the current pomodoro
+        // settings once and arm a single delay until the threshold.
+        observeActiveFocus()
+            .flatMapLatest { focus ->
+                if (focus == null) kotlinx.coroutines.flow.emptyFlow()
+                else kotlinx.coroutines.flow.flow {
+                    val prefs = preferences.flow.first()
+                    if (!prefs.pomodoroEnabled) return@flow
+                    val deadline = focus.startedAt + prefs.pomodoroMinutes * 60_000L
+                    val wait = (deadline - clock.nowEpochMillis()).coerceAtLeast(0L)
+                    kotlinx.coroutines.delay(wait)
+                    emit(focus.id)
                 }
             }
-        }
+            .onEach { focusId ->
+                // Re-check at fire time — the operator may have stopped the
+                // session manually while the timer was parked.
+                if (observeActiveFocus().first()?.id == focusId) {
+                    endFocus(focusId)
+                }
+            }
+            .launchIn(viewModelScope)
     }
 
     private data class Inputs(
