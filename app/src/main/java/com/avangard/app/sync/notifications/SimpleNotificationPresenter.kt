@@ -219,7 +219,7 @@ class SimpleNotificationPresenter @Inject constructor(
         val notification = NotificationCompat.Builder(context, IGNITION_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_avangard)
             .setColor(android.graphics.Color.parseColor("#C0C5CA"))
-            .setContentTitle(context.getString(R.string.notification_ignition_title, dayNumber, progress.daysRemaining))
+            .setContentTitle(context.getString(R.string.notification_ignition_title, dayNumber))
             .setContentText(context.getString(bodyRes))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)

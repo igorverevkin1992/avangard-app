@@ -260,9 +260,9 @@
     <string name="settings_chronometer_ignition_hint">Утреннее уведомление с актуальным остатком ресурса.</string>
 
     <!-- Chronometer notification. -->
-    <string name="notification_ignition_title">СУТКИ #%1$d · ОСТАТОК ~%2$d</string>
-    <string name="notification_ignition_body_extracted">ВЧЕРА — РЕАЛИЗОВАНО.</string>
-    <string name="notification_ignition_body_loss">ВЧЕРА — УКЛОНЕНИЕ.</string>
+    <string name="notification_ignition_title">СУТКИ #%1$d</string>
+    <string name="notification_ignition_body_extracted">Вчера: анализ генерации зафиксирован.</string>
+    <string name="notification_ignition_body_loss">Вчера: анализ не зафиксирован.</string>
 
     <!-- Midday check notification. -->
     <string name="notification_midday_title">ПОЛДЕНЬ · ЯДРО НЕ ЗАКРЫТО</string>
