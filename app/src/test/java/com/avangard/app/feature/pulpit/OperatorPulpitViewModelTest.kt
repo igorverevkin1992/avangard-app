@@ -117,7 +117,7 @@ class OperatorPulpitViewModelTest {
 
     @Test
     fun `mark evening Infra is rejected while Core is locked`() = runTest(dispatcher) {
-        viewModel.onMarkInfra(Habit.Watching, InfraStatus.Standard)
+        viewModel.onMarkInfra(Habit.Watching, InfraStatus.Done)
         advanceUntilIdle()
         val today = clock.today().toStartOfDayEpoch(clock.zone())
         val stored = repository.findForDate(today)
@@ -128,21 +128,21 @@ class OperatorPulpitViewModelTest {
     @Test
     fun `mark morning Infra succeeds without Core approval`() = runTest(dispatcher) {
         // Sport / Spanish can be marked Standard at any point in the day.
-        viewModel.onMarkInfra(Habit.Sport, InfraStatus.Standard)
+        viewModel.onMarkInfra(Habit.Sport, InfraStatus.Done)
         advanceUntilIdle()
         val today = clock.today().toStartOfDayEpoch(clock.zone())
         val stored = repository.findForDate(today)!!
-        assertEquals(InfraStatus.Standard, stored.infra03)
+        assertEquals(InfraStatus.Done, stored.infra03)
     }
 
     @Test
     fun `mark evening Infra succeeds after Core approval`() = runTest(dispatcher) {
         val today = clock.today().toStartOfDayEpoch(clock.zone())
         repository.approveCore(today, "Шот", CoreMode.Standard, clock.nowEpochMillis())
-        viewModel.onMarkInfra(Habit.Reading, InfraStatus.Standard)
+        viewModel.onMarkInfra(Habit.Reading, InfraStatus.Done)
         advanceUntilIdle()
         val stored = repository.findForDate(today)!!
-        assertEquals(InfraStatus.Standard, stored.infra05)
+        assertEquals(InfraStatus.Done, stored.infra05)
     }
 
     @Test

@@ -410,17 +410,21 @@ private fun InfraCard(
     // (Spanish, Sport) are always unlocked.
     val locked = habit.requiresCoreApproval && session?.isCoreUnlocked != true
     val infraStatus = session?.infraStatus(habit) ?: InfraStatus.NotDone
+    val done = infraStatus == InfraStatus.Done
     val activeOnHabit = state?.isFocusActiveOn(habit) == true
+    // The colour of a Done habit is pulled from the day's mode (decided when
+    // Core was approved): Standard → green, MVD → amber. Done habits before
+    // Core approval default to green — the day hasn't picked a mode yet.
+    val dayMode = (session?.coreStatus as? CoreStatus.Approved)?.mode
+    val doneColor = if (dayMode == CoreMode.Mvd) IsaColors.Caution else IsaColors.Approve
     val badge = when {
         locked -> StatusBadgeKind.Locked
-        infraStatus == InfraStatus.Standard -> StatusBadgeKind.Standard
-        infraStatus == InfraStatus.Mvd -> StatusBadgeKind.Mvd
+        done -> if (dayMode == CoreMode.Mvd) StatusBadgeKind.Mvd else StatusBadgeKind.Standard
         else -> StatusBadgeKind.Idle
     }
     val infraBorder = when {
         locked -> IsaColors.HostageGray
-        infraStatus == InfraStatus.Standard -> IsaColors.Approve
-        infraStatus == InfraStatus.Mvd -> IsaColors.Caution
+        done -> doneColor
         else -> IsaColors.Steel
     }
     // Cards collapse to a 1-row strip when there's nothing happening on them
@@ -473,25 +477,15 @@ private fun InfraCard(
             onStop = onStopFocus,
         )
         FocusStatsLine(habit = habit, state = state, nowMsFlow = nowMsFlow)
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            HardButton(
-                label = stringResource(R.string.pulpit_mark_standard),
-                onClick = { onMarkInfra(habit, InfraStatus.Standard) },
-                variant = if (infraStatus == InfraStatus.Standard)
-                    HardButtonVariant.Primary else HardButtonVariant.Default,
-                modifier = Modifier.weight(1f),
-            )
-            HardButton(
-                label = stringResource(R.string.pulpit_mark_mvd),
-                onClick = { onMarkInfra(habit, InfraStatus.Mvd) },
-                variant = if (infraStatus == InfraStatus.Mvd)
-                    HardButtonVariant.Primary else HardButtonVariant.Default,
-                modifier = Modifier.weight(1f),
-            )
-        }
+        HardButton(
+            label = stringResource(
+                if (done) R.string.pulpit_mark_undo else R.string.pulpit_mark_done,
+            ),
+            onClick = {
+                onMarkInfra(habit, if (done) InfraStatus.NotDone else InfraStatus.Done)
+            },
+            variant = if (done) HardButtonVariant.Default else HardButtonVariant.Primary,
+        )
     }
 }
 

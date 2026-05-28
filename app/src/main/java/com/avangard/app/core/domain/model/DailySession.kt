@@ -15,7 +15,14 @@ sealed interface CoreStatus {
     data class Failed(val kind: DefectKind) : CoreStatus
 }
 
-enum class InfraStatus { NotDone, Standard, Mvd }
+/**
+ * Per-Infra-habit (02..05) binary status. Was previously a three-state
+ * (NotDone / Standard / MVD) split per habit, but the day's mode now lives
+ * on the Core approval itself — Infra rows just record whether the habit
+ * happened. Stored value `1` covers both legacy Standard and MVD entries
+ * so backup snapshots round-trip cleanly.
+ */
+enum class InfraStatus { NotDone, Done }
 
 data class VirtueScores(
     val rationality: Int,

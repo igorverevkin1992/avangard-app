@@ -35,8 +35,7 @@ data class SundayAuditView(
     val previous: PreviousWeek? = null,
 ) {
     data class InfraBreakdown(
-        val standard: Int,
-        val mvd: Int,
+        val done: Int,
         val notDone: Int,
     )
 
@@ -156,8 +155,7 @@ class SundayAuditUseCase @Inject constructor(
             .associateWith { habit ->
                 val statuses = weekSessions.map { it.infraStatus(habit) }
                 SundayAuditView.InfraBreakdown(
-                    standard = statuses.count { it == InfraStatus.Standard },
-                    mvd = statuses.count { it == InfraStatus.Mvd },
+                    done = statuses.count { it == InfraStatus.Done },
                     notDone = statuses.count { it == InfraStatus.NotDone },
                 )
             }

@@ -183,7 +183,7 @@ private fun MetricsTable(view: SundayAuditView) {
             val b = view.infraBreakdown[habit] ?: return@forEach
             MetricRow(
                 label = "${habit.code}·${habit.shortLabel}",
-                value = "${b.standard}/${b.mvd}/${b.notDone}",
+                value = "${b.done}/${b.notDone}",
                 delta = null,
             )
         }

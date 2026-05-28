@@ -244,15 +244,13 @@ class RoomSessionRepository @Inject constructor(
 
 private fun InfraStatus.toCode(): Int = when (this) {
     InfraStatus.NotDone -> 0
-    InfraStatus.Standard -> 1
-    InfraStatus.Mvd -> 2
+    InfraStatus.Done -> 1
 }
 
-private fun Int.toInfraStatus(): InfraStatus = when (this) {
-    1 -> InfraStatus.Standard
-    2 -> InfraStatus.Mvd
-    else -> InfraStatus.NotDone
-}
+/** Both legacy Standard (1) and MVD (2) map to Done — the day's mode now
+ *  lives on Core, not on the Infra row. */
+private fun Int.toInfraStatus(): InfraStatus =
+    if (this == 0) InfraStatus.NotDone else InfraStatus.Done
 
 private fun DailySessionEntity.toDomain(): DailySession = DailySession(
     dateEpoch = dateEpoch,

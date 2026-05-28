@@ -72,7 +72,7 @@ class SundayAuditUseCaseTest {
         repository.setInfraStatus(
             today,
             Habit.Sport,
-            InfraStatus.Standard,
+            InfraStatus.Done,
             clock.nowEpochMillis(),
         )
 
@@ -87,7 +87,7 @@ class SundayAuditUseCaseTest {
         assertEquals(2, view.virtueSums.justice)
         // Rationality: 1 + (-1) + 0 = 0.
         assertEquals(0, view.virtueSums.rationality)
-        assertEquals(1, view.infraBreakdown[Habit.Sport]?.standard)
+        assertEquals(1, view.infraBreakdown[Habit.Sport]?.done)
     }
 
     @Test

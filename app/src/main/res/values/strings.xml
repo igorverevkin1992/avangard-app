@@ -11,6 +11,8 @@
     <string name="pulpit_flash_stop">ЗАВЕРШИТЬ</string>
     <string name="pulpit_mark_standard">СТАНДАРТ</string>
     <string name="pulpit_mark_mvd">МИНИМУМ</string>
+    <string name="pulpit_mark_done">ВЫПОЛНЕНО</string>
+    <string name="pulpit_mark_undo">СБРОСИТЬ</string>
     <string name="pulpit_hostage_banner">ЗАБЛОКИРОВАНО ДО ПЕРВОГО ЯДРА</string>
     <string name="pulpit_close_shift">ЗАКРЫТЬ СМЕНУ</string>
     <string name="pulpit_evening_nudge">СМЕНА НЕ ЗАКРЫТА · ТАП ДЛЯ ВЕЧЕРНЕГО ЗАКРЫТИЯ</string>
