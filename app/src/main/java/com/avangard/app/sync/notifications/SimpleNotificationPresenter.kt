@@ -79,6 +79,47 @@ class SimpleNotificationPresenter @Inject constructor(
             }
             manager.createNotificationChannel(statusChannel)
         }
+        if (manager.getNotificationChannel(MIDDAY_CHANNEL_ID) == null) {
+            val midday = NotificationChannel(
+                MIDDAY_CHANNEL_ID,
+                "Полуденная проверка",
+                NotificationManager.IMPORTANCE_LOW,
+            ).apply {
+                description = "Напоминание в середине дня, если Ядро ещё не закрыто"
+                enableLights(false)
+                enableVibration(false)
+                setShowBadge(false)
+            }
+            manager.createNotificationChannel(midday)
+        }
+    }
+
+    fun presentMiddayCheck() {
+        ensureChannel()
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra(MainActivity.EXTRA_START_DESTINATION, NavRoute.OperatorPulpit.route)
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            MIDDAY_REQUEST_CODE,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val notification = NotificationCompat.Builder(context, MIDDAY_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_stat_avangard)
+            .setColor(android.graphics.Color.parseColor("#C8A800"))
+            .setContentTitle(context.getString(R.string.notification_midday_title))
+            .setContentText(context.getString(R.string.notification_midday_body))
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
+            .build()
+        try {
+            NotificationManagerCompat.from(context).notify(MIDDAY_NOTIFICATION_ID, notification)
+        } catch (e: SecurityException) {
+            Log.w(LOG_TAG, "midday notification denied", e)
+        }
     }
 
     /**
@@ -243,13 +284,16 @@ class SimpleNotificationPresenter @Inject constructor(
         const val FOCUS_CHANNEL_ID = "channel.focus_session"
         const val IGNITION_CHANNEL_ID = "channel.ignition"
         const val STATUS_CHANNEL_ID = "channel.status"
+        const val MIDDAY_CHANNEL_ID = "channel.midday"
         const val FOCUS_NOTIFICATION_ID = 1004
         private const val NOTIFICATION_ID = 1003
         private const val IGNITION_NOTIFICATION_ID = 1005
+        private const val MIDDAY_NOTIFICATION_ID = 1006
         private const val STATUS_NOTIFICATION_ID_BASE = 1100
         private const val EVENING_REQUEST_CODE = 5001
         private const val FOCUS_REQUEST_CODE = 5002
         private const val IGNITION_REQUEST_CODE = 5003
+        private const val MIDDAY_REQUEST_CODE = 5004
         private const val STATUS_REQUEST_CODE_BASE = 5100
         // 90 seconds is long enough for the operator to glance at the shade
         // after putting the phone down, short enough to keep notifications

@@ -107,6 +107,10 @@ fun SettingsScreen(
         onLifeExpectancyChanged = viewModel::onLifeExpectancyChanged,
         onIgnitionEnabledChanged = viewModel::onIgnitionEnabledChanged,
         onIgnitionTimeChanged = viewModel::onIgnitionTimeChanged,
+        onMiddayCheckEnabledChanged = viewModel::onMiddayCheckEnabledChanged,
+        onMiddayCheckTimeChanged = viewModel::onMiddayCheckTimeChanged,
+        onPomodoroEnabledChanged = viewModel::onPomodoroEnabledChanged,
+        onPomodoroMinutesChanged = viewModel::onPomodoroMinutesChanged,
         onHabitStandardChanged = viewModel::onHabitStandardChanged,
         onRequestWipe = viewModel::requestWipe,
         onConfirmWipe = viewModel::confirmWipe,
@@ -132,6 +136,10 @@ internal fun SettingsContent(
     onLifeExpectancyChanged: (Int) -> Unit,
     onIgnitionEnabledChanged: (Boolean) -> Unit,
     onIgnitionTimeChanged: (Int, Int) -> Unit,
+    onMiddayCheckEnabledChanged: (Boolean) -> Unit,
+    onMiddayCheckTimeChanged: (Int, Int) -> Unit,
+    onPomodoroEnabledChanged: (Boolean) -> Unit,
+    onPomodoroMinutesChanged: (Int) -> Unit,
     onHabitStandardChanged: (String, String, String) -> Unit,
     onRequestWipe: () -> Unit,
     onConfirmWipe: () -> Unit,
@@ -183,6 +191,28 @@ internal fun SettingsContent(
                 onLifeExpectancyChanged = onLifeExpectancyChanged,
                 onIgnitionEnabledChanged = onIgnitionEnabledChanged,
                 onIgnitionTimeChanged = onIgnitionTimeChanged,
+            )
+        }
+
+        CollapsibleSection(
+            label = stringResource(R.string.settings_midday_label),
+            initiallyOpen = false,
+        ) {
+            MiddayCheckBlock(
+                preferences = state.preferences,
+                onEnabledChanged = onMiddayCheckEnabledChanged,
+                onTimeChanged = onMiddayCheckTimeChanged,
+            )
+        }
+
+        CollapsibleSection(
+            label = stringResource(R.string.settings_pomodoro_label),
+            initiallyOpen = false,
+        ) {
+            PomodoroBlock(
+                preferences = state.preferences,
+                onEnabledChanged = onPomodoroEnabledChanged,
+                onMinutesChanged = onPomodoroMinutesChanged,
             )
         }
 
@@ -776,6 +806,93 @@ private fun StepperButton(symbol: String, onClick: () -> Unit) {
             )
             .padding(horizontal = 12.dp, vertical = 2.dp),
     )
+}
+
+@Composable
+private fun MiddayCheckBlock(
+    preferences: UserPreferences,
+    onEnabledChanged: (Boolean) -> Unit,
+    onTimeChanged: (Int, Int) -> Unit,
+) {
+    PulpitPanel {
+        IndustrialToggle(
+            label = stringResource(R.string.settings_midday_toggle),
+            checked = preferences.middayCheckEnabled,
+            onCheckedChange = onEnabledChanged,
+        )
+        Text(
+            text = stringResource(R.string.settings_midday_hint),
+            color = IsaColors.Lattice,
+            style = MaterialTheme.typography.labelSmall,
+        )
+        if (preferences.middayCheckEnabled) {
+            var hour by rememberSaveable(preferences.middayCheckHour) {
+                mutableIntStateOf(preferences.middayCheckHour)
+            }
+            var minute by rememberSaveable(preferences.middayCheckMinute) {
+                mutableIntStateOf(preferences.middayCheckMinute)
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Stepper(
+                    label = stringResource(R.string.settings_hour_label),
+                    value = hour,
+                    range = 0..23,
+                    onChange = {
+                        hour = it
+                        onTimeChanged(it, minute)
+                    },
+                )
+                Stepper(
+                    label = stringResource(R.string.settings_minute_label),
+                    value = minute,
+                    range = 0..59,
+                    step = 5,
+                    onChange = {
+                        minute = it
+                        onTimeChanged(hour, it)
+                    },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PomodoroBlock(
+    preferences: UserPreferences,
+    onEnabledChanged: (Boolean) -> Unit,
+    onMinutesChanged: (Int) -> Unit,
+) {
+    PulpitPanel {
+        IndustrialToggle(
+            label = stringResource(R.string.settings_pomodoro_toggle),
+            checked = preferences.pomodoroEnabled,
+            onCheckedChange = onEnabledChanged,
+        )
+        Text(
+            text = stringResource(R.string.settings_pomodoro_hint),
+            color = IsaColors.Lattice,
+            style = MaterialTheme.typography.labelSmall,
+        )
+        if (preferences.pomodoroEnabled) {
+            var minutes by rememberSaveable(preferences.pomodoroMinutes) {
+                mutableIntStateOf(preferences.pomodoroMinutes)
+            }
+            Stepper(
+                label = stringResource(R.string.settings_pomodoro_minutes_label),
+                value = minutes,
+                range = UserPreferences.MIN_POMODORO_MINUTES..UserPreferences.MAX_POMODORO_MINUTES,
+                step = 5,
+                onChange = {
+                    minutes = it
+                    onMinutesChanged(it)
+                },
+            )
+        }
+    }
 }
 
 @Composable

@@ -21,6 +21,7 @@ class BootCompletedReceiver : BroadcastReceiver() {
 
     @Inject lateinit var scheduler: EveningCloseScheduler
     @Inject lateinit var ignitionScheduler: IgnitionScheduler
+    @Inject lateinit var middayScheduler: MiddayCheckScheduler
 
     override fun onReceive(context: Context, intent: Intent) {
         when (intent.action) {
@@ -32,6 +33,7 @@ class BootCompletedReceiver : BroadcastReceiver() {
                     try {
                         scheduler.ensureScheduled()
                         ignitionScheduler.ensureScheduled()
+                        middayScheduler.ensureScheduled()
                     } finally {
                         pending.finish()
                     }

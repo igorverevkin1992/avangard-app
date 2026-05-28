@@ -57,10 +57,14 @@ class QuoteRepository @Inject constructor(
      * the epoch-day modulo the catalog size, so two devices on the same
      * date see the same quote.
      */
-    suspend fun quoteOfDay(): Quote? {
+    suspend fun quoteOfDay(): Quote? = quoteOfDay(clock.today().toEpochDay())
+
+    /** Same algorithm against an arbitrary epoch-day — drives the library's
+     *  «вчера / 2 дня назад / …» history strip. */
+    suspend fun quoteOfDay(epochDay: Long): Quote? {
         val list = all()
         if (list.isEmpty()) return null
-        val idx = (clock.today().toEpochDay().absoluteValue % list.size).toInt()
+        val idx = (epochDay.absoluteValue % list.size).toInt()
         return list[idx]
     }
 

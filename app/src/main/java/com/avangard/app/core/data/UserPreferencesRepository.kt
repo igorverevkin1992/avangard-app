@@ -54,10 +54,20 @@ data class UserPreferences(
     val ignitionEnabled: Boolean = true,
     val ignitionHour: Int = DEFAULT_IGNITION_HOUR,
     val ignitionMinute: Int = 0,
+    /** Midday-check notification toggle — passive nudge when Core's still
+     *  idle by the configured hour. */
+    val middayCheckEnabled: Boolean = false,
+    val middayCheckHour: Int = DEFAULT_MIDDAY_HOUR,
+    val middayCheckMinute: Int = 0,
+    /** Pomodoro auto-stop on focus sessions. Off by default. */
+    val pomodoroEnabled: Boolean = false,
+    val pomodoroMinutes: Int = DEFAULT_POMODORO_MINUTES,
     /** Operator-defined «СТАНДАРТ» / «МИНИМУМ» criteria per habit code. */
     val habitStandards: Map<String, HabitStandard> = emptyMap(),
     /** Ring buffer of recent evasion-diagnostic events (newest first). */
     val evasionLog: List<EvasionEvent> = emptyList(),
+    /** Quotes the operator pinned as personal «принципы». */
+    val pinnedQuoteIds: Set<Int> = emptySet(),
 ) {
     companion object {
         const val DEFAULT_COLD_START_MS: Long = 5L * 60 * 1000
@@ -65,6 +75,10 @@ data class UserPreferences(
         const val MIN_LIFE_EXPECTANCY = 50
         const val MAX_LIFE_EXPECTANCY = 100
         const val DEFAULT_IGNITION_HOUR = 6
+        const val DEFAULT_MIDDAY_HOUR = 12
+        const val DEFAULT_POMODORO_MINUTES = 25
+        const val MIN_POMODORO_MINUTES = 10
+        const val MAX_POMODORO_MINUTES = 90
     }
 }
 
@@ -167,6 +181,44 @@ class UserPreferencesRepository @Inject constructor(
         }
     }
 
+    suspend fun setMiddayCheckEnabled(enabled: Boolean) {
+        context.preferencesStore.edit { prefs ->
+            prefs[KEY_MIDDAY_ENABLED] = enabled
+        }
+    }
+
+    suspend fun setMiddayCheckTime(hour: Int, minute: Int) {
+        require(hour in 0..23) { "midday hour out of range: $hour" }
+        require(minute in 0..59) { "midday minute out of range: $minute" }
+        context.preferencesStore.edit { prefs ->
+            prefs[KEY_MIDDAY_HOUR] = hour
+            prefs[KEY_MIDDAY_MINUTE] = minute
+        }
+    }
+
+    suspend fun setPomodoroEnabled(enabled: Boolean) {
+        context.preferencesStore.edit { prefs ->
+            prefs[KEY_POMODORO_ENABLED] = enabled
+        }
+    }
+
+    suspend fun setPomodoroMinutes(minutes: Int) {
+        require(minutes in UserPreferences.MIN_POMODORO_MINUTES..UserPreferences.MAX_POMODORO_MINUTES) {
+            "pomodoro minutes out of range: $minutes"
+        }
+        context.preferencesStore.edit { prefs ->
+            prefs[KEY_POMODORO_MINUTES] = minutes
+        }
+    }
+
+    suspend fun togglePinnedQuote(id: Int) {
+        context.preferencesStore.edit { prefs ->
+            val current = prefs[KEY_PINNED_QUOTES]?.let(::decodePinnedSet) ?: emptySet()
+            val updated = if (id in current) current - id else current + id
+            prefs[KEY_PINNED_QUOTES] = encodePinnedSet(updated)
+        }
+    }
+
     suspend fun setHabitStandard(habitCode: String, standard: HabitStandard) {
         context.preferencesStore.edit { prefs ->
             val current = prefs[KEY_HABIT_STANDARDS]?.let(::decodeHabitStandards) ?: emptyMap()
@@ -221,8 +273,15 @@ class UserPreferencesRepository @Inject constructor(
         ignitionEnabled = this[KEY_IGNITION_ENABLED] ?: true,
         ignitionHour = this[KEY_IGNITION_HOUR] ?: UserPreferences.DEFAULT_IGNITION_HOUR,
         ignitionMinute = this[KEY_IGNITION_MINUTE] ?: 0,
+        middayCheckEnabled = this[KEY_MIDDAY_ENABLED] ?: false,
+        middayCheckHour = this[KEY_MIDDAY_HOUR] ?: UserPreferences.DEFAULT_MIDDAY_HOUR,
+        middayCheckMinute = this[KEY_MIDDAY_MINUTE] ?: 0,
+        pomodoroEnabled = this[KEY_POMODORO_ENABLED] ?: false,
+        pomodoroMinutes = this[KEY_POMODORO_MINUTES]
+            ?: UserPreferences.DEFAULT_POMODORO_MINUTES,
         habitStandards = this[KEY_HABIT_STANDARDS]?.let(::decodeHabitStandards) ?: emptyMap(),
         evasionLog = this[KEY_EVASION_LOG]?.let(::decodeEvasionLog) ?: emptyList(),
+        pinnedQuoteIds = this[KEY_PINNED_QUOTES]?.let(::decodePinnedSet) ?: emptySet(),
     )
 
     private fun encodeHabitStandards(map: Map<String, HabitStandard>): String =
@@ -249,6 +308,16 @@ class UserPreferencesRepository @Inject constructor(
             emptyList()
         }
 
+    private fun encodePinnedSet(set: Set<Int>): String =
+        JSON.encodeToString(PINNED_SET_SERIALIZER, set.toList())
+
+    private fun decodePinnedSet(value: String): Set<Int> =
+        runCatching { JSON.decodeFromString(PINNED_SET_SERIALIZER, value).toSet() }
+            .getOrElse {
+                Log.w("UserPrefs", "pinned_quotes decode failed", it)
+                emptySet()
+            }
+
     companion object {
         private val KEY_EVENING_HOUR = intPreferencesKey("evening_close_hour")
         private val KEY_EVENING_MINUTE = intPreferencesKey("evening_close_minute")
@@ -262,8 +331,14 @@ class UserPreferencesRepository @Inject constructor(
         private val KEY_IGNITION_ENABLED = booleanPreferencesKey("chronometer_ignition_enabled")
         private val KEY_IGNITION_HOUR = intPreferencesKey("chronometer_ignition_hour")
         private val KEY_IGNITION_MINUTE = intPreferencesKey("chronometer_ignition_minute")
+        private val KEY_MIDDAY_ENABLED = booleanPreferencesKey("midday_check_enabled")
+        private val KEY_MIDDAY_HOUR = intPreferencesKey("midday_check_hour")
+        private val KEY_MIDDAY_MINUTE = intPreferencesKey("midday_check_minute")
+        private val KEY_POMODORO_ENABLED = booleanPreferencesKey("pomodoro_enabled")
+        private val KEY_POMODORO_MINUTES = intPreferencesKey("pomodoro_minutes")
         private val KEY_HABIT_STANDARDS = stringPreferencesKey("habit_standards_json")
         private val KEY_EVASION_LOG = stringPreferencesKey("evasion_log_json")
+        private val KEY_PINNED_QUOTES = stringPreferencesKey("pinned_quotes_json")
         private const val VACUUM_EVERY_LAUNCHES = 30
         private const val EVASION_LOG_CAP = 50
 
@@ -272,5 +347,7 @@ class UserPreferencesRepository @Inject constructor(
             MapSerializer(String.serializer(), HabitStandard.serializer())
         private val EVASION_LOG_SERIALIZER =
             ListSerializer(EvasionEvent.serializer())
+        private val PINNED_SET_SERIALIZER =
+            ListSerializer(Int.serializer())
     }
 }

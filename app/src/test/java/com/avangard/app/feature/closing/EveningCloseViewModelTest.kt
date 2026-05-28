@@ -40,6 +40,8 @@ class EveningCloseViewModelTest {
             observeSession = ObserveDailySessionUseCase(repository),
             closeEvening = CloseEveningUseCase(repository, clock),
             setJournal = SetJournalUseCase(repository, clock),
+            sessions = repository,
+            clock = clock,
         )
     }
 

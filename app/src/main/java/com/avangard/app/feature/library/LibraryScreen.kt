@@ -45,6 +45,7 @@ fun LibraryScreen(
     LibraryContent(
         quoteOfDay = quoteOfDay,
         counts = state.counts,
+        history = state.history,
         onOpenVirtue = onOpenVirtue,
         onOpenQuote = onOpenQuote,
         modifier = modifier,
@@ -55,6 +56,7 @@ fun LibraryScreen(
 internal fun LibraryContent(
     quoteOfDay: Quote?,
     counts: Map<VirtueTag, Int>,
+    history: List<HistoryEntry> = emptyList(),
     onOpenVirtue: (VirtueTag) -> Unit,
     onOpenQuote: (Int) -> Unit,
     modifier: Modifier = Modifier,
@@ -81,6 +83,10 @@ internal fun LibraryContent(
             )
         }
 
+        if (history.isNotEmpty()) {
+            QuoteHistoryPanel(history = history, onOpenQuote = onOpenQuote)
+        }
+
         PulpitPanel(label = stringResource(R.string.library_virtues_label)) {
             VirtueTag.entries.forEach { virtue ->
                 VirtueRow(
@@ -97,6 +103,49 @@ internal fun LibraryContent(
             color = IsaColors.Lattice,
             style = MaterialTheme.typography.labelSmall,
         )
+    }
+}
+
+@Composable
+private fun QuoteHistoryPanel(
+    history: List<HistoryEntry>,
+    onOpenQuote: (Int) -> Unit,
+) {
+    PulpitPanel(label = stringResource(R.string.library_history_label)) {
+        val fmt = java.time.format.DateTimeFormatter.ofPattern(
+            "dd.MM",
+            java.util.Locale("ru", "RU"),
+        )
+        history.forEach { entry ->
+            val interactionSource = remember(entry.date) { MutableInteractionSource() }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(width = 1.dp, color = IsaColors.Steel)
+                    .clickable(
+                        interactionSource = interactionSource,
+                        indication = null,
+                        onClick = { onOpenQuote(entry.quote.id) },
+                    )
+                    .padding(horizontal = 10.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                Text(
+                    text = entry.date.format(fmt),
+                    color = IsaColors.Lattice,
+                    style = MaterialTheme.typography.labelSmall,
+                    modifier = Modifier.padding(top = 2.dp),
+                )
+                Text(
+                    text = entry.quote.text,
+                    color = IsaColors.LiveMetal,
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 2,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+        }
     }
 }
 

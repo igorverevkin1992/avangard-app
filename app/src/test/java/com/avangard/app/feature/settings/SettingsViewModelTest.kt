@@ -81,6 +81,7 @@ class SettingsViewModelTest {
             preferences = preferences,
             scheduler = scheduler,
             ignitionScheduler = ignitionScheduler,
+            middayScheduler = mockk(relaxed = true),
             exportBackup = exportBackup,
             importBackup = importBackup,
             clock = clock,

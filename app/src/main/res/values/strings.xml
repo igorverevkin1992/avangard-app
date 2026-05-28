@@ -76,6 +76,8 @@
     <string name="closing_journal_hint">Сжатое резюме смены. До 500 знаков.</string>
     <string name="closing_journal_counter">%1$d / %2$d</string>
     <string name="closing_submit">ЗАФИКСИРОВАТЬ ЗАКРЫТИЕ СМЕНЫ</string>
+    <string name="closing_prior_bottleneck_label">ТЕКУЩЕЕ ОГРАНИЧЕНИЕ</string>
+    <string name="closing_virtue_suggestion_hint">Подсказка от метрик дня. Решение — за оператором.</string>
 
     <!-- Virtues. -->
     <string name="virtue_rationality">РАЗУМНОСТЬ</string>
@@ -111,6 +113,7 @@
     <!-- Library. -->
     <string name="library_header">БИБЛИОТЕКА</string>
     <string name="library_quote_of_day_label">ЦИТАТА ДНЯ</string>
+    <string name="library_history_label">ПРЕДЫДУЩИЕ ЦИТАТЫ ДНЯ</string>
     <string name="library_virtues_label">ПОДБОРКИ ПО ДОБРОДЕТЕЛЯМ</string>
     <string name="library_empty_state">ПО ЭТОЙ ДОБРОДЕТЕЛИ ЦИТАТ НЕТ.</string>
     <string name="library_footer_note">Источник: Айн Рэнд, Леонард Пейкофф. Куратор подборки — оператор.</string>
@@ -250,12 +253,25 @@
     <string name="notification_ignition_body_extracted">ВЧЕРА — РЕАЛИЗОВАНО.</string>
     <string name="notification_ignition_body_loss">ВЧЕРА — УКЛОНЕНИЕ.</string>
 
+    <!-- Midday check notification. -->
+    <string name="notification_midday_title">ПОЛДЕНЬ · ЯДРО НЕ ЗАКРЫТО</string>
+    <string name="notification_midday_body">Половина продуктивного окна позади.</string>
+
     <!-- Status fixation notifications + in-app banner. -->
     <string name="notification_status_fix_title">%1$s · %2$s</string>
     <string name="notification_status_fix_body">%1$s ЗАФИКСИРОВАН.</string>
     <string name="banner_status_fix">%1$s · %2$s · %3$s ЗАФИКСИРОВАН</string>
 
     <!-- Standards (definitions of what counts as Standard / Minimum per habit). -->
+    <!-- Midday check + Pomodoro settings. -->
+    <string name="settings_midday_label">ПОЛУДЕННАЯ ПРОВЕРКА</string>
+    <string name="settings_midday_toggle">ПРОВЕРКА В ПОЛДЕНЬ</string>
+    <string name="settings_midday_hint">Тихое уведомление, если к указанному часу Ядро ещё не закрыто.</string>
+    <string name="settings_pomodoro_label">ПОМОДОРО</string>
+    <string name="settings_pomodoro_toggle">АВТО-ОСТАНОВКА</string>
+    <string name="settings_pomodoro_hint">Концентрация авто-завершается через выбранное количество минут.</string>
+    <string name="settings_pomodoro_minutes_label">МИНУТ</string>
+
     <string name="settings_standards_label">СТАНДАРТЫ</string>
     <string name="settings_standards_hint">Что считается СТАНДАРТОМ и МИНИМУМОМ для каждой привычки. Пишется один раз и пересматривается на воскресной оценке.</string>
     <string name="settings_standards_field_standard">СТАНДАРТ</string>

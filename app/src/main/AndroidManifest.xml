@@ -80,6 +80,14 @@
         </receiver>
 
         <receiver
+            android:name=".sync.scheduler.MiddayCheckReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.avangard.app.alarm.MIDDAY_CHECK" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
             android:name=".sync.scheduler.BootCompletedReceiver"
             android:exported="true">
             <intent-filter>

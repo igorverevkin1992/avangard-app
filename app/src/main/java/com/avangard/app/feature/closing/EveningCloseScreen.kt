@@ -37,6 +37,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.avangard.app.R
+import com.avangard.app.core.domain.model.Bottleneck
 import com.avangard.app.core.domain.model.DefectKind
 import com.avangard.app.core.ui.components.HardButton
 import com.avangard.app.core.ui.components.HardButtonVariant
@@ -88,6 +89,10 @@ internal fun EveningCloseContent(
             modifier = Modifier.semantics { heading() },
         )
 
+        state.priorBottleneck?.let { prior ->
+            PriorBottleneckReminder(prior = prior)
+        }
+
         PulpitPanel(label = stringResource(R.string.closing_indicators_label)) {
             IndicatorRow(
                 label = stringResource(R.string.closing_productivity),
@@ -133,21 +138,29 @@ internal fun EveningCloseContent(
             label = stringResource(R.string.virtue_rationality),
             value = state.rationality,
             onChange = { onVirtueChange(Virtue.Rationality, it) },
+            suggestUp = Virtue.Rationality in state.suggestedVirtuesUp,
+            suggestDown = Virtue.Rationality in state.suggestedVirtuesDown,
         )
         VirtueRow(
             label = stringResource(R.string.virtue_independence),
             value = state.independence,
             onChange = { onVirtueChange(Virtue.Independence, it) },
+            suggestUp = Virtue.Independence in state.suggestedVirtuesUp,
+            suggestDown = Virtue.Independence in state.suggestedVirtuesDown,
         )
         VirtueRow(
             label = stringResource(R.string.virtue_honesty),
             value = state.honesty,
             onChange = { onVirtueChange(Virtue.Honesty, it) },
+            suggestUp = Virtue.Honesty in state.suggestedVirtuesUp,
+            suggestDown = Virtue.Honesty in state.suggestedVirtuesDown,
         )
         VirtueRow(
             label = stringResource(R.string.virtue_justice),
             value = state.justice,
             onChange = { onVirtueChange(Virtue.Justice, it) },
+            suggestUp = Virtue.Justice in state.suggestedVirtuesUp,
+            suggestDown = Virtue.Justice in state.suggestedVirtuesDown,
         )
 
         JournalPanel(
@@ -235,15 +248,36 @@ private fun VirtueRow(
     label: String,
     value: Int,
     onChange: (Int) -> Unit,
+    suggestUp: Boolean = false,
+    suggestDown: Boolean = false,
 ) {
     PulpitPanel(label = label) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            VirtueOption(symbol = "−", selected = value == -1, color = IsaColors.Signal, onClick = { onChange(-1) })
-            VirtueOption(symbol = "0", selected = value == 0, color = IsaColors.Lattice, onClick = { onChange(0) })
-            VirtueOption(symbol = "+", selected = value == 1, color = IsaColors.Approve, onClick = { onChange(1) })
+            VirtueOption(
+                symbol = "−", selected = value == -1, color = IsaColors.Signal,
+                suggested = suggestDown,
+                onClick = { onChange(-1) },
+            )
+            VirtueOption(
+                symbol = "0", selected = value == 0, color = IsaColors.Lattice,
+                suggested = false,
+                onClick = { onChange(0) },
+            )
+            VirtueOption(
+                symbol = "+", selected = value == 1, color = IsaColors.Approve,
+                suggested = suggestUp,
+                onClick = { onChange(1) },
+            )
+        }
+        if (suggestUp || suggestDown) {
+            Text(
+                text = stringResource(R.string.closing_virtue_suggestion_hint),
+                color = IsaColors.Caution,
+                style = MaterialTheme.typography.labelSmall,
+            )
         }
     }
 }
@@ -253,9 +287,14 @@ private fun RowScope.VirtueOption(
     symbol: String,
     selected: Boolean,
     color: Color,
+    suggested: Boolean,
     onClick: () -> Unit,
 ) {
-    val tint = if (selected) color else IsaColors.Lattice
+    val tint = when {
+        selected -> color
+        suggested -> IsaColors.Caution
+        else -> IsaColors.Lattice
+    }
     val interactionSource = remember { MutableInteractionSource() }
     Text(
         text = symbol,
@@ -268,7 +307,7 @@ private fun RowScope.VirtueOption(
                 role = Role.RadioButton
                 this.selected = selected
             }
-            .border(width = if (selected) 2.dp else 1.dp, color = tint)
+            .border(width = if (selected || suggested) 2.dp else 1.dp, color = tint)
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
@@ -276,4 +315,26 @@ private fun RowScope.VirtueOption(
             )
             .padding(vertical = 10.dp),
     )
+}
+
+@Composable
+private fun PriorBottleneckReminder(prior: Bottleneck) {
+    androidx.compose.foundation.layout.Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(width = 1.dp, color = IsaColors.Lattice)
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Text(
+            text = stringResource(R.string.closing_prior_bottleneck_label),
+            color = IsaColors.Lattice,
+            style = MaterialTheme.typography.labelSmall,
+        )
+        Text(
+            text = prior.displayName,
+            color = IsaColors.LiveMetal,
+            style = MaterialTheme.typography.labelLarge,
+        )
+    }
 }
