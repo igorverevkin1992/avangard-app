@@ -69,7 +69,7 @@ data class SundayAuditView(
             virtueSums.independence == 0 &&
             virtueSums.honesty == 0 &&
             virtueSums.justice == 0 &&
-            infraBreakdown.values.all { it.standard == 0 && it.mvd == 0 }
+            infraBreakdown.values.all { it.done == 0 }
 }
 
 class SundayAuditUseCase @Inject constructor(
