@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -35,10 +36,20 @@ data class LibraryState(
 class LibraryViewModel @Inject constructor(
     private val quotes: QuoteRepository,
     private val clock: Clock,
+    private val preferences: com.avangard.app.core.data.UserPreferencesRepository,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(LibraryState())
     val state: StateFlow<LibraryState> = _state.asStateFlow()
+
+    /** Reactive list of operator-pinned «принципы». Reorders as pins toggle. */
+    val pinnedQuotes: StateFlow<List<Quote>> = preferences.flow
+        .map { prefs -> prefs.pinnedQuoteIds }
+        .map { ids ->
+            if (ids.isEmpty()) emptyList()
+            else quotes.all().filter { it.id in ids }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     /** Live quote-of-day so the panel flips at midnight without leaving
      *  the library tab. */

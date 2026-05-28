@@ -114,6 +114,9 @@
     <string name="library_header">БИБЛИОТЕКА</string>
     <string name="library_quote_of_day_label">ЦИТАТА ДНЯ</string>
     <string name="library_history_label">ПРЕДЫДУЩИЕ ЦИТАТЫ ДНЯ</string>
+    <string name="library_principles_label">ПРИНЦИПЫ</string>
+    <string name="library_pin">ЗАКРЕПИТЬ КАК ПРИНЦИП</string>
+    <string name="library_unpin">УБРАТЬ ИЗ ПРИНЦИПОВ</string>
     <string name="library_virtues_label">ПОДБОРКИ ПО ДОБРОДЕТЕЛЯМ</string>
     <string name="library_empty_state">ПО ЭТОЙ ДОБРОДЕТЕЛИ ЦИТАТ НЕТ.</string>
     <string name="library_footer_note">Источник: Айн Рэнд, Леонард Пейкофф. Куратор подборки — оператор.</string>

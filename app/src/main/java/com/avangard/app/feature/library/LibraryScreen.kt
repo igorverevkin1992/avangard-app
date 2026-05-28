@@ -41,11 +41,13 @@ fun LibraryScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val liveQuoteOfDay by viewModel.quoteOfDay.collectAsState()
+    val pinned by viewModel.pinnedQuotes.collectAsState()
     val quoteOfDay = liveQuoteOfDay ?: state.quoteOfDay
     LibraryContent(
         quoteOfDay = quoteOfDay,
         counts = state.counts,
         history = state.history,
+        pinned = pinned,
         onOpenVirtue = onOpenVirtue,
         onOpenQuote = onOpenQuote,
         modifier = modifier,
@@ -57,6 +59,7 @@ internal fun LibraryContent(
     quoteOfDay: Quote?,
     counts: Map<VirtueTag, Int>,
     history: List<HistoryEntry> = emptyList(),
+    pinned: List<Quote> = emptyList(),
     onOpenVirtue: (VirtueTag) -> Unit,
     onOpenQuote: (Int) -> Unit,
     modifier: Modifier = Modifier,
@@ -75,6 +78,10 @@ internal fun LibraryContent(
             style = MaterialTheme.typography.headlineLarge,
             modifier = Modifier.semantics { heading() },
         )
+
+        if (pinned.isNotEmpty()) {
+            PrinciplesPanel(pinned = pinned, onOpenQuote = onOpenQuote)
+        }
 
         if (quoteOfDay != null) {
             QuoteOfDayPanel(
@@ -103,6 +110,40 @@ internal fun LibraryContent(
             color = IsaColors.Lattice,
             style = MaterialTheme.typography.labelSmall,
         )
+    }
+}
+
+@Composable
+private fun PrinciplesPanel(pinned: List<Quote>, onOpenQuote: (Int) -> Unit) {
+    PulpitPanel(label = stringResource(R.string.library_principles_label)) {
+        pinned.forEach { quote ->
+            val interactionSource = remember(quote.id) { MutableInteractionSource() }
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(width = 1.dp, color = IsaColors.Approve)
+                    .clickable(
+                        interactionSource = interactionSource,
+                        indication = null,
+                        onClick = { onOpenQuote(quote.id) },
+                    )
+                    .padding(horizontal = 10.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Text(
+                    text = quote.text,
+                    color = IsaColors.LiveMetal,
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 3,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = quote.source,
+                    color = IsaColors.Lattice,
+                    style = MaterialTheme.typography.labelSmall,
+                )
+            }
+        }
     }
 }
 

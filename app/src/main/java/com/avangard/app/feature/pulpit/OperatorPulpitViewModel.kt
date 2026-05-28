@@ -119,6 +119,28 @@ class OperatorPulpitViewModel @Inject constructor(
     private val transientError = MutableStateFlow<SessionError?>(null)
     private var transientErrorClearJob: Job? = null
 
+    init {
+        // Pomodoro auto-stop watchdog: while a focus session is active and
+        // pomodoro is enabled in prefs, end the session once its duration
+        // crosses the configured threshold. The combine re-evaluates on
+        // each minute tick so we don't end mid-second on a stale read.
+        viewModelScope.launch {
+            combine(
+                observeActiveFocus(),
+                preferences.flow,
+                tickerFlow(clock, intervalMs = 30_000L),
+            ) { focus, prefs, _ ->
+                Triple(focus, prefs.pomodoroEnabled, prefs.pomodoroMinutes)
+            }.collect { (focus, enabled, minutes) ->
+                if (!enabled || focus == null) return@collect
+                val elapsedMs = clock.nowEpochMillis() - focus.startedAt
+                if (elapsedMs >= minutes * 60_000L) {
+                    endFocus(focus.id)
+                }
+            }
+        }
+    }
+
     private data class Inputs(
         val session: DailySession,
         val focus: FocusSession?,

@@ -26,6 +26,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.avangard.app.R
 import com.avangard.app.core.domain.model.Quote
 import com.avangard.app.core.ui.components.HardButton
+import com.avangard.app.core.ui.components.HardButtonVariant
 import com.avangard.app.ui.theme.IsaColors
 
 @Composable
@@ -35,6 +36,7 @@ fun QuoteDetailScreen(
     viewModel: QuoteDetailViewModel = hiltViewModel(),
 ) {
     val quote by viewModel.quote.collectAsState()
+    val pinned by viewModel.pinned.collectAsState()
     val context = LocalContext.current
     Column(
         modifier = modifier
@@ -77,6 +79,13 @@ fun QuoteDetailScreen(
                     ),
                 )
             }
+            HardButton(
+                label = stringResource(
+                    if (pinned) R.string.library_unpin else R.string.library_pin,
+                ),
+                onClick = viewModel::togglePinned,
+                variant = if (pinned) HardButtonVariant.Primary else HardButtonVariant.Default,
+            )
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
