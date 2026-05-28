@@ -98,7 +98,7 @@ class StartFocusUseCaseTest {
     @Test
     fun `Evening Infra unlocks after Core is approved`() = runTest {
         val today = clock.today().toStartOfDayEpoch(clock.zone())
-        repository.approveCore(today, "Сохранённый шот", CoreMode.Standard, clock.nowEpochMillis())
+        repository.approveCore(today, "Сохранённый шот", clock.nowEpochMillis())
         val result = useCase(Habit.Reading)
         assertTrue(result is DomainResult.Ok)
     }
@@ -106,7 +106,7 @@ class StartFocusUseCaseTest {
     @Test
     fun `Starting Core when already Approved returns AlreadyApproved`() = runTest {
         val today = clock.today().toStartOfDayEpoch(clock.zone())
-        repository.approveCore(today, "Шот", CoreMode.Standard, clock.nowEpochMillis())
+        repository.approveCore(today, "Шот", clock.nowEpochMillis())
         // After approval the auto-closed focus session leaves no active row.
         val result = useCase(Habit.Generations)
         assertEquals(DomainResult.Err(SessionError.AlreadyApproved), result)

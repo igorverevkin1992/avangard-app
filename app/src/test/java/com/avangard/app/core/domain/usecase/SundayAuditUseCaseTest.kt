@@ -45,7 +45,7 @@ class SundayAuditUseCaseTest {
     fun `mixed week aggregates approved, defects, wastes, mvd, virtues`() = runTest {
         // today: Approved as MVD, with virtues
         val today = day(0)
-        repository.approveCore(today, "Шот", CoreMode.Mvd, clock.nowEpochMillis())
+        repository.approveCore(today, "Шот", clock.nowEpochMillis())
         repository.closeEvening(
             dateEpoch = today,
             virtues = VirtueScores(1, 1, 1, 1),
@@ -93,7 +93,7 @@ class SundayAuditUseCaseTest {
     @Test
     fun `core hours are computed from completed focus sessions in the window`() = runTest {
         val today = day(0)
-        repository.approveCore(today, "Шот", CoreMode.Standard, clock.nowEpochMillis())
+        repository.approveCore(today, "Шот", clock.nowEpochMillis())
         val id = repository.startFocus(today, Habit.Generations, 1_000L)
         repository.endFocus(id, 1_000L + 30 * 60 * 1000L) // 30-minute session
         val view = useCase().first()

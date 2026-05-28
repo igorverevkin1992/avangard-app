@@ -22,7 +22,8 @@ interface SessionRepository {
     fun observeRange(fromEpoch: Long, toEpoch: Long): Flow<List<DailySession>>
     suspend fun findForDate(dateEpoch: Long): DailySession?
 
-    suspend fun approveCore(dateEpoch: Long, prompt: String, mode: CoreMode, approvedAt: Long)
+    suspend fun approveCore(dateEpoch: Long, prompt: String, approvedAt: Long)
+    suspend fun setDayMode(dateEpoch: Long, mode: CoreMode)
     suspend fun setInfraStatus(dateEpoch: Long, habit: Habit, status: InfraStatus, recordedAt: Long)
     suspend fun closeEvening(
         dateEpoch: Long,

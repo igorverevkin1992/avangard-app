@@ -63,14 +63,22 @@ class FakeSessionRepository(
     override suspend fun approveCore(
         dateEpoch: Long,
         prompt: String,
-        mode: CoreMode,
         approvedAt: Long,
     ) {
         mutate(dateEpoch) {
-            it.copy(coreStatus = CoreStatus.Approved(prompt, approvedAt, mode))
+            it.copy(
+                coreStatus = CoreStatus.Approved(prompt, approvedAt),
+                dayMode = it.dayMode ?: CoreMode.Standard,
+            )
         }
         focus.value = focus.value.map { f ->
             if (f.endedAt == null) f.copy(endedAt = approvedAt) else f
+        }
+    }
+
+    override suspend fun setDayMode(dateEpoch: Long, mode: CoreMode) {
+        mutate(dateEpoch) {
+            if (it.dayMode != null) it else it.copy(dayMode = mode)
         }
     }
 

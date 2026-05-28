@@ -27,7 +27,6 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.avangard.app.R
-import com.avangard.app.core.domain.model.CoreMode
 import com.avangard.app.core.ui.components.HardButton
 import com.avangard.app.core.ui.components.HardButtonVariant
 import com.avangard.app.core.ui.components.IndustrialCheckbox
@@ -64,15 +63,6 @@ fun AuthorisationModalScreen(
             color = IsaColors.LiveMetal,
             style = MaterialTheme.typography.headlineLarge,
             modifier = Modifier.semantics { heading() },
-        )
-        val modeLabel = stringResource(
-            if (state.mode == CoreMode.Mvd) R.string.auth_mode_mvd
-            else R.string.auth_mode_standard
-        )
-        Text(
-            text = modeLabel,
-            color = if (state.mode == CoreMode.Mvd) IsaColors.Caution else IsaColors.Approve,
-            style = MaterialTheme.typography.labelLarge,
         )
         Text(
             text = stringResource(R.string.auth_question),

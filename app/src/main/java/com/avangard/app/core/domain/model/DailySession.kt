@@ -10,7 +10,6 @@ sealed interface CoreStatus {
     data class Approved(
         val prompt: String,
         val authorizedAt: Long,
-        val mode: CoreMode = CoreMode.Standard,
     ) : CoreStatus
     data class Failed(val kind: DefectKind) : CoreStatus
 }
@@ -46,6 +45,16 @@ data class VirtueScores(
 data class DailySession(
     val dateEpoch: Long,
     val mvdActive: Boolean,
+    /**
+     * Single day-level quality mode chosen by the operator via the header
+     * toggle. NULL until the toggle is first tapped. Once non-null, the
+     * picker is locked for the rest of the day — the same constraint that
+     * keeps Core approval from being re-submitted. Chronometer reads this
+     * field to classify the day as Extracted (Standard) or Partial (Mvd).
+     * Stored in `daily_session.core_mode` (column name preserved for
+     * backup compatibility).
+     */
+    val dayMode: CoreMode? = null,
     val coreStatus: CoreStatus,
     val infra02: InfraStatus,
     val infra03: InfraStatus,

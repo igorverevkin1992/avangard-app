@@ -40,7 +40,7 @@ class SetInfraStatusUseCase @Inject constructor(
             // Day mode is decided on Core; the Infra notification just confirms
             // "habit done" without committing the operator to a specific quality
             // label. Falls back to «ВЫПОЛНЕНО» when Core hasn't been approved yet.
-            val mode = (session?.coreStatus as? CoreStatus.Approved)?.mode
+            val mode = session?.dayMode
             val label = when (mode) {
                 CoreMode.Mvd -> MVD_LABEL
                 CoreMode.Standard -> STANDARD_LABEL

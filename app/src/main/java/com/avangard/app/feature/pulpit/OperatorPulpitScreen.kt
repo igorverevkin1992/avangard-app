@@ -62,7 +62,7 @@ private val pulpitDateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern
 
 @Composable
 fun OperatorPulpitScreen(
-    onOpenAuthorisation: (CoreMode) -> Unit,
+    onOpenAuthorisation: () -> Unit,
     onOpenSabotage: () -> Unit,
     onOpenEveningClose: () -> Unit,
     onOpenSettings: () -> Unit,
@@ -76,7 +76,7 @@ fun OperatorPulpitScreen(
     LaunchedEffect(Unit) {
         viewModel.effects.collect { effect ->
             when (effect) {
-                is PulpitEffect.OpenAuthorisationModal -> onOpenAuthorisation(effect.mode)
+                PulpitEffect.OpenAuthorisationModal -> onOpenAuthorisation()
                 PulpitEffect.OpenSabotage -> onOpenSabotage()
                 PulpitEffect.OpenEveningClose -> onOpenEveningClose()
             }
@@ -103,6 +103,7 @@ fun OperatorPulpitScreen(
             onStopFocus = viewModel::onStopFocus,
             onMarkInfra = viewModel::onMarkInfra,
             onRequestApproveCore = viewModel::onRequestApproveCore,
+            onPickDayMode = { viewModel.onPickDayMode(it) },
             onSabotageClicked = viewModel::onSabotageClicked,
             onCloseShiftClicked = viewModel::onCloseShiftClicked,
             onSettingsLongPress = onOpenSettings,
@@ -136,7 +137,8 @@ internal fun OperatorPulpitContent(
     onStartFocus: (Habit, String?) -> Unit,
     onStopFocus: () -> Unit,
     onMarkInfra: (Habit, InfraStatus) -> Unit,
-    onRequestApproveCore: (CoreMode) -> Unit,
+    onRequestApproveCore: () -> Unit,
+    onPickDayMode: (CoreMode) -> Unit = {},
     onSabotageClicked: () -> Unit,
     onCloseShiftClicked: () -> Unit,
     onSettingsLongPress: () -> Unit = {},
@@ -154,9 +156,11 @@ internal fun OperatorPulpitContent(
     ) {
         HeaderStrip(
             today = today,
+            dayMode = state?.session?.dayMode,
             onSabotageClicked = onSabotageClicked,
             onSettingsLongPress = onSettingsLongPress,
             onChronometerClicked = onChronometerClicked,
+            onPickDayMode = onPickDayMode,
         )
 
         state?.takeIf { it.chronometerConfigured }?.let { s ->
@@ -251,9 +255,11 @@ internal fun OperatorPulpitContent(
 @Composable
 private fun HeaderStrip(
     today: LocalDate,
+    dayMode: CoreMode?,
     onSabotageClicked: () -> Unit,
     onSettingsLongPress: () -> Unit,
     onChronometerClicked: () -> Unit,
+    onPickDayMode: (CoreMode) -> Unit,
 ) {
     // FlowRow wraps to a second line on narrow screens (small phones in
     // landscape, split-screen, etc.) rather than letting the rightmost chip
@@ -278,8 +284,99 @@ private fun HeaderStrip(
                     onLongClick = onSettingsLongPress,
                 ),
         )
+        DayModeChip(dayMode = dayMode, onPickDayMode = onPickDayMode)
         ChronometerChip(onClick = onChronometerClicked)
         SabotageChip(onClick = onSabotageClicked)
+    }
+}
+
+@Composable
+private fun DayModeChip(
+    dayMode: CoreMode?,
+    onPickDayMode: (CoreMode) -> Unit,
+) {
+    var showPicker by remember { androidx.compose.runtime.mutableStateOf(false) }
+    val interactionSource = remember { MutableInteractionSource() }
+    val label: String
+    val color: androidx.compose.ui.graphics.Color
+    when (dayMode) {
+        CoreMode.Standard -> {
+            label = stringResource(R.string.pulpit_day_mode_standard)
+            color = IsaColors.Approve
+        }
+        CoreMode.Mvd -> {
+            label = stringResource(R.string.pulpit_day_mode_mvd)
+            color = IsaColors.Caution
+        }
+        null -> {
+            label = stringResource(R.string.pulpit_day_mode_unset)
+            color = IsaColors.Signal
+        }
+    }
+    val clickable = dayMode == null
+    Text(
+        text = label,
+        color = color,
+        style = MaterialTheme.typography.labelLarge,
+        modifier = Modifier
+            .border(width = if (clickable) 2.dp else 1.dp, color = color)
+            .clickable(
+                enabled = clickable,
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = { showPicker = true },
+            )
+            .padding(horizontal = 10.dp, vertical = 6.dp),
+    )
+    if (showPicker) {
+        DayModePickerDialog(
+            onPick = { mode ->
+                showPicker = false
+                onPickDayMode(mode)
+            },
+            onDismiss = { showPicker = false },
+        )
+    }
+}
+
+@Composable
+private fun DayModePickerDialog(
+    onPick: (CoreMode) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .background(IsaColors.Carbon)
+                .border(width = 2.dp, color = IsaColors.Steel)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.pulpit_day_mode_picker_title),
+                color = IsaColors.LiveMetal,
+                style = MaterialTheme.typography.titleLarge,
+            )
+            Text(
+                text = stringResource(R.string.pulpit_day_mode_picker_warning),
+                color = IsaColors.Lattice,
+                style = MaterialTheme.typography.labelSmall,
+            )
+            HardButton(
+                label = stringResource(R.string.pulpit_day_mode_pick_standard),
+                onClick = { onPick(CoreMode.Standard) },
+                variant = HardButtonVariant.Primary,
+            )
+            HardButton(
+                label = stringResource(R.string.pulpit_day_mode_pick_mvd),
+                onClick = { onPick(CoreMode.Mvd) },
+                variant = HardButtonVariant.Default,
+            )
+            HardButton(
+                label = stringResource(R.string.pulpit_day_mode_picker_cancel),
+                onClick = onDismiss,
+            )
+        }
     }
 }
 
@@ -329,22 +426,22 @@ private fun CoreCard(
     nowMsFlow: kotlinx.coroutines.flow.StateFlow<Long>,
     onStartFocus: (String?) -> Unit,
     onStopFocus: () -> Unit,
-    onRequestApproveCore: (CoreMode) -> Unit,
+    onRequestApproveCore: () -> Unit,
 ) {
     val session = state?.session
     val coreStatus = session?.coreStatus
     val isApproved = coreStatus is CoreStatus.Approved
-    val approvedMode = (coreStatus as? CoreStatus.Approved)?.mode
+    val dayMode = session?.dayMode
     val isFailed = coreStatus is CoreStatus.Failed
     val activeOnCore = state?.isFocusActiveOn(Habit.Generations) == true
     val badge = when {
-        isApproved && approvedMode == CoreMode.Mvd -> StatusBadgeKind.Mvd
+        isApproved && dayMode == CoreMode.Mvd -> StatusBadgeKind.Mvd
         isApproved -> StatusBadgeKind.Standard
         isFailed -> StatusBadgeKind.Fail
         else -> StatusBadgeKind.Idle
     }
     val coreBorder = when {
-        isApproved && approvedMode == CoreMode.Mvd -> IsaColors.Caution
+        isApproved && dayMode == CoreMode.Mvd -> IsaColors.Caution
         isApproved -> IsaColors.Approve
         else -> IsaColors.Steel
     }
@@ -374,25 +471,12 @@ private fun CoreCard(
             onStop = onStopFocus,
         )
         FocusStatsLine(habit = Habit.Generations, state = state, nowMsFlow = nowMsFlow)
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            HardButton(
-                label = stringResource(R.string.pulpit_mark_standard),
-                onClick = { onRequestApproveCore(CoreMode.Standard) },
-                enabled = !isApproved && !isFailed,
-                variant = HardButtonVariant.Primary,
-                modifier = Modifier.weight(1f),
-            )
-            HardButton(
-                label = stringResource(R.string.pulpit_mark_mvd),
-                onClick = { onRequestApproveCore(CoreMode.Mvd) },
-                enabled = !isApproved && !isFailed,
-                variant = HardButtonVariant.Default,
-                modifier = Modifier.weight(1f),
-            )
-        }
+        HardButton(
+            label = stringResource(R.string.pulpit_analysis),
+            onClick = onRequestApproveCore,
+            enabled = !isApproved && !isFailed,
+            variant = HardButtonVariant.Primary,
+        )
     }
 }
 
@@ -415,7 +499,7 @@ private fun InfraCard(
     // The colour of a Done habit is pulled from the day's mode (decided when
     // Core was approved): Standard → green, MVD → amber. Done habits before
     // Core approval default to green — the day hasn't picked a mode yet.
-    val dayMode = (session?.coreStatus as? CoreStatus.Approved)?.mode
+    val dayMode = session?.dayMode
     val doneColor = if (dayMode == CoreMode.Mvd) IsaColors.Caution else IsaColors.Approve
     val badge = when {
         locked -> StatusBadgeKind.Locked

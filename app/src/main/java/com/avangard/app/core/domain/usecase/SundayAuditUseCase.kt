@@ -109,8 +109,8 @@ class SundayAuditUseCase @Inject constructor(
             cs is CoreStatus.Failed && cs.kind == DefectKind.Waste
         }
         val mvds = sessions.count {
-            val cs = it.coreStatus
-            cs is CoreStatus.Approved && cs.mode == com.avangard.app.core.domain.model.CoreMode.Mvd
+            it.coreStatus is CoreStatus.Approved &&
+                it.dayMode == com.avangard.app.core.domain.model.CoreMode.Mvd
         }
         val virtueSum = sessions.sumOf {
             val v = it.virtues
@@ -147,8 +147,8 @@ class SundayAuditUseCase @Inject constructor(
             cs is CoreStatus.Failed && cs.kind == DefectKind.Waste
         }
         val mvdDays = weekSessions.count {
-            val cs = it.coreStatus
-            cs is CoreStatus.Approved && cs.mode == com.avangard.app.core.domain.model.CoreMode.Mvd
+            it.coreStatus is CoreStatus.Approved &&
+                it.dayMode == com.avangard.app.core.domain.model.CoreMode.Mvd
         }
 
         val infraBreakdown = listOf(Habit.Spanish, Habit.Sport, Habit.Watching, Habit.Reading)

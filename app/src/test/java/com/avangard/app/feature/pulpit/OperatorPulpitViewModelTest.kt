@@ -70,6 +70,7 @@ class OperatorPulpitViewModelTest {
             startFocus = StartFocusUseCase(repository, clock, NoopFocusService),
             endFocus = EndFocusUseCase(repository, clock),
             setInfraStatus = SetInfraStatusUseCase(repository, clock, StatusEventBus(), NoopStatusNotifier),
+            setDayMode = com.avangard.app.core.domain.usecase.SetDayModeUseCase(repository, clock),
             quotes = quotes,
             sessions = repository,
             statusBus = StatusEventBus(),
@@ -138,7 +139,7 @@ class OperatorPulpitViewModelTest {
     @Test
     fun `mark evening Infra succeeds after Core approval`() = runTest(dispatcher) {
         val today = clock.today().toStartOfDayEpoch(clock.zone())
-        repository.approveCore(today, "Шот", CoreMode.Standard, clock.nowEpochMillis())
+        repository.approveCore(today, "Шот", clock.nowEpochMillis())
         viewModel.onMarkInfra(Habit.Reading, InfraStatus.Done)
         advanceUntilIdle()
         val stored = repository.findForDate(today)!!
@@ -175,7 +176,7 @@ class OperatorPulpitViewModelTest {
     @Test
     fun `nudge flag is false before target time on approved shift`() = runTest(dispatcher) {
         val today = clock.today().toStartOfDayEpoch(clock.zone())
-        repository.approveCore(today, "Шот", CoreMode.Standard, clock.nowEpochMillis())
+        repository.approveCore(today, "Шот", clock.nowEpochMillis())
         clock.time = java.time.LocalTime.of(15, 0)
 
         val state = viewModel.state.filterNotNull().first()
@@ -185,7 +186,7 @@ class OperatorPulpitViewModelTest {
     @Test
     fun `nudge flag is true after target time on unclosed approved shift`() = runTest(dispatcher) {
         val today = clock.today().toStartOfDayEpoch(clock.zone())
-        repository.approveCore(today, "Шот", CoreMode.Standard, clock.nowEpochMillis())
+        repository.approveCore(today, "Шот", clock.nowEpochMillis())
         clock.time = java.time.LocalTime.of(21, 1)
 
         val state = viewModel.state.filterNotNull().first()
@@ -205,7 +206,7 @@ class OperatorPulpitViewModelTest {
     @Test
     fun `nudge flag is false after closeEvening`() = runTest(dispatcher) {
         val today = clock.today().toStartOfDayEpoch(clock.zone())
-        repository.approveCore(today, "Шот", CoreMode.Standard, clock.nowEpochMillis())
+        repository.approveCore(today, "Шот", clock.nowEpochMillis())
         repository.closeEvening(
             dateEpoch = today,
             virtues = com.avangard.app.core.domain.model.VirtueScores(0, 0, 0, 0),

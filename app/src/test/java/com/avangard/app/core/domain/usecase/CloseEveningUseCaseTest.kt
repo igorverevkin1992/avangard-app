@@ -50,7 +50,7 @@ class CloseEveningUseCaseTest {
     @Test
     fun `Approved core closes evening without requiring a defect`() = runTest {
         val today = clock.today().toStartOfDayEpoch(clock.zone())
-        repository.approveCore(today, "Шот", CoreMode.Standard, clock.nowEpochMillis())
+        repository.approveCore(today, "Шот", clock.nowEpochMillis())
         val result = useCase(virtues = virtues, defectKindWhenIdle = null)
         assertTrue(result is DomainResult.Ok)
         val stored = repository.findForDate(today)!!

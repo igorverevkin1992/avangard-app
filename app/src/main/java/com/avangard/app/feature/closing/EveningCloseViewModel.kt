@@ -126,7 +126,7 @@ class EveningCloseViewModel @Inject constructor(
         val out = mutableSetOf<Virtue>()
         val completed = focusList.count { it.endedAt != null }
         val core = session.coreStatus
-        if (completed >= 2 && core is CoreStatus.Approved && core.mode == CoreMode.Standard) {
+        if (completed >= 2 && core is CoreStatus.Approved && session.dayMode == CoreMode.Standard) {
             out += Virtue.Rationality
         }
         // ≥3 completed sessions across any habits with Core not failed signals

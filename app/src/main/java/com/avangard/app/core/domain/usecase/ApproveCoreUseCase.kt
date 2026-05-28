@@ -22,24 +22,26 @@ class ApproveCoreUseCase @Inject constructor(
     /**
      * @param authorised the explicit checkbox from the AuthorisationModal —
      * without it Core cannot be approved (conscious-authorisation gate).
-     * @param mode SP-bucket the day lands in: Standard → Extracted in chronometer,
-     * Mvd → Partial.
+     * Mode comes from DailySession.dayMode — picked once via the header
+     * toggle. When the operator approves Core without first picking a mode
+     * the repository defaults the row to Standard.
      */
     suspend operator fun invoke(
         prompt: String,
         authorised: Boolean,
-        mode: CoreMode,
     ): DomainResult<Unit, SessionError> {
         val trimmed = prompt.trim()
         if (!authorised) return DomainResult.Err(SessionError.NotAuthorised)
         if (trimmed.isEmpty()) return DomainResult.Err(SessionError.PromptEmpty)
         val today = clock.today().toStartOfDayEpoch(clock.zone())
+        val session = repository.findForDate(today)
         // Prevent overwriting an existing approval — re-submitting the modal would
         // otherwise replace the saved prompt and authorisation timestamp.
-        if (repository.findForDate(today)?.coreStatus is CoreStatus.Approved) {
+        if (session?.coreStatus is CoreStatus.Approved) {
             return DomainResult.Err(SessionError.AlreadyApproved)
         }
-        repository.approveCore(today, trimmed, mode, clock.nowEpochMillis())
+        repository.approveCore(today, trimmed, clock.nowEpochMillis())
+        val mode = session?.dayMode ?: CoreMode.Standard
         val label = if (mode == CoreMode.Mvd) "МИНИМУМ" else "СТАНДАРТ"
         statusBus.tryEmit(StatusFixedEvent(Habit.Generations, label))
         statusNotifier.notifyStatusFix(Habit.Generations, label)

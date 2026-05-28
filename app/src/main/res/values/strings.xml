@@ -8,12 +8,19 @@
     <!-- Pulpit cards. -->
     <string name="pulpit_flash_start">КОНЦЕНТРАЦИЯ</string>
     <string name="pulpit_intent_placeholder">Что именно сделаю (опционально)</string>
+    <string name="pulpit_day_mode_unset">РЕЖИМ ДНЯ: ВЫБРАТЬ</string>
+    <string name="pulpit_day_mode_standard">РЕЖИМ ДНЯ: СТАНДАРТ</string>
+    <string name="pulpit_day_mode_mvd">РЕЖИМ ДНЯ: МИНИМУМ</string>
+    <string name="pulpit_day_mode_picker_title">РЕЖИМ ДНЯ</string>
+    <string name="pulpit_day_mode_picker_warning">Решение фиксируется на сегодня. Изменить нельзя.</string>
+    <string name="pulpit_day_mode_pick_standard">СТАНДАРТ</string>
+    <string name="pulpit_day_mode_pick_mvd">МИНИМУМ</string>
+    <string name="pulpit_day_mode_picker_cancel">ОТМЕНА</string>
+    <string name="pulpit_analysis">АНАЛИЗ ГЕНЕРАЦИИ</string>
     <string name="pulpit_flash_stop">ЗАВЕРШИТЬ</string>
-    <string name="pulpit_mark_standard">СТАНДАРТ</string>
-    <string name="pulpit_mark_mvd">МИНИМУМ</string>
     <string name="pulpit_mark_done">ВЫПОЛНЕНО</string>
     <string name="pulpit_mark_undo">СБРОСИТЬ</string>
-    <string name="pulpit_hostage_banner">ЗАБЛОКИРОВАНО ДО ПЕРВОГО ЯДРА</string>
+    <string name="pulpit_hostage_banner">ЗАБЛОКИРОВАНО ДО АНАЛИЗА ГЕНЕРАЦИИ</string>
     <string name="pulpit_close_shift">ЗАКРЫТЬ СМЕНУ</string>
     <string name="pulpit_evening_nudge">СМЕНА НЕ ЗАКРЫТА · ТАП ДЛЯ ВЕЧЕРНЕГО ЗАКРЫТИЯ</string>
     <string name="pulpit_quote_of_day_label">ЦИТАТА ДНЯ · ТАП ДЛЯ ПОЛНОГО ТЕКСТА</string>
@@ -38,14 +45,12 @@
     <string name="pulpit_focus_stats_active">КОНЦЕНТРАЦИЯ · %1$s   |   СЕГОДНЯ · %2$d × %3$s</string>
     <string name="pulpit_focus_stats_idle">СЕГОДНЯ · %1$d СЕССИЙ · %2$s</string>
 
-    <!-- Authorisation modal. -->
-    <string name="auth_title">ОСОЗНАННАЯ АВТОРИЗАЦИЯ</string>
-    <string name="auth_mode_standard">РЕЖИМ: СТАНДАРТ</string>
-    <string name="auth_mode_mvd">РЕЖИМ: МИНИМУМ</string>
+    <!-- Authorisation modal (АНАЛИЗ ГЕНЕРАЦИИ). -->
+    <string name="auth_title">АНАЛИЗ ГЕНЕРАЦИИ</string>
     <string name="auth_question">Присутствует ли в этом результате мой рациональный выбор, или это слепой автоматизм?</string>
-    <string name="auth_prompt_label">ПРОМПТ / ШОТ</string>
+    <string name="auth_prompt_label">ИТОГ ГЕНЕРАЦИИ</string>
     <string name="auth_checkbox_label">ПОДТВЕРЖДАЮ РАЦИОНАЛЬНЫЙ ВЫБОР</string>
-    <string name="auth_submit">ПОДТВЕРДИТЬ И СОХРАНИТЬ</string>
+    <string name="auth_submit">ЗАФИКСИРОВАТЬ АНАЛИЗ</string>
     <string name="auth_cancel">ОТМЕНА</string>
 
     <!-- Earned Pride. -->
@@ -72,7 +77,7 @@
     <string name="closing_pride">ГОРДОСТЬ</string>
     <string name="closing_integrity">ЦЕЛОСТНОСТЬ</string>
     <string name="closing_defect_label">КЛАССИФИКАЦИЯ НУЛЕВОГО РЕЗУЛЬТАТА</string>
-    <string name="closing_defect_hint">Ядро не зафиксировано. Выберите тип отклонения.</string>
+    <string name="closing_defect_hint">Анализ генерации не зафиксирован. Выберите тип провала.</string>
     <string name="closing_defect_kind_defect">ПОМЕХА</string>
     <string name="closing_defect_kind_waste">УКЛОНЕНИЕ</string>
     <string name="closing_journal_label">ЖУРНАЛ ДНЯ</string>
@@ -92,11 +97,11 @@
     <string name="audit_header">ОЦЕНКА НЕДЕЛИ</string>
     <string name="audit_loading">СБОР МЕТРИК…</string>
     <string name="audit_metrics_label">МЕТРИКИ ЗА 7 ДНЕЙ</string>
-    <string name="audit_metric_core_hours">ЧАСЫ ЯДРА</string>
-    <string name="audit_metric_days_approved">ДНЕЙ С APPROVED</string>
+    <string name="audit_metric_core_hours">ЧАСЫ ГЕНЕРАЦИЙ</string>
+    <string name="audit_metric_days_approved">ДНЕЙ С АНАЛИЗОМ</string>
     <string name="audit_metric_defects">ПОМЕХИ</string>
     <string name="audit_metric_wastes">УКЛОНЕНИЯ</string>
-    <string name="audit_metric_mvd_days">ДНИ MVD</string>
+    <string name="audit_metric_mvd_days">ДНИ МИНИМУМА</string>
     <string name="audit_metric_virtues">СУММА ДОБРОДЕТЕЛЕЙ</string>
     <string name="audit_bottleneck_label">ОГРАНИЧЕНИЕ НА СЛЕДУЮЩУЮ НЕДЕЛЮ</string>
     <string name="audit_evasions_label">ДИАГНОЗЫ УКЛОНЕНИЯ</string>
@@ -139,9 +144,9 @@
 
     <!-- Notification. -->
     <string name="notification_evening_title">ТРЕБУЕТСЯ ЗАКРЫТИЕ СМЕНЫ</string>
-    <string name="notification_evening_body">Зафиксируйте состояние Ядра и добродетели.</string>
+    <string name="notification_evening_body">Зафиксируйте анализ генерации и добродетели.</string>
     <string name="focus_notification_title">КОНЦЕНТРАЦИЯ · %1$s</string>
-    <string name="focus_notification_body">Активная фокус-сессия. Тап — пульт.</string>
+    <string name="focus_notification_body">Активная концентрация. Тап — пульт.</string>
     <string name="focus_notification_placeholder_title">КОНЦЕНТРАЦИЯ</string>
 
     <!-- Quick Settings Tile. -->

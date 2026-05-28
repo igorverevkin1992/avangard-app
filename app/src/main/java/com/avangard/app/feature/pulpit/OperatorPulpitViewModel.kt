@@ -81,7 +81,7 @@ data class PulpitState(
 }
 
 sealed interface PulpitEffect {
-    data class OpenAuthorisationModal(val mode: CoreMode) : PulpitEffect
+    data object OpenAuthorisationModal : PulpitEffect
     data object OpenSabotage : PulpitEffect
     data object OpenEveningClose : PulpitEffect
 }
@@ -96,6 +96,7 @@ class OperatorPulpitViewModel @Inject constructor(
     private val startFocus: StartFocusUseCase,
     private val endFocus: EndFocusUseCase,
     private val setInfraStatus: SetInfraStatusUseCase,
+    private val setDayMode: com.avangard.app.core.domain.usecase.SetDayModeUseCase,
     quotes: QuoteRepository,
     sessions: SessionRepository,
     statusBus: StatusEventBus,
@@ -248,8 +249,17 @@ class OperatorPulpitViewModel @Inject constructor(
         }
     }
 
-    fun onRequestApproveCore(mode: CoreMode) {
-        viewModelScope.launch { _effects.send(PulpitEffect.OpenAuthorisationModal(mode)) }
+    fun onRequestApproveCore() {
+        viewModelScope.launch { _effects.send(PulpitEffect.OpenAuthorisationModal) }
+    }
+
+    /** Header-toggle commits the day's mode. AlreadyApproved surfaces if the
+     *  operator re-taps after the first commit — UI keeps the chip locked. */
+    fun onPickDayMode(mode: CoreMode) = viewModelScope.launch {
+        when (val r = setDayMode(mode)) {
+            is DomainResult.Err -> raise(r.error)
+            is DomainResult.Ok -> Unit
+        }
     }
 
     fun onSabotageClicked() {

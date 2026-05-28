@@ -106,7 +106,7 @@ class SettingsViewModelTest {
     @Test
     fun `confirm wipes both session and habit stores`() = runTest(dispatcher) {
         val today = clock.today().toStartOfDayEpoch(clock.zone())
-        sessions.approveCore(today, "Шот", CoreMode.Standard, clock.nowEpochMillis())
+        sessions.approveCore(today, "Шот", clock.nowEpochMillis())
         habits.toggle(clock.today(), Habit.Sport, clock.nowEpochMillis())
 
         viewModel.requestWipe()

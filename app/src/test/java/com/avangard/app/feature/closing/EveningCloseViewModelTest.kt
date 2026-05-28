@@ -74,7 +74,7 @@ class EveningCloseViewModelTest {
     @Test
     fun `Approved core does not require defect kind`() = runTest(dispatcher) {
         val today = clock.today().toStartOfDayEpoch(clock.zone())
-        repository.approveCore(today, "Шот", CoreMode.Standard, clock.nowEpochMillis())
+        repository.approveCore(today, "Шот", clock.nowEpochMillis())
         // Allow observeSession to flush the Approved state into the viewmodel.
         advanceUntilIdle()
         assertFalse(viewModel.state.value.needsDefectKind)

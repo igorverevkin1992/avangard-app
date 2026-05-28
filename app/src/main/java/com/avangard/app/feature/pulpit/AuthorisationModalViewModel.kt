@@ -4,10 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.avangard.app.core.common.DomainResult
-import com.avangard.app.core.domain.model.CoreMode
 import com.avangard.app.core.domain.model.SessionError
 import com.avangard.app.core.domain.usecase.ApproveCoreUseCase
-import com.avangard.app.navigation.NavRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.channels.Channel
@@ -24,7 +22,6 @@ data class AuthorisationModalState(
     val authorised: Boolean = false,
     val submitting: Boolean = false,
     val error: SessionError? = null,
-    val mode: CoreMode = CoreMode.Standard,
 ) {
     val canSubmit: Boolean
         get() = !submitting && authorised && prompt.trim().isNotEmpty()
@@ -34,6 +31,11 @@ sealed interface AuthorisationEffect {
     data object Submitted : AuthorisationEffect
 }
 
+/**
+ * Drives the «АНАЛИЗ ГЕНЕРАЦИИ» modal. The day's mode is no longer scoped to
+ * this screen — it's been picked once via the pulpit header — so this VM
+ * only owns the operator's analysis text + conscious-authorisation checkbox.
+ */
 @HiltViewModel
 class AuthorisationModalViewModel @Inject constructor(
     private val approveCore: ApproveCoreUseCase,
@@ -47,22 +49,9 @@ class AuthorisationModalViewModel @Inject constructor(
     private val authorisedFlow: StateFlow<Boolean> =
         savedState.getStateFlow(KEY_AUTHORISED, false)
 
-    // Picked on the pulpit (СТАНДАРТ / МИНИМУМ button) and passed via nav arg.
-    // Fallback to Standard for safety — a missing/invalid arg means the operator
-    // landed here through a degraded path; treat the saved shot as Standard
-    // rather than silently downgrading it.
-    private val mode: CoreMode = savedState.get<String>(NavRoute.AuthorisationModal.ARG_MODE)
-        ?.let { runCatching { CoreMode.valueOf(it) }.getOrNull() }
-        ?: CoreMode.Standard
-
-    // Submitting flag and transient error are intentionally NOT persisted —
-    // they belong to the current submission attempt, not the user's intent.
     private val submitting = MutableStateFlow(false)
     private val error = MutableStateFlow<SessionError?>(null)
 
-    // Eagerly so state.value is always the live combined value, including
-    // updates triggered by the on*Change handlers — submit() reads it without
-    // worrying about whether a UI subscriber happens to be active.
     val state: StateFlow<AuthorisationModalState> = combine(
         promptFlow,
         authorisedFlow,
@@ -74,7 +63,6 @@ class AuthorisationModalViewModel @Inject constructor(
             authorised = authorised,
             submitting = submitting,
             error = error,
-            mode = mode,
         )
     }.stateIn(
         scope = viewModelScope,
@@ -82,7 +70,6 @@ class AuthorisationModalViewModel @Inject constructor(
         initialValue = AuthorisationModalState(
             prompt = promptFlow.value,
             authorised = authorisedFlow.value,
-            mode = mode,
         ),
     )
 
@@ -100,7 +87,6 @@ class AuthorisationModalViewModel @Inject constructor(
     }
 
     fun submit() {
-        // Read source flows directly — defensive against any stale state.value.
         val currentPrompt = promptFlow.value
         val currentAuthorised = authorisedFlow.value
         if (submitting.value) return
@@ -113,7 +99,6 @@ class AuthorisationModalViewModel @Inject constructor(
             when (val result = approveCore(
                 prompt = currentPrompt,
                 authorised = currentAuthorised,
-                mode = mode,
             )) {
                 is DomainResult.Ok -> {
                     submitting.value = false
