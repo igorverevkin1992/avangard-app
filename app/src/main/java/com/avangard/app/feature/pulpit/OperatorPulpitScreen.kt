@@ -204,6 +204,12 @@ internal fun OperatorPulpitContent(
             )
         }
 
+        val coreIdle = state?.session?.coreStatus is CoreStatus.Idle ||
+            state?.session?.coreStatus == null
+        if (state != null && coreIdle) {
+            CoreReminderBanner()
+        }
+
         CoreCard(
             state = state,
             nowMsFlow = nowMsFlow,
@@ -490,31 +496,22 @@ private fun InfraCard(
     onMarkInfra: (Habit, InfraStatus) -> Unit,
 ) {
     val session: DailySession? = state?.session
-    // Only evening habits (Watching, Reading) wait for Core. Morning habits
-    // (Spanish, Sport) are always unlocked.
-    val locked = habit.requiresCoreApproval && session?.isCoreUnlocked != true
     val infraStatus = session?.infraStatus(habit) ?: InfraStatus.NotDone
     val done = infraStatus == InfraStatus.Done
     val activeOnHabit = state?.isFocusActiveOn(habit) == true
-    // The colour of a Done habit is pulled from the day's mode (decided when
-    // Core was approved): Standard → green, MVD → amber. Done habits before
-    // Core approval default to green — the day hasn't picked a mode yet.
+    // The colour of a Done habit is pulled from the day's mode (decided once
+    // via the day-mode chip in the header): Standard → green, MVD → amber.
+    // Done habits before the mode is picked default to green.
     val dayMode = session?.dayMode
     val doneColor = if (dayMode == CoreMode.Mvd) IsaColors.Caution else IsaColors.Approve
     val badge = when {
-        locked -> StatusBadgeKind.Locked
         done -> if (dayMode == CoreMode.Mvd) StatusBadgeKind.Mvd else StatusBadgeKind.Standard
         else -> StatusBadgeKind.Idle
     }
-    val infraBorder = when {
-        locked -> IsaColors.HostageGray
-        done -> doneColor
-        else -> IsaColors.Steel
-    }
-    // Cards collapse to a 1-row strip when there's nothing happening on them
-    // (Idle, no active focus, not locked). User can tap to expand manually;
-    // active focus or a marked status auto-expands.
-    val autoExpanded = activeOnHabit || infraStatus != InfraStatus.NotDone || locked
+    val infraBorder = if (done) doneColor else IsaColors.Steel
+    // Cards collapse to a 1-row strip when there's nothing happening on them.
+    // Active focus or a marked status auto-expands; tap-to-expand otherwise.
+    val autoExpanded = activeOnHabit || done
     var manuallyExpanded by rememberSaveable(habit.code) { mutableStateOf(false) }
     val expanded = autoExpanded || manuallyExpanded
     PulpitPanel(borderColor = infraBorder) {
@@ -537,20 +534,6 @@ private fun InfraCard(
             )
         }
         if (!expanded) return@PulpitPanel
-        if (locked) {
-            val a11yLocked = stringResource(R.string.a11y_infra_locked, habit.displayName)
-            Text(
-                text = stringResource(R.string.pulpit_hostage_banner),
-                color = IsaColors.Signal,
-                style = MaterialTheme.typography.labelMedium,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .semantics { contentDescription = a11yLocked }
-                    .border(width = 1.dp, color = IsaColors.Signal)
-                    .padding(8.dp),
-            )
-            return@PulpitPanel
-        }
         val activeIntent = if (activeOnHabit) state?.activeFocus?.intent else null
         IntentField(
             habit = habit,
@@ -622,6 +605,25 @@ private fun formatHms(millis: Long): String {
     val m = (total % 3600) / 60
     val s = total % 60
     return "%02d:%02d:%02d".format(java.util.Locale.US, h, m, s)
+}
+
+/**
+ * Passive reminder above the Core card while Generations is still Idle.
+ * Replaces the old «hostage» gate on Watching/Reading — Infra habits are
+ * always start-able now, but Core's primacy is signalled visually so the
+ * operator never forgets that 01·ГЕНЕРАЦИИ is the day's central act.
+ */
+@Composable
+private fun CoreReminderBanner() {
+    Text(
+        text = stringResource(R.string.pulpit_core_reminder),
+        color = IsaColors.Caution,
+        style = MaterialTheme.typography.labelMedium,
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(width = 1.dp, color = IsaColors.Caution)
+            .padding(horizontal = 10.dp, vertical = 8.dp),
+    )
 }
 
 /**

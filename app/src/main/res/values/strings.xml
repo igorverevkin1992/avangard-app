@@ -20,7 +20,7 @@
     <string name="pulpit_flash_stop">ЗАВЕРШИТЬ</string>
     <string name="pulpit_mark_done">ВЫПОЛНЕНО</string>
     <string name="pulpit_mark_undo">СБРОСИТЬ</string>
-    <string name="pulpit_hostage_banner">ЗАБЛОКИРОВАНО ДО АНАЛИЗА ГЕНЕРАЦИИ</string>
+    <string name="pulpit_core_reminder">01·ГЕНЕРАЦИИ — главное дело дня. Анализ ещё не зафиксирован.</string>
     <string name="pulpit_close_shift">ЗАКРЫТЬ СМЕНУ</string>
     <string name="pulpit_evening_nudge">СМЕНА НЕ ЗАКРЫТА · ТАП ДЛЯ ВЕЧЕРНЕГО ЗАКРЫТИЯ</string>
     <string name="pulpit_quote_of_day_label">ЦИТАТА ДНЯ · ТАП ДЛЯ ПОЛНОГО ТЕКСТА</string>
@@ -163,7 +163,7 @@
     <string name="permission_open_settings">НАСТРОЙКИ</string>
 
     <!-- Pulpit transient error banner. -->
-    <string name="error_infra_locked">Заблокировано до первого Ядра</string>
+    <string name="error_infra_locked">Ядро отмечается через «Анализ генерации»</string>
     <string name="error_another_focus_active">Сессия уже идёт</string>
     <string name="error_already_approved">Ядро уже зафиксировано</string>
     <string name="error_not_authorised">Чекбокс авторизации не активирован</string>
@@ -190,7 +190,6 @@
     <string name="a11y_flash_start">Запустить фокус-сессию: %1$s</string>
     <string name="a11y_flash_stop">Завершить активную фокус-сессию</string>
     <string name="a11y_sabotage">Открыть диагностику уклонения</string>
-    <string name="a11y_infra_locked">%1$s заблокировано до утверждения Ядра</string>
 
     <!-- Settings (long-press on date strip to reach). -->
     <string name="settings_header">КОНФИГ</string>

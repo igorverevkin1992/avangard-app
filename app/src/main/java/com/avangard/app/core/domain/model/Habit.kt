@@ -1,35 +1,23 @@
 package com.avangard.app.core.domain.model
 
 /**
- * Five-direction tracker. [requiresCoreApproval] encodes the operator's real
- * daily schedule: Generations (Core) sits between the morning routine and the
- * afternoon polish.
- *
- *   * Morning, no gate — Spanish (02), Sport (03). Run before the work day.
- *   * Core — Generations (01). The day's productive work.
- *   * Evening, Core-gated — Watching (04), Reading (05). Run after Core,
- *     never before.
- *
- * StartFocusUseCase and SetInfraStatusUseCase consult [requiresCoreApproval]
- * to decide whether to enforce the Hostage-Logic gate.
+ * Five-direction tracker. All habits are start-able at any point in the day;
+ * the operator owns sequencing. Generations (Core) is structurally singled
+ * out — it's the only habit whose Approval is the day-classification source
+ * for the chronometer and the only one with a dedicated «АНАЛИЗ ГЕНЕРАЦИИ»
+ * panel on the pulpit. UI also surfaces a passive reminder while Core is
+ * still Idle so the operator never forgets it's the day's central act.
  */
 enum class Habit(
     val code: String,
     val displayName: String,
     val shortLabel: String,
-    /** True when the habit only unlocks after Core (Generations) is Approved. */
-    val requiresCoreApproval: Boolean,
 ) {
-    Generations(code = "01", displayName = "ГЕНЕРАЦИИ", shortLabel = "ГЕН",
-        requiresCoreApproval = false),
-    Spanish(code = "02", displayName = "ИСПАНСКИЙ", shortLabel = "ИСП",
-        requiresCoreApproval = false),
-    Sport(code = "03", displayName = "СПОРТ", shortLabel = "СПОРТ",
-        requiresCoreApproval = false),
-    Watching(code = "04", displayName = "НАСМОТРЕННОСТЬ", shortLabel = "НАСМ",
-        requiresCoreApproval = true),
-    Reading(code = "05", displayName = "ЧТЕНИЕ", shortLabel = "ЧТЕН",
-        requiresCoreApproval = true);
+    Generations(code = "01", displayName = "ГЕНЕРАЦИИ", shortLabel = "ГЕН"),
+    Spanish(code = "02", displayName = "ИСПАНСКИЙ", shortLabel = "ИСП"),
+    Sport(code = "03", displayName = "СПОРТ", shortLabel = "СПОРТ"),
+    Watching(code = "04", displayName = "НАСМОТРЕННОСТЬ", shortLabel = "НАСМ"),
+    Reading(code = "05", displayName = "ЧТЕНИЕ", shortLabel = "ЧТЕН");
 
     companion object {
         fun byCode(code: String): Habit? = entries.firstOrNull { it.code == code }

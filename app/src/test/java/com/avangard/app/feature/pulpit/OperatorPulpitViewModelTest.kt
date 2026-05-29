@@ -100,30 +100,29 @@ class OperatorPulpitViewModelTest {
     }
 
     @Test
-    fun `Evening Infra start is rejected while Core is not yet approved`() = runTest(dispatcher) {
-        // Watching is gated by Core; morning habits (Spanish, Sport) are not.
+    fun `Evening Infra is start-able while Core is still Idle`() = runTest(dispatcher) {
+        // No-gate model: morning videos can count toward Watching even before
+        // the operator sits down for Generations. Core's primacy is signalled
+        // by the reminder banner, not by blocking the side modules.
         viewModel.onStartFocus(Habit.Watching)
         advanceUntilIdle()
-        assertEquals(null, repository.findActiveFocus())
+        assertEquals(Habit.Watching, repository.findActiveFocus()?.habit)
     }
 
     @Test
     fun `Morning Infra start succeeds with Core still idle`() = runTest(dispatcher) {
-        // Sport runs before Core in the operator's schedule — it must not
-        // wait on Approval.
         viewModel.onStartFocus(Habit.Sport)
         advanceUntilIdle()
         assertEquals(Habit.Sport, repository.findActiveFocus()?.habit)
     }
 
     @Test
-    fun `mark evening Infra is rejected while Core is locked`() = runTest(dispatcher) {
+    fun `mark evening Infra is allowed without Core approval`() = runTest(dispatcher) {
         viewModel.onMarkInfra(Habit.Watching, InfraStatus.Done)
         advanceUntilIdle()
         val today = clock.today().toStartOfDayEpoch(clock.zone())
-        val stored = repository.findForDate(today)
-        // infra_04 (Watching) must stay NotDone — Core not approved.
-        assertTrue(stored == null || stored.infra04 == InfraStatus.NotDone)
+        val stored = repository.findForDate(today)!!
+        assertEquals(InfraStatus.Done, stored.infra04)
     }
 
     @Test
@@ -147,19 +146,20 @@ class OperatorPulpitViewModelTest {
     }
 
     @Test
-    fun `Evening Infra start rejection surfaces a transient error on state`() =
+    fun `second focus attempt while one is active surfaces AnotherFocusActive`() =
         runTest(dispatcher) {
-            viewModel.onStartFocus(Habit.Watching) // Core idle → InfraLocked
-            // Don't advanceUntilIdle — the 3s transient-error clear would
-            // otherwise run on the virtual clock and wipe the error before
-            // we observe it.
+            // First start parks a session on Sport; the second concurrent
+            // start (on any habit) must hit the partial-unique guard and
+            // surface a transient error on state for the banner to display.
+            viewModel.onStartFocus(Habit.Sport)
+            advanceUntilIdle()
+            viewModel.onStartFocus(Habit.Watching)
             val state = viewModel.state.filterNotNull().first()
-            assertEquals(SessionError.InfraLocked, state.transientError)
+            assertEquals(SessionError.AnotherFocusActive, state.transientError)
         }
 
     @Test
     fun `onStopFocus ends active focus even when state has detached`() = runTest(dispatcher) {
-        // Sport is a morning habit — starts immediately, no Core required.
         viewModel.onStartFocus(Habit.Sport)
         advanceUntilIdle()
         assertNotNull(repository.findActiveFocus())
