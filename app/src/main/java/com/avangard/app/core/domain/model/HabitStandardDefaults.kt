@@ -12,7 +12,7 @@ package com.avangard.app.core.domain.model
 object HabitStandardDefaults {
     private val table: Map<Habit, HabitStandard> = mapOf(
         Habit.Generations to HabitStandard(
-            standard = "Полная сессия генерации (≥ 90 мин): постановка задачи, " +
+            standard = "Полная сессия генерации (≥ 60 мин): постановка задачи, " +
                 "проработка, фиксация результата. Главное дело дня.",
             mvd = "Сокращённая сессия (≥ 30 мин) с фиксацией хотя бы одного " +
                 "конкретного шага.",
