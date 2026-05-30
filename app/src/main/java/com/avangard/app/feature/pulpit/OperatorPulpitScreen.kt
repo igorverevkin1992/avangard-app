@@ -103,7 +103,6 @@ fun OperatorPulpitScreen(
             onStopFocus = viewModel::onStopFocus,
             onMarkInfra = viewModel::onMarkInfra,
             onRequestApproveCore = viewModel::onRequestApproveCore,
-            onPickDayMode = { viewModel.onPickDayMode(it) },
             onSabotageClicked = viewModel::onSabotageClicked,
             onCloseShiftClicked = viewModel::onCloseShiftClicked,
             onSettingsLongPress = onOpenSettings,
@@ -138,7 +137,6 @@ internal fun OperatorPulpitContent(
     onStopFocus: () -> Unit,
     onMarkInfra: (Habit, InfraStatus) -> Unit,
     onRequestApproveCore: () -> Unit,
-    onPickDayMode: (CoreMode) -> Unit = {},
     onSabotageClicked: () -> Unit,
     onCloseShiftClicked: () -> Unit,
     onSettingsLongPress: () -> Unit = {},
@@ -156,11 +154,9 @@ internal fun OperatorPulpitContent(
     ) {
         HeaderStrip(
             today = today,
-            dayMode = state?.session?.dayMode,
             onSabotageClicked = onSabotageClicked,
             onSettingsLongPress = onSettingsLongPress,
             onChronometerClicked = onChronometerClicked,
-            onPickDayMode = onPickDayMode,
         )
 
         state?.takeIf { it.chronometerConfigured }?.let { s ->
@@ -261,11 +257,9 @@ internal fun OperatorPulpitContent(
 @Composable
 private fun HeaderStrip(
     today: LocalDate,
-    dayMode: CoreMode?,
     onSabotageClicked: () -> Unit,
     onSettingsLongPress: () -> Unit,
     onChronometerClicked: () -> Unit,
-    onPickDayMode: (CoreMode) -> Unit,
 ) {
     // FlowRow wraps to a second line on narrow screens (small phones in
     // landscape, split-screen, etc.) rather than letting the rightmost chip
@@ -290,99 +284,8 @@ private fun HeaderStrip(
                     onLongClick = onSettingsLongPress,
                 ),
         )
-        DayModeChip(dayMode = dayMode, onPickDayMode = onPickDayMode)
         ChronometerChip(onClick = onChronometerClicked)
         SabotageChip(onClick = onSabotageClicked)
-    }
-}
-
-@Composable
-private fun DayModeChip(
-    dayMode: CoreMode?,
-    onPickDayMode: (CoreMode) -> Unit,
-) {
-    var showPicker by remember { androidx.compose.runtime.mutableStateOf(false) }
-    val interactionSource = remember { MutableInteractionSource() }
-    val label: String
-    val color: androidx.compose.ui.graphics.Color
-    when (dayMode) {
-        CoreMode.Standard -> {
-            label = stringResource(R.string.pulpit_day_mode_standard)
-            color = IsaColors.Approve
-        }
-        CoreMode.Mvd -> {
-            label = stringResource(R.string.pulpit_day_mode_mvd)
-            color = IsaColors.Caution
-        }
-        null -> {
-            label = stringResource(R.string.pulpit_day_mode_unset)
-            color = IsaColors.Signal
-        }
-    }
-    val clickable = dayMode == null
-    Text(
-        text = label,
-        color = color,
-        style = MaterialTheme.typography.labelLarge,
-        modifier = Modifier
-            .border(width = if (clickable) 2.dp else 1.dp, color = color)
-            .clickable(
-                enabled = clickable,
-                interactionSource = interactionSource,
-                indication = null,
-                onClick = { showPicker = true },
-            )
-            .padding(horizontal = 10.dp, vertical = 6.dp),
-    )
-    if (showPicker) {
-        DayModePickerDialog(
-            onPick = { mode ->
-                showPicker = false
-                onPickDayMode(mode)
-            },
-            onDismiss = { showPicker = false },
-        )
-    }
-}
-
-@Composable
-private fun DayModePickerDialog(
-    onPick: (CoreMode) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
-        Column(
-            modifier = Modifier
-                .background(IsaColors.Carbon)
-                .border(width = 2.dp, color = IsaColors.Steel)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Text(
-                text = stringResource(R.string.pulpit_day_mode_picker_title),
-                color = IsaColors.LiveMetal,
-                style = MaterialTheme.typography.titleLarge,
-            )
-            Text(
-                text = stringResource(R.string.pulpit_day_mode_picker_warning),
-                color = IsaColors.Lattice,
-                style = MaterialTheme.typography.labelSmall,
-            )
-            HardButton(
-                label = stringResource(R.string.pulpit_day_mode_pick_standard),
-                onClick = { onPick(CoreMode.Standard) },
-                variant = HardButtonVariant.Primary,
-            )
-            HardButton(
-                label = stringResource(R.string.pulpit_day_mode_pick_mvd),
-                onClick = { onPick(CoreMode.Mvd) },
-                variant = HardButtonVariant.Default,
-            )
-            HardButton(
-                label = stringResource(R.string.pulpit_day_mode_picker_cancel),
-                onClick = onDismiss,
-            )
-        }
     }
 }
 

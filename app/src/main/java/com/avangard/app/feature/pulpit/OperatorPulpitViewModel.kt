@@ -11,7 +11,6 @@ import com.avangard.app.core.data.UserPreferencesRepository
 import com.avangard.app.core.domain.StatusEventBus
 import com.avangard.app.core.domain.StatusFixedEvent
 import com.avangard.app.core.domain.model.ChronometerProgress
-import com.avangard.app.core.domain.model.CoreMode
 import com.avangard.app.core.domain.model.CoreStatus
 import com.avangard.app.core.domain.model.DailySession
 import com.avangard.app.core.domain.model.DayClass
@@ -98,7 +97,6 @@ class OperatorPulpitViewModel @Inject constructor(
     private val startFocus: StartFocusUseCase,
     private val endFocus: EndFocusUseCase,
     private val setInfraStatus: SetInfraStatusUseCase,
-    private val setDayMode: com.avangard.app.core.domain.usecase.SetDayModeUseCase,
     quotes: QuoteRepository,
     sessions: SessionRepository,
     statusBus: StatusEventBus,
@@ -261,15 +259,6 @@ class OperatorPulpitViewModel @Inject constructor(
 
     fun onRequestApproveCore() {
         viewModelScope.launch { _effects.send(PulpitEffect.OpenAuthorisationModal) }
-    }
-
-    /** Header-toggle commits the day's mode. AlreadyApproved surfaces if the
-     *  operator re-taps after the first commit — UI keeps the chip locked. */
-    fun onPickDayMode(mode: CoreMode) = viewModelScope.launch {
-        when (val r = setDayMode(mode)) {
-            is DomainResult.Err -> raise(r.error)
-            is DomainResult.Ok -> Unit
-        }
     }
 
     fun onSabotageClicked() {

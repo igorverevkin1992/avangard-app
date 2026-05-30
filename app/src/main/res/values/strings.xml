@@ -8,14 +8,6 @@
     <!-- Pulpit cards. -->
     <string name="pulpit_flash_start">КОНЦЕНТРАЦИЯ</string>
     <string name="pulpit_intent_placeholder">Что именно сделаю (опционально)</string>
-    <string name="pulpit_day_mode_unset">РЕЖИМ ДНЯ: ВЫБРАТЬ</string>
-    <string name="pulpit_day_mode_standard">РЕЖИМ ДНЯ: СТАНДАРТ</string>
-    <string name="pulpit_day_mode_mvd">РЕЖИМ ДНЯ: МИНИМУМ</string>
-    <string name="pulpit_day_mode_picker_title">РЕЖИМ ДНЯ</string>
-    <string name="pulpit_day_mode_picker_warning">Решение фиксируется на сегодня. Изменить нельзя.</string>
-    <string name="pulpit_day_mode_pick_standard">СТАНДАРТ</string>
-    <string name="pulpit_day_mode_pick_mvd">МИНИМУМ</string>
-    <string name="pulpit_day_mode_picker_cancel">ОТМЕНА</string>
     <string name="pulpit_analysis">АНАЛИЗ ГЕНЕРАЦИИ</string>
     <string name="pulpit_flash_stop">ЗАВЕРШИТЬ</string>
     <string name="pulpit_mark_done">ВЫПОЛНЕНО</string>
@@ -114,13 +106,13 @@
 
     <!-- Bottom navigation tabs. -->
     <string name="nav_tab_pulpit">ПУЛЬТ</string>
-    <string name="nav_tab_library">БИБЛИОТЕКА</string>
+    <string name="nav_tab_library">ЦИТАТА</string>
     <string name="nav_tab_audit">ОЦЕНКА</string>
     <string name="nav_tab_history">ТРЕКЕР</string>
     <string name="nav_tab_mode">РЕЖИМ</string>
 
     <!-- Library. -->
-    <string name="library_header">БИБЛИОТЕКА</string>
+    <string name="library_header">ЦИТАТА</string>
     <string name="library_quote_of_day_label">ЦИТАТА ДНЯ</string>
     <string name="library_history_label">ПРЕДЫДУЩИЕ ЦИТАТЫ ДНЯ</string>
     <string name="library_principles_label">ПРИНЦИПЫ</string>

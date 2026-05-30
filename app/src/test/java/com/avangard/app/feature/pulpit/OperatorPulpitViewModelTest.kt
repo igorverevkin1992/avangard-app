@@ -9,7 +9,6 @@ import com.avangard.app.core.domain.NoopChronometerRepository
 import com.avangard.app.core.domain.NoopStatusNotifier
 import com.avangard.app.core.domain.StatusEventBus
 import com.avangard.app.core.domain.model.Habit
-import com.avangard.app.core.domain.model.CoreMode
 import com.avangard.app.core.domain.model.InfraStatus
 import com.avangard.app.core.domain.model.SessionError
 import com.avangard.app.core.domain.usecase.EndFocusUseCase
@@ -70,7 +69,6 @@ class OperatorPulpitViewModelTest {
             startFocus = StartFocusUseCase(repository, clock, NoopFocusService),
             endFocus = EndFocusUseCase(repository, clock),
             setInfraStatus = SetInfraStatusUseCase(repository, clock, StatusEventBus(), NoopStatusNotifier),
-            setDayMode = com.avangard.app.core.domain.usecase.SetDayModeUseCase(repository, clock),
             quotes = quotes,
             sessions = repository,
             statusBus = StatusEventBus(),
