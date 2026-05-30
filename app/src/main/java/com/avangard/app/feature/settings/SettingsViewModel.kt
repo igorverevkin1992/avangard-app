@@ -192,18 +192,6 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch { preferences.setPomodoroMinutes(minutes) }
     }
 
-    fun onHabitStandardChanged(habitCode: String, standard: String, mvd: String) {
-        viewModelScope.launch {
-            preferences.setHabitStandard(
-                habitCode,
-                com.avangard.app.core.domain.model.HabitStandard(
-                    standard = standard.trim(),
-                    mvd = mvd.trim(),
-                ),
-            )
-        }
-    }
-
     fun requestWipe() {
         wipeFlags.value = wipeFlags.value.copy(confirming = true)
     }

@@ -13,8 +13,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -43,8 +41,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.avangard.app.R
 import com.avangard.app.core.data.UserPreferences
-import com.avangard.app.core.domain.model.Habit
-import com.avangard.app.core.domain.model.HabitStandard
 import com.avangard.app.core.ui.components.HardButton
 import com.avangard.app.core.ui.components.HardButtonVariant
 import com.avangard.app.core.ui.components.IndustrialToggle
@@ -111,7 +107,6 @@ fun SettingsScreen(
         onMiddayCheckTimeChanged = viewModel::onMiddayCheckTimeChanged,
         onPomodoroEnabledChanged = viewModel::onPomodoroEnabledChanged,
         onPomodoroMinutesChanged = viewModel::onPomodoroMinutesChanged,
-        onHabitStandardChanged = viewModel::onHabitStandardChanged,
         onRequestWipe = viewModel::requestWipe,
         onConfirmWipe = viewModel::confirmWipe,
         onCancelWipe = viewModel::cancelWipe,
@@ -140,7 +135,6 @@ internal fun SettingsContent(
     onMiddayCheckTimeChanged: (Int, Int) -> Unit,
     onPomodoroEnabledChanged: (Boolean) -> Unit,
     onPomodoroMinutesChanged: (Int) -> Unit,
-    onHabitStandardChanged: (String, String, String) -> Unit,
     onRequestWipe: () -> Unit,
     onConfirmWipe: () -> Unit,
     onCancelWipe: () -> Unit,
@@ -213,16 +207,6 @@ internal fun SettingsContent(
                 preferences = state.preferences,
                 onEnabledChanged = onPomodoroEnabledChanged,
                 onMinutesChanged = onPomodoroMinutesChanged,
-            )
-        }
-
-        CollapsibleSection(
-            label = stringResource(R.string.settings_standards_label),
-            initiallyOpen = false,
-        ) {
-            HabitStandardsBlock(
-                standards = state.preferences.habitStandards,
-                onChanged = onHabitStandardChanged,
             )
         }
 
@@ -892,115 +876,6 @@ private fun PomodoroBlock(
                 },
             )
         }
-    }
-}
-
-@Composable
-private fun HabitStandardsBlock(
-    standards: Map<String, HabitStandard>,
-    onChanged: (String, String, String) -> Unit,
-) {
-    PulpitPanel {
-        Text(
-            text = stringResource(R.string.settings_standards_hint),
-            color = IsaColors.Lattice,
-            style = MaterialTheme.typography.labelSmall,
-        )
-        Habit.entries.forEach { habit ->
-            val current = standards[habit.code] ?: HabitStandard()
-            HabitStandardRow(
-                habit = habit,
-                current = current,
-                onChanged = onChanged,
-            )
-        }
-    }
-}
-
-@Composable
-private fun HabitStandardRow(
-    habit: Habit,
-    current: HabitStandard,
-    onChanged: (String, String, String) -> Unit,
-) {
-    // Local drafts so each keystroke doesn't round-trip through DataStore; the
-    // store is updated on focus loss / explicit save below.
-    var standardDraft by rememberSaveable(habit.code, current.standard) {
-        mutableStateOf(current.standard)
-    }
-    var mvdDraft by rememberSaveable(habit.code, current.mvd) {
-        mutableStateOf(current.mvd)
-    }
-    val scope = rememberCoroutineScope()
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .border(width = 1.dp, color = IsaColors.Steel)
-            .padding(10.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        Text(
-            text = "${habit.code}·${habit.displayName}",
-            color = IsaColors.LiveMetal,
-            style = MaterialTheme.typography.labelMedium,
-        )
-        StandardField(
-            label = stringResource(R.string.settings_standards_field_standard),
-            value = standardDraft,
-            onValueChange = {
-                standardDraft = it
-                // Debounce-by-coroutine: cancel previous write attempt and
-                // commit after the user pauses for ~600ms.
-                scope.launch {
-                    delay(600)
-                    if (standardDraft == it) {
-                        onChanged(habit.code, standardDraft, mvdDraft)
-                    }
-                }
-            },
-            accent = IsaColors.Approve,
-        )
-        StandardField(
-            label = stringResource(R.string.settings_standards_field_mvd),
-            value = mvdDraft,
-            onValueChange = {
-                mvdDraft = it
-                scope.launch {
-                    delay(600)
-                    if (mvdDraft == it) {
-                        onChanged(habit.code, standardDraft, mvdDraft)
-                    }
-                }
-            },
-            accent = IsaColors.Caution,
-        )
-    }
-}
-
-@Composable
-private fun StandardField(
-    label: String,
-    value: String,
-    onValueChange: (String) -> Unit,
-    accent: androidx.compose.ui.graphics.Color,
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(
-            text = label,
-            color = accent,
-            style = MaterialTheme.typography.labelSmall,
-        )
-        BasicTextField(
-            value = value,
-            onValueChange = onValueChange,
-            textStyle = MaterialTheme.typography.bodyMedium.copy(color = IsaColors.LiveMetal),
-            keyboardOptions = KeyboardOptions.Default,
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(width = 1.dp, color = IsaColors.Steel)
-                .padding(horizontal = 10.dp, vertical = 8.dp),
-        )
     }
 }
 

@@ -19,6 +19,7 @@ import com.avangard.app.feature.library.QuoteDetailScreen
 import com.avangard.app.feature.library.VirtueQuotesScreen
 import com.avangard.app.feature.locked.HistoryGateViewModel
 import com.avangard.app.feature.locked.WeekdayLockScreen
+import com.avangard.app.feature.mode.ModeScreen
 import com.avangard.app.feature.pulpit.AuthorisationModalScreen
 import com.avangard.app.feature.pulpit.EarnedPrideScreen
 import com.avangard.app.feature.pulpit.OperatorPulpitScreen
@@ -130,6 +131,9 @@ fun AvangardNavHost(
             // it's a read-only summary of past behaviour, not a Sunday
             // reflection ritual. Audit stays Sunday-only via HistoryGate.
             HabitTrackerScreen()
+        }
+        composable(NavRoute.Mode.route) {
+            ModeScreen()
         }
         composable(NavRoute.Library.route) {
             LibraryScreen(

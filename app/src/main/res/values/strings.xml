@@ -117,6 +117,7 @@
     <string name="nav_tab_library">БИБЛИОТЕКА</string>
     <string name="nav_tab_audit">ОЦЕНКА</string>
     <string name="nav_tab_history">ТРЕКЕР</string>
+    <string name="nav_tab_mode">РЕЖИМ</string>
 
     <!-- Library. -->
     <string name="library_header">БИБЛИОТЕКА</string>
@@ -282,8 +283,21 @@
     <string name="settings_pomodoro_hint">Концентрация авто-завершается через выбранное количество минут.</string>
     <string name="settings_pomodoro_minutes_label">МИНУТ</string>
 
-    <string name="settings_standards_label">СТАНДАРТЫ</string>
-    <string name="settings_standards_hint">Что считается СТАНДАРТОМ и МИНИМУМОМ для каждой привычки. Пишется один раз и пересматривается на воскресной оценке.</string>
-    <string name="settings_standards_field_standard">СТАНДАРТ</string>
-    <string name="settings_standards_field_mvd">МИНИМУМ</string>
+    <!-- Mode tab: day-mode picker + per-habit standards. -->
+    <string name="mode_header">РЕЖИМ ДНЯ</string>
+    <string name="mode_day_picker_label">СЕГОДНЯШНИЙ РЕЖИМ</string>
+    <string name="mode_day_picker_hint">Выбор фиксируется на сегодня. Хронометр классифицирует сутки по этому полю.</string>
+    <string name="mode_day_picker_locked">Решение зафиксировано. Изменить нельзя.</string>
+    <string name="mode_day_picker_pick_standard">ПОСТАВИТЬ СТАНДАРТ</string>
+    <string name="mode_day_picker_pick_mvd">ПОСТАВИТЬ МИНИМУМ</string>
+    <string name="mode_day_current_standard">РЕЖИМ: СТАНДАРТ</string>
+    <string name="mode_day_current_mvd">РЕЖИМ: МИНИМУМ</string>
+    <string name="mode_day_current_unset">РЕЖИМ НЕ ВЫБРАН</string>
+
+    <string name="mode_standards_label">КРИТЕРИИ</string>
+    <string name="mode_standards_hint">Что считается СТАНДАРТОМ и МИНИМУМОМ для каждой привычки. ГЕНЕРАЦИИ — главное дело: планка выше остальных. Пересматривается на воскресной оценке.</string>
+    <string name="mode_standards_field_standard">СТАНДАРТ</string>
+    <string name="mode_standards_field_mvd">МИНИМУМ</string>
+    <string name="mode_standards_reset">ЗАПОЛНИТЬ ЗНАЧЕНИЯМИ ПО УМОЛЧАНИЮ</string>
+    <string name="mode_standards_core_note">ГЛАВНОЕ ДЕЛО</string>
 </resources>

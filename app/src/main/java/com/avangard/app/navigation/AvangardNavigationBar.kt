@@ -27,6 +27,7 @@ private val tabs = listOf(
     TopLevelTab(NavRoute.Library.route, R.string.nav_tab_library, R.drawable.ic_nav_library),
     TopLevelTab(NavRoute.SundayAudit.route, R.string.nav_tab_audit, R.drawable.ic_nav_audit),
     TopLevelTab(NavRoute.HistoryGrid.route, R.string.nav_tab_history, R.drawable.ic_nav_history),
+    TopLevelTab(NavRoute.Mode.route, R.string.nav_tab_mode, R.drawable.ic_nav_mode),
 )
 
 /**
