@@ -2,6 +2,7 @@ package com.avangard.app.feature.habits
 
 import com.avangard.app.core.domain.FakeClock
 import com.avangard.app.core.domain.FakeHabitRepository
+import com.avangard.app.core.domain.FakeSessionRepository
 import com.avangard.app.core.domain.model.Habit
 import com.avangard.app.core.domain.usecase.ObserveMonthHabitsUseCase
 import com.avangard.app.core.domain.usecase.ToggleHabitUseCase
@@ -41,6 +42,7 @@ class HabitTrackerViewModelTest {
             clock = clock,
             observeMonth = ObserveMonthHabitsUseCase(repository),
             toggleUseCase = ToggleHabitUseCase(repository, clock),
+            sessions = FakeSessionRepository(clock),
         )
     }
 

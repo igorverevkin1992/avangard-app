@@ -17,7 +17,7 @@ import com.avangard.app.core.database.entity.HabitLogEntity
         DailySessionEntity::class,
         FocusSessionEntity::class,
     ],
-    version = 6,
+    version = 9,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -114,6 +114,53 @@ abstract class AppDatabase : RoomDatabase() {
         val MIGRATION_5_6: Migration = object : Migration(5, 6) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE daily_session ADD COLUMN journal_entry TEXT")
+            }
+        }
+
+        /**
+         * v8: stores the operator's verdict on last week's bottleneck so the
+         * PDCA loop closes inside one audit screen. Plain TEXT column, NULL
+         * until the next weekly audit logs an answer.
+         */
+        val MIGRATION_7_8: Migration = object : Migration(7, 8) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE daily_session ADD COLUMN bottleneck_followup TEXT")
+            }
+        }
+
+        /**
+         * v9: focus_session gains an optional `intent` TEXT — operator's
+         * pre-start "что именно сделаю" note. NULL on legacy rows; the
+         * tracker drill-down surfaces it only when non-blank.
+         */
+        val MIGRATION_8_9: Migration = object : Migration(8, 9) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE focus_session ADD COLUMN intent TEXT")
+            }
+        }
+
+        /**
+         * v7: replaces the global per-day MVD flag with a per-Core mode.
+         * Adds `core_mode TEXT` ("Standard" / "Mvd"); back-fills from legacy
+         * `mvd_active` so existing Approved days keep their classification:
+         *   * mvd_active = 1 → core_mode = "Mvd"
+         *   * mvd_active = 0 AND core_status = 1 (Approved) → core_mode = "Standard"
+         * Idle/Failed days stay NULL. `mvd_active` column survives for
+         * BackupBundle v2 compatibility but is no longer written to.
+         */
+        val MIGRATION_6_7: Migration = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE daily_session ADD COLUMN core_mode TEXT")
+                db.execSQL(
+                    """
+                    UPDATE daily_session
+                    SET core_mode = CASE
+                        WHEN mvd_active = 1 AND core_status = 1 THEN 'Mvd'
+                        WHEN mvd_active = 0 AND core_status = 1 THEN 'Standard'
+                        ELSE NULL
+                    END
+                    """.trimIndent()
+                )
             }
         }
 

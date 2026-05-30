@@ -14,11 +14,21 @@ class ChronometerRepositoryImplTest {
 
     private val zone: ZoneId = ZoneId.of("UTC")
 
-    private fun day(date: LocalDate, mvd: Int = 0, status: Int = 0) = DailySessionEntity(
-        dateEpoch = date.atStartOfDay(zone).toEpochSecond() * 1000L,
-        mvdActive = mvd,
-        coreStatus = status,
-    )
+    private fun day(date: LocalDate, mvd: Int = 0, status: Int = 0): DailySessionEntity {
+        // Mirror MIGRATION_6_7: an Approved row with mvd=1 maps to core_mode "Mvd",
+        // mvd=0 + Approved maps to "Standard"; Idle/Failed stays NULL.
+        val mode = when {
+            status == 1 && mvd == 1 -> "Mvd"
+            status == 1 -> "Standard"
+            else -> null
+        }
+        return DailySessionEntity(
+            dateEpoch = date.atStartOfDay(zone).toEpochSecond() * 1000L,
+            mvdActive = mvd,
+            coreStatus = status,
+            coreMode = mode,
+        )
+    }
 
     @Test
     fun `null birthday yields unconfigured progress`() {

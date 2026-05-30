@@ -103,6 +103,10 @@ fun SettingsScreen(
         onLifeExpectancyChanged = viewModel::onLifeExpectancyChanged,
         onIgnitionEnabledChanged = viewModel::onIgnitionEnabledChanged,
         onIgnitionTimeChanged = viewModel::onIgnitionTimeChanged,
+        onMiddayCheckEnabledChanged = viewModel::onMiddayCheckEnabledChanged,
+        onMiddayCheckTimeChanged = viewModel::onMiddayCheckTimeChanged,
+        onPomodoroEnabledChanged = viewModel::onPomodoroEnabledChanged,
+        onPomodoroMinutesChanged = viewModel::onPomodoroMinutesChanged,
         onRequestWipe = viewModel::requestWipe,
         onConfirmWipe = viewModel::confirmWipe,
         onCancelWipe = viewModel::cancelWipe,
@@ -127,6 +131,10 @@ internal fun SettingsContent(
     onLifeExpectancyChanged: (Int) -> Unit,
     onIgnitionEnabledChanged: (Boolean) -> Unit,
     onIgnitionTimeChanged: (Int, Int) -> Unit,
+    onMiddayCheckEnabledChanged: (Boolean) -> Unit,
+    onMiddayCheckTimeChanged: (Int, Int) -> Unit,
+    onPomodoroEnabledChanged: (Boolean) -> Unit,
+    onPomodoroMinutesChanged: (Int) -> Unit,
     onRequestWipe: () -> Unit,
     onConfirmWipe: () -> Unit,
     onCancelWipe: () -> Unit,
@@ -155,42 +163,80 @@ internal fun SettingsContent(
             modifier = Modifier.semantics { heading() },
         )
 
-        EveningCloseBlock(
-            hour = state.preferences.eveningCloseHour,
-            minute = state.preferences.eveningCloseMinute,
-            onChanged = onEveningCloseChanged,
-        )
+        CollapsibleSection(label = stringResource(R.string.settings_evening_close_label)) {
+            EveningCloseBlock(
+                hour = state.preferences.eveningCloseHour,
+                minute = state.preferences.eveningCloseMinute,
+                onChanged = onEveningCloseChanged,
+            )
+        }
 
-        ColdStartBlock(
-            currentMinutes = (state.preferences.coldStartThresholdMs / 60 / 1000).toInt(),
-            onChanged = onColdStartThresholdChanged,
-        )
+        CollapsibleSection(label = stringResource(R.string.settings_cold_start_label)) {
+            ColdStartBlock(
+                currentMinutes = (state.preferences.coldStartThresholdMs / 60 / 1000).toInt(),
+                onChanged = onColdStartThresholdChanged,
+            )
+        }
 
-        ChronometerBlock(
-            preferences = state.preferences,
-            onBirthdayChanged = onBirthdayChanged,
-            onLifeExpectancyChanged = onLifeExpectancyChanged,
-            onIgnitionEnabledChanged = onIgnitionEnabledChanged,
-            onIgnitionTimeChanged = onIgnitionTimeChanged,
-        )
+        CollapsibleSection(label = stringResource(R.string.settings_chronometer_label)) {
+            ChronometerBlock(
+                preferences = state.preferences,
+                onBirthdayChanged = onBirthdayChanged,
+                onLifeExpectancyChanged = onLifeExpectancyChanged,
+                onIgnitionEnabledChanged = onIgnitionEnabledChanged,
+                onIgnitionTimeChanged = onIgnitionTimeChanged,
+            )
+        }
 
-        CloudSyncPanel(
-            email = state.signedInEmail,
-            lastSyncedAt = state.preferences.lastSyncedAt,
-            onForceSync = onForceSync,
-            onSignOut = onSignOut,
-        )
+        CollapsibleSection(
+            label = stringResource(R.string.settings_midday_label),
+            initiallyOpen = false,
+        ) {
+            MiddayCheckBlock(
+                preferences = state.preferences,
+                onEnabledChanged = onMiddayCheckEnabledChanged,
+                onTimeChanged = onMiddayCheckTimeChanged,
+            )
+        }
 
-        BackupBlock(
-            state = state,
-            onExportClick = onExportClick,
-            onImportClick = onImportClick,
-            onConfirmImport = onConfirmImport,
-            onCancelImport = onCancelImport,
-            onDismissBackupStatus = onDismissBackupStatus,
-        )
+        CollapsibleSection(
+            label = stringResource(R.string.settings_pomodoro_label),
+            initiallyOpen = false,
+        ) {
+            PomodoroBlock(
+                preferences = state.preferences,
+                onEnabledChanged = onPomodoroEnabledChanged,
+                onMinutesChanged = onPomodoroMinutesChanged,
+            )
+        }
 
-        PulpitPanel(label = stringResource(R.string.settings_wipe_label)) {
+        CollapsibleSection(label = stringResource(R.string.settings_cloud_label)) {
+            CloudSyncPanel(
+                email = state.signedInEmail,
+                lastSyncedAt = state.preferences.lastSyncedAt,
+                onForceSync = onForceSync,
+                onSignOut = onSignOut,
+            )
+        }
+
+        CollapsibleSection(
+            label = stringResource(R.string.settings_backup_label),
+            initiallyOpen = false,
+        ) {
+            BackupBlock(
+                state = state,
+                onExportClick = onExportClick,
+                onImportClick = onImportClick,
+                onConfirmImport = onConfirmImport,
+                onCancelImport = onCancelImport,
+                onDismissBackupStatus = onDismissBackupStatus,
+            )
+        }
+
+        CollapsibleSection(
+            label = stringResource(R.string.settings_wipe_label),
+            initiallyOpen = false,
+        ) {
             if (!state.confirmingWipe) {
                 HardButton(
                     label = stringResource(R.string.settings_wipe_request),
@@ -245,7 +291,7 @@ private fun BackupBlock(
     onCancelImport: () -> Unit,
     onDismissBackupStatus: () -> Unit,
 ) {
-    PulpitPanel(label = stringResource(R.string.settings_backup_label)) {
+    PulpitPanel {
         Text(
             text = stringResource(R.string.settings_backup_hint),
             color = IsaColors.Lattice,
@@ -351,7 +397,7 @@ private fun CloudSyncPanel(
     onSignOut: () -> Unit,
 ) {
     val signedIn = email != null
-    PulpitPanel(label = stringResource(R.string.settings_cloud_label)) {
+    PulpitPanel {
         LabelValueRow(
             label = stringResource(R.string.settings_cloud_account_label),
             value = email ?: stringResource(R.string.settings_cloud_account_empty),
@@ -427,7 +473,7 @@ private fun EveningCloseBlock(
     var hourDraft by rememberSaveable(hour) { mutableIntStateOf(hour) }
     var minuteDraft by rememberSaveable(minute) { mutableIntStateOf(minute) }
 
-    PulpitPanel(label = stringResource(R.string.settings_evening_close_label)) {
+    PulpitPanel {
         Text(
             text = stringResource(R.string.settings_evening_close_hint),
             color = IsaColors.Lattice,
@@ -461,7 +507,7 @@ private fun ColdStartBlock(
     currentMinutes: Int,
     onChanged: (Int) -> Unit,
 ) {
-    PulpitPanel(label = stringResource(R.string.settings_cold_start_label)) {
+    PulpitPanel {
         Text(
             text = stringResource(R.string.settings_cold_start_hint),
             color = IsaColors.Lattice,
@@ -549,7 +595,7 @@ private fun ChronometerBlock(
     onIgnitionTimeChanged: (Int, Int) -> Unit,
 ) {
     var showPicker by remember { mutableStateOf(false) }
-    PulpitPanel(label = stringResource(R.string.settings_chronometer_label)) {
+    PulpitPanel {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -670,6 +716,64 @@ private fun ChronometerBlock(
     }
 }
 
+/**
+ * Settings page is a long scroll of unrelated sections; wrapping each block
+ * in a collapsible strip cuts the visible surface to roughly the headers
+ * after the first paint and lets the operator jump straight to the section
+ * they want. Default state is preserved per-section via the `initiallyOpen`
+ * argument — write-once sections (Standards, Backup, Wipe) start closed,
+ * tunable knobs stay open.
+ */
+/**
+ * Settings page is a long scroll of unrelated sections; wrapping each block
+ * in a collapsible header strip cuts the visible surface to roughly the
+ * header rows after the first paint and lets the operator jump straight to
+ * the section they want. Write-once sections (Standards, Backup, Wipe)
+ * start collapsed; tunable knobs (evening close, chronometer, …) stay open.
+ *
+ * The header row sits outside the inner PulpitPanel's own border — no
+ * double frame, no visual noise.
+ */
+@Composable
+private fun CollapsibleSection(
+    label: String,
+    initiallyOpen: Boolean = true,
+    content: @Composable () -> Unit,
+) {
+    var open by rememberSaveable(label) { mutableStateOf(initiallyOpen) }
+    val interactionSource = remember(label) { MutableInteractionSource() }
+    val chevron = if (open) "▼" else "▶"
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null,
+                    onClick = { open = !open },
+                )
+                .padding(vertical = 6.dp),
+            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text(
+                text = label,
+                color = IsaColors.LiveMetal,
+                style = MaterialTheme.typography.titleLarge,
+            )
+            Text(
+                text = chevron,
+                color = IsaColors.Lattice,
+                style = MaterialTheme.typography.labelLarge,
+            )
+        }
+        if (open) content()
+    }
+}
+
 @Composable
 private fun StepperButton(symbol: String, onClick: () -> Unit) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -686,5 +790,92 @@ private fun StepperButton(symbol: String, onClick: () -> Unit) {
             )
             .padding(horizontal = 12.dp, vertical = 2.dp),
     )
+}
+
+@Composable
+private fun MiddayCheckBlock(
+    preferences: UserPreferences,
+    onEnabledChanged: (Boolean) -> Unit,
+    onTimeChanged: (Int, Int) -> Unit,
+) {
+    PulpitPanel {
+        IndustrialToggle(
+            label = stringResource(R.string.settings_midday_toggle),
+            checked = preferences.middayCheckEnabled,
+            onCheckedChange = onEnabledChanged,
+        )
+        Text(
+            text = stringResource(R.string.settings_midday_hint),
+            color = IsaColors.Lattice,
+            style = MaterialTheme.typography.labelSmall,
+        )
+        if (preferences.middayCheckEnabled) {
+            var hour by rememberSaveable(preferences.middayCheckHour) {
+                mutableIntStateOf(preferences.middayCheckHour)
+            }
+            var minute by rememberSaveable(preferences.middayCheckMinute) {
+                mutableIntStateOf(preferences.middayCheckMinute)
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Stepper(
+                    label = stringResource(R.string.settings_hour_label),
+                    value = hour,
+                    range = 0..23,
+                    onChange = {
+                        hour = it
+                        onTimeChanged(it, minute)
+                    },
+                )
+                Stepper(
+                    label = stringResource(R.string.settings_minute_label),
+                    value = minute,
+                    range = 0..59,
+                    step = 5,
+                    onChange = {
+                        minute = it
+                        onTimeChanged(hour, it)
+                    },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PomodoroBlock(
+    preferences: UserPreferences,
+    onEnabledChanged: (Boolean) -> Unit,
+    onMinutesChanged: (Int) -> Unit,
+) {
+    PulpitPanel {
+        IndustrialToggle(
+            label = stringResource(R.string.settings_pomodoro_toggle),
+            checked = preferences.pomodoroEnabled,
+            onCheckedChange = onEnabledChanged,
+        )
+        Text(
+            text = stringResource(R.string.settings_pomodoro_hint),
+            color = IsaColors.Lattice,
+            style = MaterialTheme.typography.labelSmall,
+        )
+        if (preferences.pomodoroEnabled) {
+            var minutes by rememberSaveable(preferences.pomodoroMinutes) {
+                mutableIntStateOf(preferences.pomodoroMinutes)
+            }
+            Stepper(
+                label = stringResource(R.string.settings_pomodoro_minutes_label),
+                value = minutes,
+                range = UserPreferences.MIN_POMODORO_MINUTES..UserPreferences.MAX_POMODORO_MINUTES,
+                step = 5,
+                onChange = {
+                    minutes = it
+                    onMinutesChanged(it)
+                },
+            )
+        }
+    }
 }
 

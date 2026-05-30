@@ -15,10 +15,18 @@ data class BackupBundle(
     val focusSessions: List<BackupFocusSession>,
     val habitLogs: List<BackupHabitLog>,
     val chronometer: ChronometerBackup? = null,
+    /** Operator-defined criteria per habit code; v3+. */
+    val habitStandards: Map<String, HabitStandard>? = null,
 ) {
     companion object {
-        /** v2 adds the optional chronometer block; v1 snapshots restore with null. */
-        const val SCHEMA_VERSION = 2
+        /**
+         * v2 added the optional chronometer block; v1 snapshots restore with null.
+         * v3 adds `coreMode` on each BackupDailySession (per-Core Standard/Mvd flag,
+         * replacing the legacy day-wide `mvdActive`). v1/v2 snapshots restore with
+         * coreMode = null and RoomBackupRepository.toEntity() backfills from
+         * mvdActive — see MIGRATION_6_7 for the equivalent on-disk logic.
+         */
+        const val SCHEMA_VERSION = 3
         const val MIN_SUPPORTED_SCHEMA_VERSION = 1
     }
 }
@@ -35,11 +43,19 @@ data class ChronometerBackup(
 @Serializable
 data class BackupDailySession(
     val dateEpoch: Long,
+    /**
+     * Legacy day-wide MVD flag. Kept on the wire so v1/v2 snapshots survive
+     * a round-trip, but the meaningful information is now [coreMode] on
+     * Approved Cores. RoomBackupRepository.toEntity() back-fills coreMode
+     * from mvdActive when [coreMode] is missing (v1/v2 snapshots).
+     */
     val mvdActive: Int = 0,
     val coreStatus: Int = 0,
     val corePrompt: String? = null,
     val coreAuthorizedAt: Long? = null,
     val coreDefectKind: Int? = null,
+    /** "Standard" / "Mvd" / null — null on legacy snapshots, back-filled on restore. */
+    val coreMode: String? = null,
     val infra02Status: Int = 0,
     val infra03Status: Int = 0,
     val infra04Status: Int = 0,
@@ -52,6 +68,8 @@ data class BackupDailySession(
     val virtJustice: Int? = null,
     val bottleneckForNextWeek: String? = null,
     val journalEntry: String? = null,
+    /** Operator's verdict on last week's bottleneck (Yes/Partial/No); v3+. */
+    val bottleneckFollowup: String? = null,
 )
 
 @Serializable
@@ -61,6 +79,8 @@ data class BackupFocusSession(
     val habitCode: String,
     val startedAt: Long,
     val endedAt: Long? = null,
+    /** Operator's pre-start intent note; v3+, NULL on legacy rows. */
+    val intent: String? = null,
 )
 
 @Serializable

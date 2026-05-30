@@ -19,6 +19,10 @@ import kotlinx.coroutines.flow.combine
  * both the daily ledger and the focus event log. A new focus session anywhere
  * in the window re-emits the view — the previous flow{} variant only sampled
  * focus_session once and went stale.
+ *
+ * [previous] holds the same metrics for the prior 7-day window (-14..-7
+ * days). Audit screen renders delta annotations against it so the operator
+ * sees whether the current week trended up or down vs the previous one.
  */
 data class SundayAuditView(
     val coreHoursMillis: Long,
@@ -28,10 +32,10 @@ data class SundayAuditView(
     val mvdDays: Int,
     val infraBreakdown: Map<Habit, InfraBreakdown>,
     val virtueSums: VirtueSums,
+    val previous: PreviousWeek? = null,
 ) {
     data class InfraBreakdown(
-        val standard: Int,
-        val mvd: Int,
+        val done: Int,
         val notDone: Int,
     )
 
@@ -40,6 +44,19 @@ data class SundayAuditView(
         val independence: Int,
         val honesty: Int,
         val justice: Int,
+    )
+
+    /** Snapshot of the previous week — same metrics, fed to the delta renderer. */
+    data class PreviousWeek(
+        val coreHoursMillis: Long,
+        val daysApproved: Int,
+        val defectCount: Int,
+        val wasteCount: Int,
+        val mvdDays: Int,
+        val virtueSum: Int,
+        /** True iff the previous-week window had ≥1 closed shift; gates whether
+         *  deltas render at all (no comparison against an empty week). */
+        val populated: Boolean,
     )
 
     fun isEmpty(): Boolean =
@@ -52,7 +69,7 @@ data class SundayAuditView(
             virtueSums.independence == 0 &&
             virtueSums.honesty == 0 &&
             virtueSums.justice == 0 &&
-            infraBreakdown.values.all { it.standard == 0 && it.mvd == 0 }
+            infraBreakdown.values.all { it.done == 0 }
 }
 
 class SundayAuditUseCase @Inject constructor(
@@ -63,10 +80,53 @@ class SundayAuditUseCase @Inject constructor(
         val today = clock.today().toStartOfDayEpoch(clock.zone())
         val weekStart = today - 6 * DAY_MILLIS
         val weekEnd = today + DAY_MILLIS - 1
+        val prevWeekStart = today - 13 * DAY_MILLIS
+        val prevWeekEnd = today - 7 * DAY_MILLIS + DAY_MILLIS - 1
         return combine(
             repository.observeRange(weekStart, weekEnd),
             repository.observeFocusRange(weekStart, weekEnd),
-        ) { sessions, focus -> buildView(sessions, focus) }
+            repository.observeRange(prevWeekStart, prevWeekEnd),
+            repository.observeFocusRange(prevWeekStart, prevWeekEnd),
+        ) { sessions, focus, prevSessions, prevFocus ->
+            buildView(sessions, focus).copy(previous = previousFor(prevSessions, prevFocus))
+        }
+    }
+
+    private fun previousFor(
+        sessions: List<DailySession>,
+        focus: List<FocusSession>,
+    ): SundayAuditView.PreviousWeek {
+        val coreHours = focus
+            .filter { it.habit == Habit.Generations && it.endedAt != null }
+            .sumOf { (it.endedAt!! - it.startedAt) }
+        val approved = sessions.count { it.coreStatus is CoreStatus.Approved }
+        val defects = sessions.count {
+            val cs = it.coreStatus
+            cs is CoreStatus.Failed && cs.kind == DefectKind.Defect
+        }
+        val wastes = sessions.count {
+            val cs = it.coreStatus
+            cs is CoreStatus.Failed && cs.kind == DefectKind.Waste
+        }
+        val mvds = sessions.count {
+            it.coreStatus is CoreStatus.Approved &&
+                it.dayMode == com.avangard.app.core.domain.model.CoreMode.Mvd
+        }
+        val virtueSum = sessions.sumOf {
+            val v = it.virtues
+            (v?.rationality ?: 0) + (v?.independence ?: 0) +
+                (v?.honesty ?: 0) + (v?.justice ?: 0)
+        }
+        val populated = sessions.any { it.eveningClosed } || coreHours > 0
+        return SundayAuditView.PreviousWeek(
+            coreHoursMillis = coreHours,
+            daysApproved = approved,
+            defectCount = defects,
+            wasteCount = wastes,
+            mvdDays = mvds,
+            virtueSum = virtueSum,
+            populated = populated,
+        )
     }
 
     private fun buildView(
@@ -86,14 +146,16 @@ class SundayAuditUseCase @Inject constructor(
             val cs = it.coreStatus
             cs is CoreStatus.Failed && cs.kind == DefectKind.Waste
         }
-        val mvdDays = weekSessions.count { it.mvdActive }
+        val mvdDays = weekSessions.count {
+            it.coreStatus is CoreStatus.Approved &&
+                it.dayMode == com.avangard.app.core.domain.model.CoreMode.Mvd
+        }
 
         val infraBreakdown = listOf(Habit.Spanish, Habit.Sport, Habit.Watching, Habit.Reading)
             .associateWith { habit ->
                 val statuses = weekSessions.map { it.infraStatus(habit) }
                 SundayAuditView.InfraBreakdown(
-                    standard = statuses.count { it == InfraStatus.Standard },
-                    mvd = statuses.count { it == InfraStatus.Mvd },
+                    done = statuses.count { it == InfraStatus.Done },
                     notDone = statuses.count { it == InfraStatus.NotDone },
                 )
             }

@@ -10,13 +10,21 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.avangard.app.R
+import com.avangard.app.core.domain.model.EvasionKind
 import com.avangard.app.core.ui.components.HardButton
+import com.avangard.app.core.ui.components.HardButtonVariant
 import com.avangard.app.core.ui.components.PulpitPanel
 import com.avangard.app.ui.theme.IsaColors
 
@@ -29,11 +37,17 @@ import com.avangard.app.ui.theme.IsaColors
 fun SabotageProtocolScreen(
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
+    viewModel: SabotageProtocolViewModel = hiltViewModel(),
 ) {
+    // Track which kinds the operator just acknowledged this visit; an
+    // acknowledgement appends to the persistent ring buffer that the weekly
+    // audit reads.
+    var acked by remember { mutableStateOf(emptySet<EvasionKind>()) }
     Column(
         modifier = modifier
             .fillMaxSize()
             .background(IsaColors.Graphite)
+            .semantics { isTraversalGroup = true }
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -48,14 +62,32 @@ fun SabotageProtocolScreen(
         ScriptBlock(
             title = stringResource(R.string.sabotage_substitution_title),
             body = stringResource(R.string.sabotage_substitution_body),
+            kind = EvasionKind.Substitution,
+            acknowledged = EvasionKind.Substitution in acked,
+            onAcknowledge = {
+                viewModel.onDiagnosisAcknowledged(EvasionKind.Substitution)
+                acked = acked + EvasionKind.Substitution
+            },
         )
         ScriptBlock(
             title = stringResource(R.string.sabotage_defect_title),
             body = stringResource(R.string.sabotage_defect_body),
+            kind = EvasionKind.Defect,
+            acknowledged = EvasionKind.Defect in acked,
+            onAcknowledge = {
+                viewModel.onDiagnosisAcknowledged(EvasionKind.Defect)
+                acked = acked + EvasionKind.Defect
+            },
         )
         ScriptBlock(
             title = stringResource(R.string.sabotage_comparison_title),
             body = stringResource(R.string.sabotage_comparison_body),
+            kind = EvasionKind.Comparison,
+            acknowledged = EvasionKind.Comparison in acked,
+            onAcknowledge = {
+                viewModel.onDiagnosisAcknowledged(EvasionKind.Comparison)
+                acked = acked + EvasionKind.Comparison
+            },
         )
 
         HardButton(
@@ -66,12 +98,28 @@ fun SabotageProtocolScreen(
 }
 
 @Composable
-private fun ScriptBlock(title: String, body: String) {
+private fun ScriptBlock(
+    title: String,
+    body: String,
+    kind: EvasionKind,
+    acknowledged: Boolean,
+    onAcknowledge: () -> Unit,
+) {
     PulpitPanel(label = title) {
         Text(
             text = body,
             color = IsaColors.LiveMetal,
             style = MaterialTheme.typography.bodyMedium,
+        )
+        HardButton(
+            label = if (acknowledged) {
+                stringResource(R.string.sabotage_acknowledged)
+            } else {
+                stringResource(R.string.sabotage_acknowledge)
+            },
+            onClick = onAcknowledge,
+            enabled = !acknowledged,
+            variant = if (acknowledged) HardButtonVariant.Default else HardButtonVariant.Primary,
         )
     }
 }

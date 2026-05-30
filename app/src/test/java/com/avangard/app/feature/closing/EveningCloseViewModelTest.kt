@@ -5,6 +5,7 @@ import com.avangard.app.core.common.toStartOfDayEpoch
 import com.avangard.app.core.domain.FakeClock
 import com.avangard.app.core.domain.FakeSessionRepository
 import com.avangard.app.core.domain.model.DefectKind
+import com.avangard.app.core.domain.model.CoreMode
 import com.avangard.app.core.domain.usecase.CloseEveningUseCase
 import com.avangard.app.core.domain.usecase.ObserveDailySessionUseCase
 import com.avangard.app.core.domain.usecase.SetJournalUseCase
@@ -39,6 +40,8 @@ class EveningCloseViewModelTest {
             observeSession = ObserveDailySessionUseCase(repository),
             closeEvening = CloseEveningUseCase(repository, clock),
             setJournal = SetJournalUseCase(repository, clock),
+            sessions = repository,
+            clock = clock,
         )
     }
 

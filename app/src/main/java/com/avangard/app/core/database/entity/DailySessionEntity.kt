@@ -22,6 +22,11 @@ data class DailySessionEntity(
     @ColumnInfo(name = "core_authorized_at") val coreAuthorizedAt: Long? = null,
     /** 0 = Defect, 1 = Waste; null until evening close on a Failed day. */
     @ColumnInfo(name = "core_defect_kind") val coreDefectKind: Int? = null,
+    /**
+     * `CoreMode.name()` ("Standard" / "Mvd") for an Approved Core. NULL on Idle/Failed
+     * days. Migrated from legacy `mvd_active` flag in MIGRATION_6_7.
+     */
+    @ColumnInfo(name = "core_mode") val coreMode: String? = null,
 
     /** Each: 0 = NotDone, 1 = Standard, 2 = MVD. */
     @ColumnInfo(name = "infra_02_status") val infra02Status: Int = 0,
@@ -47,4 +52,11 @@ data class DailySessionEntity(
      * operator writes one.
      */
     @ColumnInfo(name = "journal_entry") val journalEntry: String? = null,
+
+    /**
+     * `BottleneckFollowup.name()` (Yes / Partial / No) recording the verdict
+     * on the bottleneck set on last Sunday's audit. NULL until the next
+     * Sunday closes. Lets the audit screen surface a one-row PDCA close.
+     */
+    @ColumnInfo(name = "bottleneck_followup") val bottleneckFollowup: String? = null,
 )

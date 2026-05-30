@@ -2,6 +2,8 @@ package com.avangard.app.core.domain
 
 import com.avangard.app.core.common.toStartOfDayEpoch
 import com.avangard.app.core.domain.model.Bottleneck
+import com.avangard.app.core.domain.model.BottleneckFollowup
+import com.avangard.app.core.domain.model.CoreMode
 import com.avangard.app.core.domain.model.CoreStatus
 import com.avangard.app.core.domain.model.DailySession
 import com.avangard.app.core.domain.model.DefectKind
@@ -58,16 +60,25 @@ class FakeSessionRepository(
 
     override suspend fun findForDate(dateEpoch: Long): DailySession? = sessions.value[dateEpoch]
 
-    override suspend fun toggleMvd(dateEpoch: Long) {
-        mutate(dateEpoch) { it.copy(mvdActive = !it.mvdActive) }
-    }
-
-    override suspend fun approveCore(dateEpoch: Long, prompt: String, approvedAt: Long) {
+    override suspend fun approveCore(
+        dateEpoch: Long,
+        prompt: String,
+        approvedAt: Long,
+    ) {
         mutate(dateEpoch) {
-            it.copy(coreStatus = CoreStatus.Approved(prompt, approvedAt))
+            it.copy(
+                coreStatus = CoreStatus.Approved(prompt, approvedAt),
+                dayMode = it.dayMode ?: CoreMode.Standard,
+            )
         }
         focus.value = focus.value.map { f ->
             if (f.endedAt == null) f.copy(endedAt = approvedAt) else f
+        }
+    }
+
+    override suspend fun setDayMode(dateEpoch: Long, mode: CoreMode) {
+        mutate(dateEpoch) {
+            if (it.dayMode != null) it else it.copy(dayMode = mode)
         }
     }
 
@@ -111,6 +122,10 @@ class FakeSessionRepository(
         mutate(dateEpoch) { it.copy(bottleneckForNextWeek = bottleneck) }
     }
 
+    override suspend fun setBottleneckFollowup(dateEpoch: Long, followup: BottleneckFollowup) {
+        mutate(dateEpoch) { it.copy(bottleneckFollowup = followup) }
+    }
+
     override suspend fun setJournalEntry(dateEpoch: Long, entry: String?) {
         // Mirror the Room impl's normalisation: empty/blank becomes null.
         val normalised = entry?.trim()?.takeIf { it.isNotEmpty() }
@@ -136,7 +151,12 @@ class FakeSessionRepository(
             }
             .sumOf { (it.endedAt ?: 0L) - it.startedAt }
 
-    override suspend fun startFocus(dateEpoch: Long, habit: Habit, startedAt: Long): Long {
+    override suspend fun startFocus(
+        dateEpoch: Long,
+        habit: Habit,
+        startedAt: Long,
+        intent: String?,
+    ): Long {
         // Mirror the partial unique index uniq_focus_active from
         // MIGRATION_4_5: at most one row with ended_at IS NULL. Without this
         // check the fake silently accepts concurrent starts that Room would
@@ -146,7 +166,14 @@ class FakeSessionRepository(
             throw IllegalStateException("active focus already exists")
         }
         val id = sequence++
-        focus.value = focus.value + FocusSession(id, dateEpoch, habit, startedAt, null)
+        focus.value = focus.value + FocusSession(
+            id = id,
+            dateEpoch = dateEpoch,
+            habit = habit,
+            startedAt = startedAt,
+            endedAt = null,
+            intent = intent?.trim()?.takeIf { it.isNotEmpty() },
+        )
         return id
     }
 

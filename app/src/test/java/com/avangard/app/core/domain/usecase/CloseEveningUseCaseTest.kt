@@ -5,6 +5,7 @@ import com.avangard.app.core.common.toStartOfDayEpoch
 import com.avangard.app.core.domain.FakeClock
 import com.avangard.app.core.domain.FakeSessionRepository
 import com.avangard.app.core.domain.model.CoreStatus
+import com.avangard.app.core.domain.model.CoreMode
 import com.avangard.app.core.domain.model.DefectKind
 import com.avangard.app.core.domain.model.SessionError
 import com.avangard.app.core.domain.model.VirtueScores

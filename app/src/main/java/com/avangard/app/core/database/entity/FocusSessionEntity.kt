@@ -23,4 +23,7 @@ data class FocusSessionEntity(
     @ColumnInfo(name = "habit_code") val habitCode: String,
     @ColumnInfo(name = "started_at") val startedAt: Long,
     @ColumnInfo(name = "ended_at") val endedAt: Long? = null,
+    /** Optional operator-typed intent ("что именно сделаю"); NULL when blank.
+     *  Surfaced in the tracker's day drill-down. */
+    @ColumnInfo(name = "intent") val intent: String? = null,
 )

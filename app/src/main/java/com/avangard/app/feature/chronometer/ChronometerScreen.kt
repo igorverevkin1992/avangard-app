@@ -1,19 +1,26 @@
 package com.avangard.app.feature.chronometer
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
@@ -153,8 +160,71 @@ private fun ResourcePanel(progress: ChronometerProgress) {
 
 @Composable
 private fun GridPanel(progress: ChronometerProgress) {
+    // Tap a week in the grid to inspect that week's class without losing
+    // the at-a-glance overview. Popup closes on outside-tap.
+    var pickedWeek by remember { mutableStateOf<Int?>(null) }
     PulpitPanel(label = stringResource(R.string.chronometer_grid_label)) {
-        LifeGrid(weeks = progress.weeks)
+        LifeGrid(
+            weeks = progress.weeks,
+            onWeekTap = { idx -> pickedWeek = idx },
+        )
+        pickedWeek?.let { idx ->
+            WeekDetailRow(
+                weekIndex = idx,
+                weekClass = progress.weeks.getOrNull(idx),
+                onDismiss = { pickedWeek = null },
+            )
+        }
+    }
+}
+
+@Composable
+private fun WeekDetailRow(
+    weekIndex: Int,
+    weekClass: com.avangard.app.core.domain.model.WeekClass?,
+    onDismiss: () -> Unit,
+) {
+    val (label, color) = when (weekClass) {
+        com.avangard.app.core.domain.model.WeekClass.Extracted -> "РЕАЛИЗОВАНА" to IsaColors.Approve
+        com.avangard.app.core.domain.model.WeekClass.Partial -> "ЧАСТИЧНО" to IsaColors.Caution
+        com.avangard.app.core.domain.model.WeekClass.Burned -> "УПУЩЕНА" to IsaColors.Mute
+        com.avangard.app.core.domain.model.WeekClass.Current -> "ТЕКУЩАЯ" to IsaColors.Signal
+        com.avangard.app.core.domain.model.WeekClass.Future, null -> "ВПЕРЕДИ" to IsaColors.Lattice
+    }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(width = 1.dp, color = color)
+            .padding(horizontal = 10.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text(
+            text = "НЕДЕЛЯ #${weekIndex + 1}",
+            color = IsaColors.LiveMetal,
+            style = MaterialTheme.typography.labelMedium,
+        )
+        Text(
+            text = label,
+            color = color,
+            style = MaterialTheme.typography.labelMedium,
+        )
+        Text(
+            text = "✕",
+            color = IsaColors.Lattice,
+            style = MaterialTheme.typography.labelMedium,
+            modifier = Modifier.padding(start = 8.dp),
+        )
+    }
+    // Wire dismiss via a transparent overlay tap — clicking on the row
+    // header above the X also clears the picked week.
+    Spacer(modifier = Modifier
+        .fillMaxWidth()
+        .height(0.dp))
+    LaunchedEffect(weekIndex) {
+        // 10-second auto-dismiss so a stray tap doesn't pin the detail
+        // strip permanently. Operator can re-tap to refresh.
+        kotlinx.coroutines.delay(10_000)
+        onDismiss()
     }
 }
 

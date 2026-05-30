@@ -5,6 +5,7 @@ import com.avangard.app.core.common.toStartOfDayEpoch
 import com.avangard.app.core.domain.FakeClock
 import com.avangard.app.core.domain.FakeSessionRepository
 import com.avangard.app.core.domain.model.DefectKind
+import com.avangard.app.core.domain.model.CoreMode
 import com.avangard.app.core.domain.model.Habit
 import com.avangard.app.core.domain.model.InfraStatus
 import com.avangard.app.core.domain.model.VirtueScores
@@ -42,10 +43,10 @@ class SundayAuditUseCaseTest {
 
     @Test
     fun `mixed week aggregates approved, defects, wastes, mvd, virtues`() = runTest {
-        // today: Approved with virtues, MVD active
+        // today: Approved as MVD, with virtues
         val today = day(0)
+        repository.setDayMode(today, CoreMode.Mvd)
         repository.approveCore(today, "Шот", clock.nowEpochMillis())
-        repository.toggleMvd(today)
         repository.closeEvening(
             dateEpoch = today,
             virtues = VirtueScores(1, 1, 1, 1),
@@ -60,9 +61,8 @@ class SundayAuditUseCaseTest {
             defectKind = DefectKind.Waste,
             recordedAt = clock.nowEpochMillis(),
         )
-        // 2 days ago: Failed with Defect, MVD active
+        // 2 days ago: Failed with Defect (no Core approved, so no mode applies).
         val twoBack = day(-2)
-        repository.toggleMvd(twoBack)
         repository.closeEvening(
             dateEpoch = twoBack,
             virtues = VirtueScores(0, 0, 1, 0),
@@ -73,7 +73,7 @@ class SundayAuditUseCaseTest {
         repository.setInfraStatus(
             today,
             Habit.Sport,
-            InfraStatus.Standard,
+            InfraStatus.Done,
             clock.nowEpochMillis(),
         )
 
@@ -81,12 +81,14 @@ class SundayAuditUseCaseTest {
         assertEquals(1, view.daysApproved)
         assertEquals(1, view.defectCount)
         assertEquals(1, view.wasteCount)
-        assertEquals(2, view.mvdDays)
+        // Post-MIGRATION_6_7 mvdDays counts Approved-with-mode=Mvd only.
+        // Failed days no longer carry a meaningful "MVD" flag.
+        assertEquals(1, view.mvdDays)
         // Justice virtues across the three closed days: 1 + 1 + 0 = 2.
         assertEquals(2, view.virtueSums.justice)
         // Rationality: 1 + (-1) + 0 = 0.
         assertEquals(0, view.virtueSums.rationality)
-        assertEquals(1, view.infraBreakdown[Habit.Sport]?.standard)
+        assertEquals(1, view.infraBreakdown[Habit.Sport]?.done)
     }
 
     @Test

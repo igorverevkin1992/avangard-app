@@ -94,6 +94,19 @@ class ChronometerRepositoryImpl @Inject constructor(
                 weeks += classifyWeek(weekStart, weekEnd, todayEpochDay, classByEpochDay)
             }
 
+            // Oldest → newest, today is last. Days before the birthday are
+            // surfaced as Future (we render those cells as empty placeholders
+            // upstream so the strip still has fixed width).
+            val lastSeven = ArrayList<DayClass>(7)
+            for (offset in 6 downTo 0) {
+                val epochDay = todayEpochDay - offset
+                lastSeven += when {
+                    epochDay < birthdayEpochDay -> DayClass.Future
+                    epochDay == todayEpochDay -> todayClass
+                    else -> classByEpochDay[epochDay] ?: DayClass.Burned
+                }
+            }
+
             return ChronometerProgress(
                 configured = true,
                 daysLived = daysLived,
@@ -106,6 +119,7 @@ class ChronometerRepositoryImpl @Inject constructor(
                 todayClass = todayClass,
                 yesterdayClass = yesterdayClass,
                 weeks = weeks,
+                lastSevenDays = lastSeven,
             )
         }
 
@@ -115,9 +129,13 @@ class ChronometerRepositoryImpl @Inject constructor(
             todayEpochDay: Long,
         ): DayClass {
             val approved = entity.coreStatus == 1
+            // Post-MIGRATION_6_7: classification is driven by per-Core mode
+            // rather than the legacy day-wide mvd_active flag. Missing/NULL
+            // core_mode on an Approved row is treated as Standard (the most
+            // common backfill case from the migration).
             return when {
-                approved && entity.mvdActive == 0 -> DayClass.Extracted
-                approved && entity.mvdActive == 1 -> DayClass.Partial
+                approved && entity.coreMode == "Mvd" -> DayClass.Partial
+                approved -> DayClass.Extracted
                 epochDay == todayEpochDay -> DayClass.Today
                 epochDay > todayEpochDay -> DayClass.Future
                 else -> DayClass.Burned

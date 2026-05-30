@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalFoundationApi::class)
+@file:OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
 
 package com.avangard.app.feature.pulpit
 
@@ -10,6 +10,8 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,11 +21,15 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -32,6 +38,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.avangard.app.R
+import com.avangard.app.core.domain.model.CoreMode
 import com.avangard.app.core.domain.model.CoreStatus
 import com.avangard.app.core.domain.model.DailySession
 import com.avangard.app.core.domain.model.Habit
@@ -76,24 +83,50 @@ fun OperatorPulpitScreen(
         }
     }
 
-    OperatorPulpitContent(
-        today = state?.today ?: viewModel.initialToday,
-        state = state,
-        nowMsFlow = viewModel.nowMs,
-        transientError = state?.transientError,
-        onStartFocus = viewModel::onStartFocus,
-        onStopFocus = viewModel::onStopFocus,
-        onToggleMvd = viewModel::onToggleMvd,
-        onMarkInfra = viewModel::onMarkInfra,
-        onRequestApproveCore = viewModel::onRequestApproveCore,
-        onSabotageClicked = viewModel::onSabotageClicked,
-        onCloseShiftClicked = viewModel::onCloseShiftClicked,
-        onSettingsLongPress = onOpenSettings,
-        onChronometerClicked = onOpenChronometer,
-        onOpenQuote = onOpenQuote,
-        modifier = modifier,
-    )
+    var bannerText by remember { mutableStateOf<String?>(null) }
+    val bannerTemplate = stringResource(R.string.banner_status_fix)
+    LaunchedEffect(Unit) {
+        viewModel.statusBannerEvents.collect { event ->
+            bannerText = bannerTemplate.format(event.habit.code, event.habit.displayName, event.mode)
+            kotlinx.coroutines.delay(BANNER_HOLD_MS)
+            bannerText = null
+        }
+    }
+
+    Box(modifier = modifier.fillMaxSize()) {
+        OperatorPulpitContent(
+            today = state?.today ?: viewModel.initialToday,
+            state = state,
+            nowMsFlow = viewModel.nowMs,
+            transientError = state?.transientError,
+            onStartFocus = viewModel::onStartFocus,
+            onStopFocus = viewModel::onStopFocus,
+            onMarkInfra = viewModel::onMarkInfra,
+            onRequestApproveCore = viewModel::onRequestApproveCore,
+            onPickDayMode = { viewModel.onPickDayMode(it) },
+            onSabotageClicked = viewModel::onSabotageClicked,
+            onCloseShiftClicked = viewModel::onCloseShiftClicked,
+            onSettingsLongPress = onOpenSettings,
+            onChronometerClicked = onOpenChronometer,
+            onOpenQuote = onOpenQuote,
+        )
+        bannerText?.let { text ->
+            Text(
+                text = text,
+                color = IsaColors.LiveMetal,
+                style = MaterialTheme.typography.labelLarge,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .background(IsaColors.Carbon)
+                    .border(width = 2.dp, color = IsaColors.Approve)
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+            )
+        }
+    }
 }
+
+private const val BANNER_HOLD_MS = 2_400L
 
 @Composable
 internal fun OperatorPulpitContent(
@@ -101,11 +134,11 @@ internal fun OperatorPulpitContent(
     state: PulpitState?,
     nowMsFlow: kotlinx.coroutines.flow.StateFlow<Long>,
     transientError: com.avangard.app.core.domain.model.SessionError?,
-    onStartFocus: (Habit) -> Unit,
+    onStartFocus: (Habit, String?) -> Unit,
     onStopFocus: () -> Unit,
-    onToggleMvd: () -> Unit,
     onMarkInfra: (Habit, InfraStatus) -> Unit,
     onRequestApproveCore: () -> Unit,
+    onPickDayMode: (CoreMode) -> Unit = {},
     onSabotageClicked: () -> Unit,
     onCloseShiftClicked: () -> Unit,
     onSettingsLongPress: () -> Unit = {},
@@ -123,12 +156,17 @@ internal fun OperatorPulpitContent(
     ) {
         HeaderStrip(
             today = today,
-            mvdActive = state?.session?.mvdActive == true,
-            onToggleMvd = onToggleMvd,
+            dayMode = state?.session?.dayMode,
             onSabotageClicked = onSabotageClicked,
             onSettingsLongPress = onSettingsLongPress,
             onChronometerClicked = onChronometerClicked,
+            onPickDayMode = onPickDayMode,
         )
+
+        state?.takeIf { it.chronometerConfigured }?.let { s ->
+            AtAGlanceStrip(state = s, onClick = onChronometerClicked)
+            LastSevenDaysStrip(classes = s.lastSevenDays)
+        }
 
         NotificationPermissionBanner()
         ExactAlarmPermissionBanner()
@@ -166,10 +204,16 @@ internal fun OperatorPulpitContent(
             )
         }
 
+        val coreIdle = state?.session?.coreStatus is CoreStatus.Idle ||
+            state?.session?.coreStatus == null
+        if (state != null && coreIdle) {
+            CoreReminderBanner()
+        }
+
         CoreCard(
             state = state,
             nowMsFlow = nowMsFlow,
-            onStartFocus = { onStartFocus(Habit.Generations) },
+            onStartFocus = { intent -> onStartFocus(Habit.Generations, intent) },
             onStopFocus = onStopFocus,
             onRequestApproveCore = onRequestApproveCore,
         )
@@ -217,16 +261,19 @@ internal fun OperatorPulpitContent(
 @Composable
 private fun HeaderStrip(
     today: LocalDate,
-    mvdActive: Boolean,
-    onToggleMvd: () -> Unit,
+    dayMode: CoreMode?,
     onSabotageClicked: () -> Unit,
     onSettingsLongPress: () -> Unit,
     onChronometerClicked: () -> Unit,
+    onPickDayMode: (CoreMode) -> Unit,
 ) {
-    Row(
+    // FlowRow wraps to a second line on narrow screens (small phones in
+    // landscape, split-screen, etc.) rather than letting the rightmost chip
+    // overflow the viewport.
+    FlowRow(
         modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         val interactionSource = remember { MutableInteractionSource() }
         val dateA11y = stringResource(R.string.a11y_pulpit_date)
@@ -243,9 +290,99 @@ private fun HeaderStrip(
                     onLongClick = onSettingsLongPress,
                 ),
         )
-        MvdToggle(active = mvdActive, onClick = onToggleMvd)
+        DayModeChip(dayMode = dayMode, onPickDayMode = onPickDayMode)
         ChronometerChip(onClick = onChronometerClicked)
         SabotageChip(onClick = onSabotageClicked)
+    }
+}
+
+@Composable
+private fun DayModeChip(
+    dayMode: CoreMode?,
+    onPickDayMode: (CoreMode) -> Unit,
+) {
+    var showPicker by remember { androidx.compose.runtime.mutableStateOf(false) }
+    val interactionSource = remember { MutableInteractionSource() }
+    val label: String
+    val color: androidx.compose.ui.graphics.Color
+    when (dayMode) {
+        CoreMode.Standard -> {
+            label = stringResource(R.string.pulpit_day_mode_standard)
+            color = IsaColors.Approve
+        }
+        CoreMode.Mvd -> {
+            label = stringResource(R.string.pulpit_day_mode_mvd)
+            color = IsaColors.Caution
+        }
+        null -> {
+            label = stringResource(R.string.pulpit_day_mode_unset)
+            color = IsaColors.Signal
+        }
+    }
+    val clickable = dayMode == null
+    Text(
+        text = label,
+        color = color,
+        style = MaterialTheme.typography.labelLarge,
+        modifier = Modifier
+            .border(width = if (clickable) 2.dp else 1.dp, color = color)
+            .clickable(
+                enabled = clickable,
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = { showPicker = true },
+            )
+            .padding(horizontal = 10.dp, vertical = 6.dp),
+    )
+    if (showPicker) {
+        DayModePickerDialog(
+            onPick = { mode ->
+                showPicker = false
+                onPickDayMode(mode)
+            },
+            onDismiss = { showPicker = false },
+        )
+    }
+}
+
+@Composable
+private fun DayModePickerDialog(
+    onPick: (CoreMode) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .background(IsaColors.Carbon)
+                .border(width = 2.dp, color = IsaColors.Steel)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.pulpit_day_mode_picker_title),
+                color = IsaColors.LiveMetal,
+                style = MaterialTheme.typography.titleLarge,
+            )
+            Text(
+                text = stringResource(R.string.pulpit_day_mode_picker_warning),
+                color = IsaColors.Lattice,
+                style = MaterialTheme.typography.labelSmall,
+            )
+            HardButton(
+                label = stringResource(R.string.pulpit_day_mode_pick_standard),
+                onClick = { onPick(CoreMode.Standard) },
+                variant = HardButtonVariant.Primary,
+            )
+            HardButton(
+                label = stringResource(R.string.pulpit_day_mode_pick_mvd),
+                onClick = { onPick(CoreMode.Mvd) },
+                variant = HardButtonVariant.Default,
+            )
+            HardButton(
+                label = stringResource(R.string.pulpit_day_mode_picker_cancel),
+                onClick = onDismiss,
+            )
+        }
     }
 }
 
@@ -260,27 +397,6 @@ private fun ChronometerChip(onClick: () -> Unit) {
         modifier = Modifier
             .semantics { contentDescription = a11y }
             .border(width = 1.dp, color = IsaColors.LiveMetal)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                onClick = onClick,
-            )
-            .padding(horizontal = 10.dp, vertical = 6.dp),
-    )
-}
-
-@Composable
-private fun MvdToggle(active: Boolean, onClick: () -> Unit) {
-    val color = if (active) IsaColors.Approve else IsaColors.Lattice
-    val interactionSource = remember { MutableInteractionSource() }
-    val a11y = stringResource(if (active) R.string.a11y_mvd_on else R.string.a11y_mvd_off)
-    Text(
-        text = stringResource(if (active) R.string.pulpit_mvd_on else R.string.pulpit_mvd_off),
-        color = color,
-        style = MaterialTheme.typography.labelLarge,
-        modifier = Modifier
-            .semantics { contentDescription = a11y }
-            .border(width = 1.dp, color = color)
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
@@ -314,18 +430,26 @@ private fun SabotageChip(onClick: () -> Unit) {
 private fun CoreCard(
     state: PulpitState?,
     nowMsFlow: kotlinx.coroutines.flow.StateFlow<Long>,
-    onStartFocus: () -> Unit,
+    onStartFocus: (String?) -> Unit,
     onStopFocus: () -> Unit,
     onRequestApproveCore: () -> Unit,
 ) {
     val session = state?.session
-    val isApproved = session?.coreStatus is CoreStatus.Approved
-    val isFailed = session?.coreStatus is CoreStatus.Failed
+    val coreStatus = session?.coreStatus
+    val isApproved = coreStatus is CoreStatus.Approved
+    val dayMode = session?.dayMode
+    val isFailed = coreStatus is CoreStatus.Failed
     val activeOnCore = state?.isFocusActiveOn(Habit.Generations) == true
     val badge = when {
-        isApproved -> StatusBadgeKind.Approved
+        isApproved && dayMode == CoreMode.Mvd -> StatusBadgeKind.Mvd
+        isApproved -> StatusBadgeKind.Standard
         isFailed -> StatusBadgeKind.Fail
         else -> StatusBadgeKind.Idle
+    }
+    val coreBorder = when {
+        isApproved && dayMode == CoreMode.Mvd -> IsaColors.Caution
+        isApproved -> IsaColors.Approve
+        else -> IsaColors.Steel
     }
     // Collect the ticker only here so the 1Hz tick scopes its recomp to the
     // CoreTimerDisplay subtree; sibling InfraCards never recompose on tick.
@@ -333,9 +457,7 @@ private fun CoreCard(
     val elapsedMs = if (activeOnCore) {
         state?.activeFocus?.durationMillis(nowMs) ?: 0L
     } else 0L
-    PulpitPanel(
-        borderColor = if (isApproved) IsaColors.Approve else IsaColors.Steel,
-    ) {
+    PulpitPanel(borderColor = coreBorder) {
         LabelStrip(
             code = Habit.Generations.code,
             name = Habit.Generations.displayName,
@@ -345,17 +467,18 @@ private fun CoreCard(
             elapsedMillis = elapsedMs,
             thresholdMs = state?.coldStartThresholdMs ?: DEFAULT_COLD_START_THRESHOLD_MS,
         )
-        FlashButton(
-            label = stringResource(
-                if (activeOnCore) R.string.pulpit_flash_stop else R.string.pulpit_flash_start
-            ),
+        val activeIntent = if (activeOnCore) state?.activeFocus?.intent else null
+        IntentField(
+            habit = Habit.Generations,
+            activeIntent = activeIntent,
+            onStartWithIntent = onStartFocus,
+            startEnabled = state?.activeFocus == null,
             active = activeOnCore,
-            enabled = !isApproved,
-            onClick = if (activeOnCore) onStopFocus else onStartFocus,
+            onStop = onStopFocus,
         )
         FocusStatsLine(habit = Habit.Generations, state = state, nowMsFlow = nowMsFlow)
         HardButton(
-            label = stringResource(R.string.pulpit_save_shot),
+            label = stringResource(R.string.pulpit_analysis),
             onClick = onRequestApproveCore,
             enabled = !isApproved && !isFailed,
             variant = HardButtonVariant.Primary,
@@ -368,72 +491,68 @@ private fun InfraCard(
     habit: Habit,
     state: PulpitState?,
     nowMsFlow: kotlinx.coroutines.flow.StateFlow<Long>,
-    onStartFocus: (Habit) -> Unit,
+    onStartFocus: (Habit, String?) -> Unit,
     onStopFocus: () -> Unit,
     onMarkInfra: (Habit, InfraStatus) -> Unit,
 ) {
     val session: DailySession? = state?.session
-    // Only evening habits (Watching, Reading) wait for Core. Morning habits
-    // (Spanish, Sport) are always unlocked.
-    val locked = habit.requiresCoreApproval && session?.isCoreUnlocked != true
     val infraStatus = session?.infraStatus(habit) ?: InfraStatus.NotDone
+    val done = infraStatus == InfraStatus.Done
     val activeOnHabit = state?.isFocusActiveOn(habit) == true
+    // The colour of a Done habit is pulled from the day's mode (decided once
+    // via the day-mode chip in the header): Standard → green, MVD → amber.
+    // Done habits before the mode is picked default to green.
+    val dayMode = session?.dayMode
+    val doneColor = if (dayMode == CoreMode.Mvd) IsaColors.Caution else IsaColors.Approve
     val badge = when {
-        locked -> StatusBadgeKind.Locked
-        infraStatus == InfraStatus.Standard -> StatusBadgeKind.Standard
-        infraStatus == InfraStatus.Mvd -> StatusBadgeKind.Mvd
+        done -> if (dayMode == CoreMode.Mvd) StatusBadgeKind.Mvd else StatusBadgeKind.Standard
         else -> StatusBadgeKind.Idle
     }
-    PulpitPanel(
-        borderColor = if (locked) IsaColors.HostageGray else IsaColors.Steel,
-    ) {
-        LabelStrip(
-            code = habit.code,
-            name = habit.displayName,
-            trailing = { StatusBadge(kind = badge) },
-        )
-        if (locked) {
-            val a11yLocked = stringResource(R.string.a11y_infra_locked, habit.displayName)
-            Text(
-                text = stringResource(R.string.pulpit_hostage_banner),
-                color = IsaColors.Signal,
-                style = MaterialTheme.typography.labelMedium,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .semantics { contentDescription = a11yLocked }
-                    .border(width = 1.dp, color = IsaColors.Signal)
-                    .padding(8.dp),
+    val infraBorder = if (done) doneColor else IsaColors.Steel
+    // Cards collapse to a 1-row strip when there's nothing happening on them.
+    // Active focus or a marked status auto-expands; tap-to-expand otherwise.
+    val autoExpanded = activeOnHabit || done
+    var manuallyExpanded by rememberSaveable(habit.code) { mutableStateOf(false) }
+    val expanded = autoExpanded || manuallyExpanded
+    PulpitPanel(borderColor = infraBorder) {
+        val labelInteraction = remember(habit.code) { MutableInteractionSource() }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(
+                    interactionSource = labelInteraction,
+                    indication = null,
+                    onClick = { manuallyExpanded = !manuallyExpanded },
+                ),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            LabelStrip(
+                code = habit.code,
+                name = habit.displayName,
+                trailing = { StatusBadge(kind = badge) },
+                modifier = Modifier.weight(1f),
             )
-            return@PulpitPanel
         }
-        FlashButton(
-            label = stringResource(
-                if (activeOnHabit) R.string.pulpit_flash_stop else R.string.pulpit_flash_start
-            ),
+        if (!expanded) return@PulpitPanel
+        val activeIntent = if (activeOnHabit) state?.activeFocus?.intent else null
+        IntentField(
+            habit = habit,
+            activeIntent = activeIntent,
+            onStartWithIntent = { intent -> onStartFocus(habit, intent) },
+            startEnabled = state?.activeFocus == null,
             active = activeOnHabit,
-            enabled = state?.activeFocus == null || activeOnHabit,
-            onClick = if (activeOnHabit) onStopFocus else { { onStartFocus(habit) } },
+            onStop = onStopFocus,
         )
         FocusStatsLine(habit = habit, state = state, nowMsFlow = nowMsFlow)
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            HardButton(
-                label = stringResource(R.string.pulpit_mark_standard),
-                onClick = { onMarkInfra(habit, InfraStatus.Standard) },
-                variant = if (infraStatus == InfraStatus.Standard)
-                    HardButtonVariant.Primary else HardButtonVariant.Default,
-                modifier = Modifier.weight(1f),
-            )
-            HardButton(
-                label = stringResource(R.string.pulpit_mark_mvd),
-                onClick = { onMarkInfra(habit, InfraStatus.Mvd) },
-                variant = if (infraStatus == InfraStatus.Mvd)
-                    HardButtonVariant.Primary else HardButtonVariant.Default,
-                modifier = Modifier.weight(1f),
-            )
-        }
+        HardButton(
+            label = stringResource(
+                if (done) R.string.pulpit_mark_undo else R.string.pulpit_mark_done,
+            ),
+            onClick = {
+                onMarkInfra(habit, if (done) InfraStatus.NotDone else InfraStatus.Done)
+            },
+            variant = if (done) HardButtonVariant.Default else HardButtonVariant.Primary,
+        )
     }
 }
 
@@ -488,6 +607,162 @@ private fun formatHms(millis: Long): String {
     return "%02d:%02d:%02d".format(java.util.Locale.US, h, m, s)
 }
 
+/**
+ * Passive reminder above the Core card while Generations is still Idle.
+ * Replaces the old «hostage» gate on Watching/Reading — Infra habits are
+ * always start-able now, but Core's primacy is signalled visually so the
+ * operator never forgets that 01·ГЕНЕРАЦИИ is the day's central act.
+ */
+@Composable
+private fun CoreReminderBanner() {
+    Text(
+        text = stringResource(R.string.pulpit_core_reminder),
+        color = IsaColors.Caution,
+        style = MaterialTheme.typography.labelMedium,
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(width = 1.dp, color = IsaColors.Caution)
+            .padding(horizontal = 10.dp, vertical = 8.dp),
+    )
+}
+
+/**
+ * FlashButton + optional pre-start intent text field. Combined into one
+ * composable so each card on the pulpit gets the same affordance without
+ * separately wiring focus state and rememberSaveable per habit. While a
+ * session is active, the intent (if any) is read-only above the stop
+ * button.
+ */
+@Composable
+private fun IntentField(
+    habit: Habit,
+    activeIntent: String?,
+    onStartWithIntent: (String?) -> Unit,
+    startEnabled: Boolean,
+    active: Boolean,
+    onStop: () -> Unit,
+) {
+    if (active) {
+        if (!activeIntent.isNullOrBlank()) {
+            Text(
+                text = "→ $activeIntent",
+                color = IsaColors.Lattice,
+                style = MaterialTheme.typography.labelSmall,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(width = 1.dp, color = IsaColors.Steel)
+                    .padding(horizontal = 10.dp, vertical = 6.dp),
+            )
+        }
+        FlashButton(
+            label = stringResource(R.string.pulpit_flash_stop),
+            active = true,
+            enabled = true,
+            onClick = onStop,
+        )
+        return
+    }
+    var intentDraft by rememberSaveable(habit.code) { mutableStateOf("") }
+    androidx.compose.foundation.text.BasicTextField(
+        value = intentDraft,
+        onValueChange = { intentDraft = it },
+        textStyle = MaterialTheme.typography.bodyMedium.copy(color = IsaColors.LiveMetal),
+        decorationBox = { inner ->
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(width = 1.dp, color = IsaColors.Steel)
+                    .padding(horizontal = 10.dp, vertical = 10.dp),
+            ) {
+                if (intentDraft.isEmpty()) {
+                    Text(
+                        text = stringResource(R.string.pulpit_intent_placeholder),
+                        color = IsaColors.Lattice,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+                inner()
+            }
+        },
+        modifier = Modifier.fillMaxWidth(),
+    )
+    FlashButton(
+        label = stringResource(R.string.pulpit_flash_start),
+        active = false,
+        enabled = startEnabled,
+        onClick = { onStartWithIntent(intentDraft.takeIf { it.isNotBlank() }) },
+    )
+}
+
+/**
+ * Compact one-row summary on top of the pulpit: day-number, days remaining,
+ * total focus time accumulated today across every habit. Tap routes to the
+ * chronometer for the full grid. Stays out of the layout entirely when
+ * birthday isn't configured.
+ */
+@Composable
+private fun AtAGlanceStrip(state: PulpitState, onClick: () -> Unit) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val russianLocale = java.util.Locale("ru", "RU")
+    val daysFmt = java.text.NumberFormat.getIntegerInstance(russianLocale)
+    val text = buildString {
+        append("СУТКИ #")
+        append(daysFmt.format(state.dayNumber))
+        append("  ·  ОСТ ~")
+        append(daysFmt.format(state.daysRemaining))
+        append("  ·  Σ ")
+        append(formatHms(state.completedFocusTotalMs))
+    }
+    Text(
+        text = text,
+        color = IsaColors.LiveMetal,
+        style = MaterialTheme.typography.labelMedium,
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(width = 1.dp, color = IsaColors.Steel)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick,
+            )
+            .padding(horizontal = 10.dp, vertical = 8.dp),
+    )
+}
+
+/**
+ * Seven-cell strip showing the last week's day classes (oldest → today).
+ * Reuses the chronometer's classification: Approve-green for Extracted /
+ * full-Standard days, Caution-amber for Partial, Mute-grey for past
+ * Burned/Idle days. Today is bordered Signal-red.
+ */
+@Composable
+private fun LastSevenDaysStrip(classes: List<com.avangard.app.core.domain.model.DayClass>) {
+    if (classes.isEmpty()) return
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        classes.forEachIndexed { index, cls ->
+            val isToday = index == classes.lastIndex
+            val fill = when (cls) {
+                com.avangard.app.core.domain.model.DayClass.Extracted -> IsaColors.Approve
+                com.avangard.app.core.domain.model.DayClass.Partial -> IsaColors.Caution
+                com.avangard.app.core.domain.model.DayClass.Burned -> IsaColors.Mute
+                com.avangard.app.core.domain.model.DayClass.Today -> IsaColors.Graphite
+                com.avangard.app.core.domain.model.DayClass.Future -> IsaColors.Graphite
+            }
+            val border = if (isToday) IsaColors.Signal else IsaColors.Steel
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(20.dp)
+                    .border(width = if (isToday) 2.dp else 1.dp, color = border)
+                    .background(fill),
+            )
+        }
+    }
+}
+
 @Composable
 private fun QuoteOfDayCard(
     quote: com.avangard.app.core.domain.model.Quote,
@@ -515,7 +790,8 @@ private fun QuoteOfDayCard(
             text = quote.text,
             color = IsaColors.LiveMetal,
             style = MaterialTheme.typography.bodyMedium,
-            maxLines = 3,
+            // Full text — short quotes don't get the truncation ellipsis, long
+            // ones still fit thanks to the panel's vertical scroll context.
         )
         Text(
             text = quote.source,

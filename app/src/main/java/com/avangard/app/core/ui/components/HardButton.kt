@@ -3,8 +3,10 @@ package com.avangard.app.core.ui.components
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,6 +20,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.avangard.app.ui.theme.IsaColors
+import com.avangard.app.ui.theme.IsaSpacing
 
 enum class HardButtonVariant { Default, Primary, Danger }
 
@@ -47,6 +50,11 @@ fun HardButton(
         textAlign = TextAlign.Center,
         modifier = modifier
             .fillMaxWidth()
+            // Enforce Material a11y minimum touch height; tall labels still
+            // grow past it via wrapContentHeight, so multi-line buttons
+            // expand instead of clipping.
+            .defaultMinSize(minHeight = IsaSpacing.touch)
+            .wrapContentHeight(unbounded = false)
             .semantics(mergeDescendants = true) {
                 role = Role.Button
                 if (!enabled) disabled()

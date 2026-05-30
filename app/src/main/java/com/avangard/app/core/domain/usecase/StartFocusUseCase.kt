@@ -14,7 +14,10 @@ class StartFocusUseCase @Inject constructor(
     private val clock: Clock,
     private val focusService: FocusServiceController,
 ) {
-    suspend operator fun invoke(habit: Habit): DomainResult<Long, SessionError> {
+    suspend operator fun invoke(
+        habit: Habit,
+        intent: String? = null,
+    ): DomainResult<Long, SessionError> {
         // Pre-flight check first — surfaces a clean error when the conflict is
         // already visible in the read model. The partial unique index in
         // MIGRATION_4_5 is the actual atomic guarantor — catch it below too.
@@ -23,22 +26,19 @@ class StartFocusUseCase @Inject constructor(
         }
         val today = clock.today().toStartOfDayEpoch(clock.zone())
         val session = repository.findForDate(today)
-        if (habit == Habit.Generations) {
+        if (habit == Habit.Generations &&
+            session?.coreStatus is CoreStatus.Approved
+        ) {
             // Core already Approved → starting again would double-count effort
             // when sumFocusDurationFor aggregates the day.
-            if (session?.coreStatus is CoreStatus.Approved) {
-                return DomainResult.Err(SessionError.AlreadyApproved)
-            }
-        } else if (habit.requiresCoreApproval &&
-            session?.coreStatus !is CoreStatus.Approved
-        ) {
-            // Morning habits (Spanish, Sport) run before Core by the
-            // operator's schedule and skip the gate. Evening habits
-            // (Watching, Reading) still wait for Core Approval.
-            return DomainResult.Err(SessionError.InfraLocked)
+            return DomainResult.Err(SessionError.AlreadyApproved)
         }
+        // Infra habits (Spanish, Sport, Watching, Reading) are start-able at
+        // any point in the day — the operator owns sequencing. The pulpit
+        // surfaces a Core-reminder banner while Generations is still Idle so
+        // the central act doesn't get lost behind the side habits.
         val id = try {
-            repository.startFocus(today, habit, clock.nowEpochMillis())
+            repository.startFocus(today, habit, clock.nowEpochMillis(), intent)
         } catch (_: IllegalStateException) {
             // Partial unique index uniq_focus_active fired between the pre-flight
             // and the insert — concurrent tap. Surface the same error as the

@@ -12,6 +12,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.isTraversalGroup
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.avangard.app.R
 import com.avangard.app.ui.theme.IsaColors
@@ -37,6 +39,7 @@ fun EarnedPrideScreen(
         modifier = modifier
             .fillMaxSize()
             .background(IsaColors.Carbon)
+            .semantics { isTraversalGroup = true }
             .padding(32.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,

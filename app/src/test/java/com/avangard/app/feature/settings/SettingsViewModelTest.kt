@@ -10,6 +10,7 @@ import com.avangard.app.core.domain.FakeClock
 import com.avangard.app.core.domain.FakeHabitRepository
 import com.avangard.app.core.domain.FakeSessionRepository
 import com.avangard.app.core.domain.model.Habit
+import com.avangard.app.core.domain.model.CoreMode
 import com.avangard.app.core.domain.usecase.BackupImportError
 import com.avangard.app.core.domain.usecase.ExportBackupUseCase
 import com.avangard.app.core.domain.usecase.ImportBackupUseCase
@@ -80,6 +81,7 @@ class SettingsViewModelTest {
             preferences = preferences,
             scheduler = scheduler,
             ignitionScheduler = ignitionScheduler,
+            middayScheduler = mockk(relaxed = true),
             exportBackup = exportBackup,
             importBackup = importBackup,
             clock = clock,

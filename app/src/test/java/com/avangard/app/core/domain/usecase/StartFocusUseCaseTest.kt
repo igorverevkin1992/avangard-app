@@ -5,6 +5,7 @@ import com.avangard.app.core.common.toStartOfDayEpoch
 import com.avangard.app.core.domain.FakeClock
 import com.avangard.app.core.domain.FakeSessionRepository
 import com.avangard.app.core.domain.model.Habit
+import com.avangard.app.core.domain.model.CoreMode
 import com.avangard.app.core.domain.model.SessionError
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -61,10 +62,14 @@ class StartFocusUseCaseTest {
 
     @Test
     fun `rejected start does not poke the focus service`() = runTest {
-        // Watching is evening, gated by Core Approved. Core idle here.
+        // First start parks an active session on Sport.
+        useCase(Habit.Sport)
+        assertEquals(1, focusService.starts)
+        // Second concurrent start is rejected via AnotherFocusActive and must
+        // not bump the service counter again.
         val result = useCase(Habit.Watching)
-        assertEquals(DomainResult.Err(SessionError.InfraLocked), result)
-        assertEquals(0, focusService.starts)
+        assertEquals(DomainResult.Err(SessionError.AnotherFocusActive), result)
+        assertEquals(1, focusService.starts)
     }
 
     @Test
@@ -83,23 +88,18 @@ class StartFocusUseCaseTest {
     }
 
     @Test
-    fun `Evening Infra is locked when Core is not yet approved`() = runTest {
+    fun `Evening Infra (Reading) starts even when Core is Idle`() = runTest {
+        // No-gate model: Reading can be started before Core; the pulpit
+        // surfaces a reminder banner that Generations are the day's primary
+        // act, but doesn't block the side modules.
         val result = useCase(Habit.Reading)
-        assertEquals(DomainResult.Err(SessionError.InfraLocked), result)
+        assertTrue(result is DomainResult.Ok)
     }
 
     @Test
     fun `Morning Infra is unlocked regardless of Core status`() = runTest {
         val sportResult = useCase(Habit.Sport)
         assertTrue(sportResult is DomainResult.Ok)
-    }
-
-    @Test
-    fun `Evening Infra unlocks after Core is approved`() = runTest {
-        val today = clock.today().toStartOfDayEpoch(clock.zone())
-        repository.approveCore(today, "Сохранённый шот", clock.nowEpochMillis())
-        val result = useCase(Habit.Reading)
-        assertTrue(result is DomainResult.Ok)
     }
 
     @Test

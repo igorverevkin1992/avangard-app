@@ -1,6 +1,8 @@
 package com.avangard.app.core.domain.repository
 
 import com.avangard.app.core.domain.model.Bottleneck
+import com.avangard.app.core.domain.model.BottleneckFollowup
+import com.avangard.app.core.domain.model.CoreMode
 import com.avangard.app.core.domain.model.DailySession
 import com.avangard.app.core.domain.model.DefectKind
 import com.avangard.app.core.domain.model.FocusSession
@@ -20,8 +22,8 @@ interface SessionRepository {
     fun observeRange(fromEpoch: Long, toEpoch: Long): Flow<List<DailySession>>
     suspend fun findForDate(dateEpoch: Long): DailySession?
 
-    suspend fun toggleMvd(dateEpoch: Long)
     suspend fun approveCore(dateEpoch: Long, prompt: String, approvedAt: Long)
+    suspend fun setDayMode(dateEpoch: Long, mode: CoreMode)
     suspend fun setInfraStatus(dateEpoch: Long, habit: Habit, status: InfraStatus, recordedAt: Long)
     suspend fun closeEvening(
         dateEpoch: Long,
@@ -30,6 +32,7 @@ interface SessionRepository {
         recordedAt: Long,
     )
     suspend fun setBottleneck(dateEpoch: Long, bottleneck: Bottleneck)
+    suspend fun setBottleneckFollowup(dateEpoch: Long, followup: BottleneckFollowup)
     suspend fun setJournalEntry(dateEpoch: Long, entry: String?)
 
     fun observeActiveFocus(): Flow<FocusSession?>
@@ -37,7 +40,12 @@ interface SessionRepository {
     fun observeFocusForDay(dateEpoch: Long): Flow<List<FocusSession>>
     fun observeFocusRange(fromEpoch: Long, toEpoch: Long): Flow<List<FocusSession>>
     suspend fun sumFocusDurationFor(dateEpoch: Long, habit: Habit): Long
-    suspend fun startFocus(dateEpoch: Long, habit: Habit, startedAt: Long): Long
+    suspend fun startFocus(
+        dateEpoch: Long,
+        habit: Habit,
+        startedAt: Long,
+        intent: String? = null,
+    ): Long
     suspend fun endFocus(id: Long, endedAt: Long)
 
     suspend fun wipe()

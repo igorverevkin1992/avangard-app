@@ -21,7 +21,6 @@ import com.avangard.app.core.common.Clock
 import com.avangard.app.core.data.UserPreferencesRepository
 import com.avangard.app.core.data.auth.AuthRepository
 import com.avangard.app.core.domain.model.AccessPolicy
-import kotlinx.coroutines.runBlocking
 import com.avangard.app.navigation.AvangardNavHost
 import com.avangard.app.navigation.AvangardNavigationBar
 import com.avangard.app.navigation.NavRoute
@@ -78,8 +77,15 @@ class MainActivity : ComponentActivity() {
         else -> NavRoute.OperatorPulpit.route
     }
 
-    private fun initialRestoreDone(): Boolean =
-        runBlocking { preferences.snapshot().initialRestoreDone }
+    /**
+     * Synchronous, non-blocking read of the restore-done flag. Populated
+     * asynchronously in `AvangardApplication.onCreate` via
+     * `UserPreferencesRepository.warmInitialRestoreCache`. Defaults to
+     * `false` on the very first cold start, which routes the user through
+     * the Restoring overlay — the safe fallback when the cache hasn't
+     * landed yet.
+     */
+    private fun initialRestoreDone(): Boolean = preferences.cachedInitialRestoreDone
 
     companion object {
         const val EXTRA_START_DESTINATION = "start_destination"

@@ -8,8 +8,14 @@ import com.avangard.app.core.common.toStartOfDayEpoch
 import com.avangard.app.core.data.QuoteRepository
 import com.avangard.app.core.data.UserPreferences
 import com.avangard.app.core.data.UserPreferencesRepository
+import com.avangard.app.core.domain.StatusEventBus
+import com.avangard.app.core.domain.StatusFixedEvent
+import com.avangard.app.core.domain.model.ChronometerProgress
+import com.avangard.app.core.domain.model.CoreMode
 import com.avangard.app.core.domain.model.CoreStatus
 import com.avangard.app.core.domain.model.DailySession
+import com.avangard.app.core.domain.model.DayClass
+import com.avangard.app.core.domain.repository.ChronometerRepository
 import com.avangard.app.core.domain.model.FocusSession
 import com.avangard.app.core.domain.model.Habit
 import com.avangard.app.core.domain.model.InfraStatus
@@ -21,7 +27,6 @@ import com.avangard.app.core.domain.usecase.ObserveActiveFocusUseCase
 import com.avangard.app.core.domain.usecase.ObserveDailySessionUseCase
 import com.avangard.app.core.domain.usecase.SetInfraStatusUseCase
 import com.avangard.app.core.domain.usecase.StartFocusUseCase
-import com.avangard.app.core.domain.usecase.ToggleMvdUseCase
 import com.avangard.app.core.ui.components.DEFAULT_COLD_START_THRESHOLD_MS
 import com.avangard.app.core.ui.components.tickerFlow
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -40,8 +45,11 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -59,9 +67,19 @@ data class PulpitState(
     val completedFocusByHabit: Map<Habit, Long> = emptyMap(),
     /** Number of completed focus sessions today, per habit. */
     val completedFocusCountByHabit: Map<Habit, Int> = emptyMap(),
+    /** Last-7-days strip (oldest → today). Empty when chronometer is not configured. */
+    val lastSevenDays: List<DayClass> = emptyList(),
+    /** 1-based day-of-life number (`daysLived + 1`). 0 when not configured. */
+    val dayNumber: Int = 0,
+    /** Whole days remaining in the lifetime budget. 0 when not configured. */
+    val daysRemaining: Int = 0,
+    /** True when birthday is set — drives whether the at-a-glance strip renders. */
+    val chronometerConfigured: Boolean = false,
 ) {
     val isCoreUnlocked: Boolean get() = session.isCoreUnlocked
     fun isFocusActiveOn(habit: Habit): Boolean = activeFocus?.habit == habit
+    /** Sum of completed focus across every habit today. */
+    val completedFocusTotalMs: Long get() = completedFocusByHabit.values.sum()
 }
 
 sealed interface PulpitEffect {
@@ -79,11 +97,19 @@ class OperatorPulpitViewModel @Inject constructor(
     preferences: UserPreferencesRepository,
     private val startFocus: StartFocusUseCase,
     private val endFocus: EndFocusUseCase,
-    private val toggleMvd: ToggleMvdUseCase,
     private val setInfraStatus: SetInfraStatusUseCase,
+    private val setDayMode: com.avangard.app.core.domain.usecase.SetDayModeUseCase,
     quotes: QuoteRepository,
     sessions: SessionRepository,
+    statusBus: StatusEventBus,
+    private val chronometer: ChronometerRepository,
 ) : ViewModel() {
+
+    /** Latest status-fix event waiting to be shown on the in-app banner.
+     *  WhileSubscribed so off-screen banners get discarded — the system
+     *  notification still fires from the use-case side. */
+    val statusBannerEvents: kotlinx.coroutines.flow.SharedFlow<StatusFixedEvent> =
+        statusBus.events.shareIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), replay = 0)
 
     private val _effects = Channel<PulpitEffect>(Channel.BUFFERED)
     val effects = _effects.receiveAsFlow()
@@ -96,6 +122,36 @@ class OperatorPulpitViewModel @Inject constructor(
     private val transientError = MutableStateFlow<SessionError?>(null)
     private var transientErrorClearJob: Job? = null
 
+    init {
+        // Pomodoro auto-stop watchdog. Gated through flatMapLatest on the
+        // active-focus flow so that *no* delay is scheduled when there's no
+        // session running — important for tests, where a perpetually parked
+        // 30-second timer would otherwise leave runTest with a pending
+        // dispatch task. When focus is null the inner flow completes
+        // immediately; when focus arrives we read the current pomodoro
+        // settings once and arm a single delay until the threshold.
+        observeActiveFocus()
+            .flatMapLatest { focus ->
+                if (focus == null) kotlinx.coroutines.flow.emptyFlow()
+                else kotlinx.coroutines.flow.flow {
+                    val prefs = preferences.flow.first()
+                    if (!prefs.pomodoroEnabled) return@flow
+                    val deadline = focus.startedAt + prefs.pomodoroMinutes * 60_000L
+                    val wait = (deadline - clock.nowEpochMillis()).coerceAtLeast(0L)
+                    kotlinx.coroutines.delay(wait)
+                    emit(focus.id)
+                }
+            }
+            .onEach { focusId ->
+                // Re-check at fire time — the operator may have stopped the
+                // session manually while the timer was parked.
+                if (observeActiveFocus().first()?.id == focusId) {
+                    endFocus(focusId)
+                }
+            }
+            .launchIn(viewModelScope)
+    }
+
     private data class Inputs(
         val session: DailySession,
         val focus: FocusSession?,
@@ -103,6 +159,7 @@ class OperatorPulpitViewModel @Inject constructor(
         val prefs: UserPreferences,
         val quote: Quote?,
         val completedFocusToday: List<FocusSession>,
+        val chronometer: ChronometerProgress,
     )
 
     // Today's epoch is recomputed off the ticker so observeFocusForDay
@@ -130,12 +187,13 @@ class OperatorPulpitViewModel @Inject constructor(
             transientError,
             preferences.flow,
         ) { session, focus, _, error, prefs ->
-            Inputs(session, focus, error, prefs, null, emptyList())
+            Inputs(session, focus, error, prefs, null, emptyList(), ChronometerProgress.EMPTY)
         },
         quotes.quoteOfDayFlow(),
         completedFocusTodayFlow,
-    ) { inputs, quote, completed ->
-        inputs.copy(quote = quote, completedFocusToday = completed)
+        chronometer.observeProgress(),
+    ) { inputs, quote, completed, chrono ->
+        inputs.copy(quote = quote, completedFocusToday = completed, chronometer = chrono)
     }
         .map { i ->
             val completedByHabit = i.completedFocusToday.groupBy { it.habit }
@@ -147,6 +205,10 @@ class OperatorPulpitViewModel @Inject constructor(
                 coldStartThresholdMs = i.prefs.coldStartThresholdMs,
                 shouldNudgeEveningClose = computeEveningNudge(i.session, i.prefs),
                 dailyQuote = i.quote,
+                lastSevenDays = i.chronometer.lastSevenDays,
+                dayNumber = if (i.chronometer.configured) i.chronometer.daysLived + 1 else 0,
+                daysRemaining = i.chronometer.daysRemaining,
+                chronometerConfigured = i.chronometer.configured,
                 completedFocusByHabit = completedByHabit.mapValues { (_, list) ->
                     list.sumOf { (it.endedAt ?: 0L) - it.startedAt }
                 },
@@ -175,8 +237,8 @@ class OperatorPulpitViewModel @Inject constructor(
         return !clock.localTime().isBefore(target)
     }
 
-    fun onStartFocus(habit: Habit) = viewModelScope.launch {
-        when (val r = startFocus(habit)) {
+    fun onStartFocus(habit: Habit, intent: String? = null) = viewModelScope.launch {
+        when (val r = startFocus(habit, intent)) {
             is DomainResult.Err -> raise(r.error)
             is DomainResult.Ok -> Unit
         }
@@ -190,13 +252,6 @@ class OperatorPulpitViewModel @Inject constructor(
         endFocus(id)
     }
 
-    fun onToggleMvd() = viewModelScope.launch {
-        when (val r = toggleMvd()) {
-            is DomainResult.Err -> raise(r.error)
-            is DomainResult.Ok -> Unit
-        }
-    }
-
     fun onMarkInfra(habit: Habit, status: InfraStatus) = viewModelScope.launch {
         when (val r = setInfraStatus(habit, status)) {
             is DomainResult.Err -> raise(r.error)
@@ -206,6 +261,15 @@ class OperatorPulpitViewModel @Inject constructor(
 
     fun onRequestApproveCore() {
         viewModelScope.launch { _effects.send(PulpitEffect.OpenAuthorisationModal) }
+    }
+
+    /** Header-toggle commits the day's mode. AlreadyApproved surfaces if the
+     *  operator re-taps after the first commit — UI keeps the chip locked. */
+    fun onPickDayMode(mode: CoreMode) = viewModelScope.launch {
+        when (val r = setDayMode(mode)) {
+            is DomainResult.Err -> raise(r.error)
+            is DomainResult.Ok -> Unit
+        }
     }
 
     fun onSabotageClicked() {

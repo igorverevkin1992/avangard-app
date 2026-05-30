@@ -28,13 +28,16 @@ fun StatusBadge(
     kind: StatusBadgeKind,
     modifier: Modifier = Modifier,
 ) {
+    // Each badge carries a colour AND a leading glyph so the state is legible
+    // for colour-blind users / under monochrome screenshots: ✓ confirmed,
+    // ▣ partial, ✕ failure, ⊘ locked, · neutral.
     val (label, color) = when (kind) {
-        StatusBadgeKind.Idle -> "IDLE" to IsaColors.Lattice
-        StatusBadgeKind.Standard -> "STANDARD" to IsaColors.LiveMetal
-        StatusBadgeKind.Mvd -> "MVD" to IsaColors.Lattice
-        StatusBadgeKind.Approved -> "APPROVED" to IsaColors.Approve
-        StatusBadgeKind.Fail -> "FAIL" to IsaColors.Signal
-        StatusBadgeKind.Locked -> "LOCKED" to IsaColors.Mute
+        StatusBadgeKind.Idle -> "·  IDLE" to IsaColors.Lattice
+        StatusBadgeKind.Standard -> "✓  СТАНДАРТ" to IsaColors.Approve
+        StatusBadgeKind.Mvd -> "▣  МИНИМУМ" to IsaColors.Caution
+        StatusBadgeKind.Approved -> "✓  ЗАСЧИТАНО" to IsaColors.Approve
+        StatusBadgeKind.Fail -> "✕  ПРОВАЛ" to IsaColors.Signal
+        StatusBadgeKind.Locked -> "⊘  ЖДЁТ ЯДРО" to IsaColors.Mute
     }
     val a11y = when (kind) {
         StatusBadgeKind.Idle -> stringResource(R.string.a11y_status_idle)

@@ -1,13 +1,18 @@
 package com.avangard.app.core.data
 
 import android.content.Context
+import android.util.Log
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.avangard.app.core.database.AppDatabase
+import com.avangard.app.core.domain.model.EvasionEvent
+import com.avangard.app.core.domain.model.EvasionKind
+import com.avangard.app.core.domain.model.HabitStandard
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -16,6 +21,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.MapSerializer
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.json.Json
 
 /**
  * Snapshot of the operator-controlled knobs persisted across launches.
@@ -45,6 +54,20 @@ data class UserPreferences(
     val ignitionEnabled: Boolean = true,
     val ignitionHour: Int = DEFAULT_IGNITION_HOUR,
     val ignitionMinute: Int = 0,
+    /** Midday-check notification toggle — passive nudge when Core's still
+     *  idle by the configured hour. */
+    val middayCheckEnabled: Boolean = false,
+    val middayCheckHour: Int = DEFAULT_MIDDAY_HOUR,
+    val middayCheckMinute: Int = 0,
+    /** Pomodoro auto-stop on focus sessions. Off by default. */
+    val pomodoroEnabled: Boolean = false,
+    val pomodoroMinutes: Int = DEFAULT_POMODORO_MINUTES,
+    /** Operator-defined «СТАНДАРТ» / «МИНИМУМ» criteria per habit code. */
+    val habitStandards: Map<String, HabitStandard> = emptyMap(),
+    /** Ring buffer of recent evasion-diagnostic events (newest first). */
+    val evasionLog: List<EvasionEvent> = emptyList(),
+    /** Quotes the operator pinned as personal «принципы». */
+    val pinnedQuoteIds: Set<Int> = emptySet(),
 ) {
     companion object {
         const val DEFAULT_COLD_START_MS: Long = 5L * 60 * 1000
@@ -52,6 +75,10 @@ data class UserPreferences(
         const val MIN_LIFE_EXPECTANCY = 50
         const val MAX_LIFE_EXPECTANCY = 100
         const val DEFAULT_IGNITION_HOUR = 6
+        const val DEFAULT_MIDDAY_HOUR = 12
+        const val DEFAULT_POMODORO_MINUTES = 25
+        const val MIN_POMODORO_MINUTES = 10
+        const val MAX_POMODORO_MINUTES = 90
     }
 }
 
@@ -66,6 +93,23 @@ class UserPreferencesRepository @Inject constructor(
     val flow: Flow<UserPreferences> = context.preferencesStore.data.map { it.toModel() }
 
     suspend fun snapshot(): UserPreferences = flow.first()
+
+    /**
+     * Best-effort synchronous read of `initialRestoreDone` for hot paths
+     * (MainActivity start-destination resolution) that must not block the
+     * main thread on DataStore I/O. Defaults to `false` until the first
+     * suspend read populates it — first cold start falls through to the
+     * Restoring overlay, which is the safe default.
+     *
+     * Populated by [warmInitialRestoreCache] from `AvangardApplication.onCreate`.
+     */
+    @Volatile
+    var cachedInitialRestoreDone: Boolean = false
+        private set
+
+    suspend fun warmInitialRestoreCache() {
+        cachedInitialRestoreDone = snapshot().initialRestoreDone
+    }
 
     suspend fun setEveningClose(hour: Int, minute: Int) {
         require(hour in 0..23) { "hour out of range: $hour" }
@@ -96,12 +140,14 @@ class UserPreferencesRepository @Inject constructor(
             prefs.remove(KEY_REMOTE_MODIFIED_AT)
             prefs.remove(KEY_INITIAL_RESTORE_DONE)
         }
+        cachedInitialRestoreDone = false
     }
 
     suspend fun setInitialRestoreDone() {
         context.preferencesStore.edit { prefs ->
             prefs[KEY_INITIAL_RESTORE_DONE] = true
         }
+        cachedInitialRestoreDone = true
     }
 
     suspend fun setBirthday(epochDay: Long?) {
@@ -132,6 +178,67 @@ class UserPreferencesRepository @Inject constructor(
         context.preferencesStore.edit { prefs ->
             prefs[KEY_IGNITION_HOUR] = hour
             prefs[KEY_IGNITION_MINUTE] = minute
+        }
+    }
+
+    suspend fun setMiddayCheckEnabled(enabled: Boolean) {
+        context.preferencesStore.edit { prefs ->
+            prefs[KEY_MIDDAY_ENABLED] = enabled
+        }
+    }
+
+    suspend fun setMiddayCheckTime(hour: Int, minute: Int) {
+        require(hour in 0..23) { "midday hour out of range: $hour" }
+        require(minute in 0..59) { "midday minute out of range: $minute" }
+        context.preferencesStore.edit { prefs ->
+            prefs[KEY_MIDDAY_HOUR] = hour
+            prefs[KEY_MIDDAY_MINUTE] = minute
+        }
+    }
+
+    suspend fun setPomodoroEnabled(enabled: Boolean) {
+        context.preferencesStore.edit { prefs ->
+            prefs[KEY_POMODORO_ENABLED] = enabled
+        }
+    }
+
+    suspend fun setPomodoroMinutes(minutes: Int) {
+        require(minutes in UserPreferences.MIN_POMODORO_MINUTES..UserPreferences.MAX_POMODORO_MINUTES) {
+            "pomodoro minutes out of range: $minutes"
+        }
+        context.preferencesStore.edit { prefs ->
+            prefs[KEY_POMODORO_MINUTES] = minutes
+        }
+    }
+
+    suspend fun togglePinnedQuote(id: Int) {
+        context.preferencesStore.edit { prefs ->
+            val current = prefs[KEY_PINNED_QUOTES]?.let(::decodePinnedSet) ?: emptySet()
+            val updated = if (id in current) current - id else current + id
+            prefs[KEY_PINNED_QUOTES] = encodePinnedSet(updated)
+        }
+    }
+
+    suspend fun setHabitStandard(habitCode: String, standard: HabitStandard) {
+        context.preferencesStore.edit { prefs ->
+            val current = prefs[KEY_HABIT_STANDARDS]?.let(::decodeHabitStandards) ?: emptyMap()
+            val updated = if (standard.isEmpty) current - habitCode else current + (habitCode to standard)
+            prefs[KEY_HABIT_STANDARDS] = encodeHabitStandards(updated)
+        }
+    }
+
+    suspend fun replaceHabitStandards(map: Map<String, HabitStandard>) {
+        context.preferencesStore.edit { prefs ->
+            prefs[KEY_HABIT_STANDARDS] = encodeHabitStandards(map)
+        }
+    }
+
+    /** Append an evasion-diagnostic event; ring-buffered to [EVASION_LOG_CAP]. */
+    suspend fun appendEvasion(kind: EvasionKind, timestampMs: Long) {
+        context.preferencesStore.edit { prefs ->
+            val current = prefs[KEY_EVASION_LOG]?.let(::decodeEvasionLog) ?: emptyList()
+            val updated = (listOf(EvasionEvent(timestampMs, kind)) + current).take(EVASION_LOG_CAP)
+            prefs[KEY_EVASION_LOG] = encodeEvasionLog(updated)
         }
     }
 
@@ -166,7 +273,50 @@ class UserPreferencesRepository @Inject constructor(
         ignitionEnabled = this[KEY_IGNITION_ENABLED] ?: true,
         ignitionHour = this[KEY_IGNITION_HOUR] ?: UserPreferences.DEFAULT_IGNITION_HOUR,
         ignitionMinute = this[KEY_IGNITION_MINUTE] ?: 0,
+        middayCheckEnabled = this[KEY_MIDDAY_ENABLED] ?: false,
+        middayCheckHour = this[KEY_MIDDAY_HOUR] ?: UserPreferences.DEFAULT_MIDDAY_HOUR,
+        middayCheckMinute = this[KEY_MIDDAY_MINUTE] ?: 0,
+        pomodoroEnabled = this[KEY_POMODORO_ENABLED] ?: false,
+        pomodoroMinutes = this[KEY_POMODORO_MINUTES]
+            ?: UserPreferences.DEFAULT_POMODORO_MINUTES,
+        habitStandards = this[KEY_HABIT_STANDARDS]?.let(::decodeHabitStandards) ?: emptyMap(),
+        evasionLog = this[KEY_EVASION_LOG]?.let(::decodeEvasionLog) ?: emptyList(),
+        pinnedQuoteIds = this[KEY_PINNED_QUOTES]?.let(::decodePinnedSet) ?: emptySet(),
     )
+
+    private fun encodeHabitStandards(map: Map<String, HabitStandard>): String =
+        JSON.encodeToString(HABIT_STANDARDS_SERIALIZER, map)
+
+    private fun decodeHabitStandards(value: String): Map<String, HabitStandard> =
+        runCatching {
+            JSON.decodeFromString(HABIT_STANDARDS_SERIALIZER, value)
+        }.getOrElse {
+            // Corrupt JSON in DataStore (manual edit, bad migration): swallow and
+            // fall back to empty so the rest of the app still functions.
+            Log.w("UserPrefs", "habit_standards decode failed", it)
+            emptyMap()
+        }
+
+    private fun encodeEvasionLog(list: List<EvasionEvent>): String =
+        JSON.encodeToString(EVASION_LOG_SERIALIZER, list)
+
+    private fun decodeEvasionLog(value: String): List<EvasionEvent> =
+        runCatching {
+            JSON.decodeFromString(EVASION_LOG_SERIALIZER, value)
+        }.getOrElse {
+            Log.w("UserPrefs", "evasion_log decode failed", it)
+            emptyList()
+        }
+
+    private fun encodePinnedSet(set: Set<Int>): String =
+        JSON.encodeToString(PINNED_SET_SERIALIZER, set.toList())
+
+    private fun decodePinnedSet(value: String): Set<Int> =
+        runCatching { JSON.decodeFromString(PINNED_SET_SERIALIZER, value).toSet() }
+            .getOrElse {
+                Log.w("UserPrefs", "pinned_quotes decode failed", it)
+                emptySet()
+            }
 
     companion object {
         private val KEY_EVENING_HOUR = intPreferencesKey("evening_close_hour")
@@ -181,6 +331,23 @@ class UserPreferencesRepository @Inject constructor(
         private val KEY_IGNITION_ENABLED = booleanPreferencesKey("chronometer_ignition_enabled")
         private val KEY_IGNITION_HOUR = intPreferencesKey("chronometer_ignition_hour")
         private val KEY_IGNITION_MINUTE = intPreferencesKey("chronometer_ignition_minute")
+        private val KEY_MIDDAY_ENABLED = booleanPreferencesKey("midday_check_enabled")
+        private val KEY_MIDDAY_HOUR = intPreferencesKey("midday_check_hour")
+        private val KEY_MIDDAY_MINUTE = intPreferencesKey("midday_check_minute")
+        private val KEY_POMODORO_ENABLED = booleanPreferencesKey("pomodoro_enabled")
+        private val KEY_POMODORO_MINUTES = intPreferencesKey("pomodoro_minutes")
+        private val KEY_HABIT_STANDARDS = stringPreferencesKey("habit_standards_json")
+        private val KEY_EVASION_LOG = stringPreferencesKey("evasion_log_json")
+        private val KEY_PINNED_QUOTES = stringPreferencesKey("pinned_quotes_json")
         private const val VACUUM_EVERY_LAUNCHES = 30
+        private const val EVASION_LOG_CAP = 50
+
+        private val JSON = Json { ignoreUnknownKeys = true }
+        private val HABIT_STANDARDS_SERIALIZER =
+            MapSerializer(String.serializer(), HabitStandard.serializer())
+        private val EVASION_LOG_SERIALIZER =
+            ListSerializer(EvasionEvent.serializer())
+        private val PINNED_SET_SERIALIZER =
+            ListSerializer(Int.serializer())
     }
 }

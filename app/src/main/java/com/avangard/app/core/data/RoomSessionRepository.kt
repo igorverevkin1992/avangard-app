@@ -12,6 +12,8 @@ import com.avangard.app.core.database.entity.DailySessionEntity
 import com.avangard.app.core.database.entity.FocusSessionEntity
 import com.avangard.app.core.database.entity.HabitLogEntity
 import com.avangard.app.core.domain.model.Bottleneck
+import com.avangard.app.core.domain.model.BottleneckFollowup
+import com.avangard.app.core.domain.model.CoreMode
 import com.avangard.app.core.domain.model.CoreStatus
 import com.avangard.app.core.domain.model.DailySession
 import com.avangard.app.core.domain.model.DefectKind
@@ -67,26 +69,38 @@ class RoomSessionRepository @Inject constructor(
     override suspend fun findForDate(dateEpoch: Long): DailySession? =
         dailyDao.findByDate(dateEpoch)?.toDomain()
 
-    override suspend fun toggleMvd(dateEpoch: Long) {
-        database.withTransaction {
-            val current = dailyDao.ensureRow(dateEpoch)
-            dailyDao.upsert(current.copy(mvdActive = if (current.mvdActive == 1) 0 else 1))
-        }
-    }
-
-    override suspend fun approveCore(dateEpoch: Long, prompt: String, approvedAt: Long) {
+    override suspend fun approveCore(
+        dateEpoch: Long,
+        prompt: String,
+        approvedAt: Long,
+    ) {
         database.withTransaction {
             val current = dailyDao.ensureRow(dateEpoch)
             // Re-read under tx — defends against approve-after-approve race within the use case layer.
+            // core_mode stays as already set via setDayMode; default to Standard
+            // when the operator approved Core without first picking a mode.
             dailyDao.upsert(
                 current.copy(
                     coreStatus = CORE_APPROVED,
                     corePrompt = prompt,
                     coreAuthorizedAt = approvedAt,
                     coreDefectKind = null,
+                    coreMode = current.coreMode ?: CoreMode.Standard.name,
                 )
             )
             focusDao.findActive()?.let { focusDao.endSession(it.id, approvedAt) }
+        }
+    }
+
+    override suspend fun setDayMode(dateEpoch: Long, mode: CoreMode) {
+        database.withTransaction {
+            val current = dailyDao.ensureRow(dateEpoch)
+            // Once a mode is committed for the day, the picker locks — the use
+            // case layer rejects the second call, but the repo also no-ops just
+            // in case a re-entrant write slips through. coreMode is the
+            // immutable record.
+            if (current.coreMode != null) return@withTransaction
+            dailyDao.upsert(current.copy(coreMode = mode.name))
         }
     }
 
@@ -161,6 +175,13 @@ class RoomSessionRepository @Inject constructor(
         }
     }
 
+    override suspend fun setBottleneckFollowup(dateEpoch: Long, followup: BottleneckFollowup) {
+        database.withTransaction {
+            val current = dailyDao.ensureRow(dateEpoch)
+            dailyDao.upsert(current.copy(bottleneckFollowup = followup.name))
+        }
+    }
+
     override suspend fun setJournalEntry(dateEpoch: Long, entry: String?) {
         // Blank input becomes null on disk so we don't litter the row with
         // empty strings — the domain treats null and "" identically.
@@ -191,7 +212,12 @@ class RoomSessionRepository @Inject constructor(
      * `ended_at IS NULL` row. The use case layer translates the throw into
      * [com.avangard.app.core.domain.model.SessionError.AnotherFocusActive].
      */
-    override suspend fun startFocus(dateEpoch: Long, habit: Habit, startedAt: Long): Long =
+    override suspend fun startFocus(
+        dateEpoch: Long,
+        habit: Habit,
+        startedAt: Long,
+        intent: String?,
+    ): Long =
         try {
             focusDao.insert(
                 FocusSessionEntity(
@@ -199,6 +225,7 @@ class RoomSessionRepository @Inject constructor(
                     habitCode = habit.code,
                     startedAt = startedAt,
                     endedAt = null,
+                    intent = intent?.trim()?.takeIf { it.isNotEmpty() },
                 )
             )
         } catch (_: SQLiteConstraintException) {
@@ -230,21 +257,23 @@ class RoomSessionRepository @Inject constructor(
 
 private fun InfraStatus.toCode(): Int = when (this) {
     InfraStatus.NotDone -> 0
-    InfraStatus.Standard -> 1
-    InfraStatus.Mvd -> 2
+    InfraStatus.Done -> 1
 }
 
-private fun Int.toInfraStatus(): InfraStatus = when (this) {
-    1 -> InfraStatus.Standard
-    2 -> InfraStatus.Mvd
-    else -> InfraStatus.NotDone
-}
+/** Both legacy Standard (1) and MVD (2) map to Done — the day's mode now
+ *  lives on Core, not on the Infra row. */
+private fun Int.toInfraStatus(): InfraStatus =
+    if (this == 0) InfraStatus.NotDone else InfraStatus.Done
 
 private fun DailySessionEntity.toDomain(): DailySession = DailySession(
     dateEpoch = dateEpoch,
     mvdActive = mvdActive == 1,
+    dayMode = coreMode?.let { runCatching { CoreMode.valueOf(it) }.getOrNull() },
     coreStatus = when (coreStatus) {
-        1 -> CoreStatus.Approved(prompt = corePrompt.orEmpty(), authorizedAt = coreAuthorizedAt ?: 0L)
+        1 -> CoreStatus.Approved(
+            prompt = corePrompt.orEmpty(),
+            authorizedAt = coreAuthorizedAt ?: 0L,
+        )
         2 -> CoreStatus.Failed(kind = if (coreDefectKind == 1) DefectKind.Waste else DefectKind.Defect)
         else -> CoreStatus.Idle
     },
@@ -266,6 +295,9 @@ private fun DailySessionEntity.toDomain(): DailySession = DailySession(
         runCatching { Bottleneck.valueOf(name) }.getOrNull()
     },
     journalEntry = journalEntry,
+    bottleneckFollowup = bottleneckFollowup?.let { name ->
+        runCatching { BottleneckFollowup.valueOf(name) }.getOrNull()
+    },
 )
 
 private fun FocusSessionEntity.toDomain(): FocusSession? {
@@ -276,5 +308,6 @@ private fun FocusSessionEntity.toDomain(): FocusSession? {
         habit = habit,
         startedAt = startedAt,
         endedAt = endedAt,
+        intent = intent,
     )
 }

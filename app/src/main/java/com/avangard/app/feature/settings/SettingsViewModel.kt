@@ -17,6 +17,7 @@ import com.avangard.app.core.domain.usecase.ImportBackupUseCase
 import com.avangard.app.core.ui.components.DEFAULT_COLD_START_THRESHOLD_MS
 import com.avangard.app.sync.scheduler.EveningCloseScheduler
 import com.avangard.app.sync.scheduler.IgnitionScheduler
+import com.avangard.app.sync.scheduler.MiddayCheckScheduler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -85,6 +86,7 @@ class SettingsViewModel @Inject constructor(
     private val preferences: UserPreferencesRepository,
     private val scheduler: EveningCloseScheduler,
     private val ignitionScheduler: IgnitionScheduler,
+    private val middayScheduler: MiddayCheckScheduler,
     private val exportBackup: ExportBackupUseCase,
     private val importBackup: ImportBackupUseCase,
     private val clock: Clock,
@@ -164,6 +166,30 @@ class SettingsViewModel @Inject constructor(
             preferences.setIgnitionTime(hour, minute)
             ignitionScheduler.ensureScheduled()
         }
+    }
+
+    fun onMiddayCheckEnabledChanged(enabled: Boolean) {
+        viewModelScope.launch {
+            preferences.setMiddayCheckEnabled(enabled)
+            middayScheduler.ensureScheduled()
+        }
+    }
+
+    fun onMiddayCheckTimeChanged(hour: Int, minute: Int) {
+        if (hour !in 0..23 || minute !in 0..59) return
+        viewModelScope.launch {
+            preferences.setMiddayCheckTime(hour, minute)
+            middayScheduler.ensureScheduled()
+        }
+    }
+
+    fun onPomodoroEnabledChanged(enabled: Boolean) {
+        viewModelScope.launch { preferences.setPomodoroEnabled(enabled) }
+    }
+
+    fun onPomodoroMinutesChanged(minutes: Int) {
+        if (minutes !in UserPreferences.MIN_POMODORO_MINUTES..UserPreferences.MAX_POMODORO_MINUTES) return
+        viewModelScope.launch { preferences.setPomodoroMinutes(minutes) }
     }
 
     fun requestWipe() {

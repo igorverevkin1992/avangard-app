@@ -31,6 +31,11 @@ sealed interface AuthorisationEffect {
     data object Submitted : AuthorisationEffect
 }
 
+/**
+ * Drives the «АНАЛИЗ ГЕНЕРАЦИИ» modal. The day's mode is no longer scoped to
+ * this screen — it's been picked once via the pulpit header — so this VM
+ * only owns the operator's analysis text + conscious-authorisation checkbox.
+ */
 @HiltViewModel
 class AuthorisationModalViewModel @Inject constructor(
     private val approveCore: ApproveCoreUseCase,
@@ -44,14 +49,9 @@ class AuthorisationModalViewModel @Inject constructor(
     private val authorisedFlow: StateFlow<Boolean> =
         savedState.getStateFlow(KEY_AUTHORISED, false)
 
-    // Submitting flag and transient error are intentionally NOT persisted —
-    // they belong to the current submission attempt, not the user's intent.
     private val submitting = MutableStateFlow(false)
     private val error = MutableStateFlow<SessionError?>(null)
 
-    // Eagerly so state.value is always the live combined value, including
-    // updates triggered by the on*Change handlers — submit() reads it without
-    // worrying about whether a UI subscriber happens to be active.
     val state: StateFlow<AuthorisationModalState> = combine(
         promptFlow,
         authorisedFlow,
@@ -87,7 +87,6 @@ class AuthorisationModalViewModel @Inject constructor(
     }
 
     fun submit() {
-        // Read source flows directly — defensive against any stale state.value.
         val currentPrompt = promptFlow.value
         val currentAuthorised = authorisedFlow.value
         if (submitting.value) return
@@ -97,7 +96,10 @@ class AuthorisationModalViewModel @Inject constructor(
         submitting.value = true
         error.value = null
         viewModelScope.launch {
-            when (val result = approveCore(prompt = currentPrompt, authorised = currentAuthorised)) {
+            when (val result = approveCore(
+                prompt = currentPrompt,
+                authorised = currentAuthorised,
+            )) {
                 is DomainResult.Ok -> {
                     submitting.value = false
                     _effects.send(AuthorisationEffect.Submitted)

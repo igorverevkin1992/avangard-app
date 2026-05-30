@@ -5,6 +5,8 @@ import app.cash.turbine.test
 import com.avangard.app.core.common.toStartOfDayEpoch
 import com.avangard.app.core.domain.FakeClock
 import com.avangard.app.core.domain.FakeSessionRepository
+import com.avangard.app.core.domain.NoopStatusNotifier
+import com.avangard.app.core.domain.StatusEventBus
 import com.avangard.app.core.domain.model.CoreStatus
 import com.avangard.app.core.domain.usecase.ApproveCoreUseCase
 import kotlinx.coroutines.Dispatchers
@@ -34,7 +36,7 @@ class AuthorisationModalViewModelTest {
         clock = FakeClock()
         repository = FakeSessionRepository(clock)
         viewModel = AuthorisationModalViewModel(
-            approveCore = ApproveCoreUseCase(repository, clock),
+            approveCore = ApproveCoreUseCase(repository, clock, StatusEventBus(), NoopStatusNotifier),
             savedState = SavedStateHandle(),
         )
     }
@@ -79,7 +81,7 @@ class AuthorisationModalViewModelTest {
             ),
         )
         val viewModelAfterDeath = AuthorisationModalViewModel(
-            approveCore = ApproveCoreUseCase(repository, clock),
+            approveCore = ApproveCoreUseCase(repository, clock, StatusEventBus(), NoopStatusNotifier),
             savedState = restored,
         )
         val state = viewModelAfterDeath.state.value

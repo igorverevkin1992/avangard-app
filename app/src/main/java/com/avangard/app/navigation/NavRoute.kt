@@ -6,7 +6,10 @@ sealed interface NavRoute {
     data object SignIn : NavRoute { override val route = "auth/signin" }
     data object Restoring : NavRoute { override val route = "auth/restoring" }
     data object OperatorPulpit : NavRoute { override val route = "pulpit" }
-    data object AuthorisationModal : NavRoute { override val route = "pulpit/authorise" }
+    /** Core approval modal. Day mode lives on DailySession, not on this route. */
+    data object AuthorisationModal : NavRoute {
+        override val route = "pulpit/authorise"
+    }
     data object EarnedPride : NavRoute { override val route = "pulpit/earned-pride" }
     data object Sabotage : NavRoute { override val route = "sabotage" }
     data object EveningClose : NavRoute { override val route = "closing" }
@@ -15,6 +18,7 @@ sealed interface NavRoute {
     data object Settings : NavRoute { override val route = "settings" }
     data object Library : NavRoute { override val route = "library" }
     data object Chronometer : NavRoute { override val route = "chronometer" }
+    data object Mode : NavRoute { override val route = "mode" }
 
     /** Library → list of quotes filtered by a single VirtueTag.
      *  Argument: VirtueTag.name. */

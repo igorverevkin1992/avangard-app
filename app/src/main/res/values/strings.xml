@@ -3,17 +3,24 @@
     <string name="app_name">Prime mover</string>
 
     <!-- Pulpit header. -->
-    <string name="pulpit_mvd_on">РЕЖИМ MVD: ВКЛ</string>
-    <string name="pulpit_mvd_off">РЕЖИМ MVD: ВЫКЛ</string>
     <string name="pulpit_sabotage">УКЛОНЕНИЕ</string>
 
     <!-- Pulpit cards. -->
     <string name="pulpit_flash_start">КОНЦЕНТРАЦИЯ</string>
+    <string name="pulpit_intent_placeholder">Что именно сделаю (опционально)</string>
+    <string name="pulpit_day_mode_unset">РЕЖИМ ДНЯ: ВЫБРАТЬ</string>
+    <string name="pulpit_day_mode_standard">РЕЖИМ ДНЯ: СТАНДАРТ</string>
+    <string name="pulpit_day_mode_mvd">РЕЖИМ ДНЯ: МИНИМУМ</string>
+    <string name="pulpit_day_mode_picker_title">РЕЖИМ ДНЯ</string>
+    <string name="pulpit_day_mode_picker_warning">Решение фиксируется на сегодня. Изменить нельзя.</string>
+    <string name="pulpit_day_mode_pick_standard">СТАНДАРТ</string>
+    <string name="pulpit_day_mode_pick_mvd">МИНИМУМ</string>
+    <string name="pulpit_day_mode_picker_cancel">ОТМЕНА</string>
+    <string name="pulpit_analysis">АНАЛИЗ ГЕНЕРАЦИИ</string>
     <string name="pulpit_flash_stop">ЗАВЕРШИТЬ</string>
-    <string name="pulpit_save_shot">СОХРАНИТЬ ШОТ</string>
-    <string name="pulpit_mark_standard">STANDARD</string>
-    <string name="pulpit_mark_mvd">MVD</string>
-    <string name="pulpit_hostage_banner">ЗАБЛОКИРОВАНО ДО ПЕРВОГО ЯДРА</string>
+    <string name="pulpit_mark_done">ВЫПОЛНЕНО</string>
+    <string name="pulpit_mark_undo">СБРОСИТЬ</string>
+    <string name="pulpit_core_reminder">01·ГЕНЕРАЦИИ — главное дело дня. Анализ ещё не зафиксирован.</string>
     <string name="pulpit_close_shift">ЗАКРЫТЬ СМЕНУ</string>
     <string name="pulpit_evening_nudge">СМЕНА НЕ ЗАКРЫТА · ТАП ДЛЯ ВЕЧЕРНЕГО ЗАКРЫТИЯ</string>
     <string name="pulpit_quote_of_day_label">ЦИТАТА ДНЯ · ТАП ДЛЯ ПОЛНОГО ТЕКСТА</string>
@@ -38,12 +45,12 @@
     <string name="pulpit_focus_stats_active">КОНЦЕНТРАЦИЯ · %1$s   |   СЕГОДНЯ · %2$d × %3$s</string>
     <string name="pulpit_focus_stats_idle">СЕГОДНЯ · %1$d СЕССИЙ · %2$s</string>
 
-    <!-- Authorisation modal. -->
-    <string name="auth_title">ОСОЗНАННАЯ АВТОРИЗАЦИЯ</string>
+    <!-- Authorisation modal (АНАЛИЗ ГЕНЕРАЦИИ). -->
+    <string name="auth_title">АНАЛИЗ ГЕНЕРАЦИИ</string>
     <string name="auth_question">Присутствует ли в этом результате мой рациональный выбор, или это слепой автоматизм?</string>
-    <string name="auth_prompt_label">ПРОМПТ / ШОТ</string>
+    <string name="auth_prompt_label">ИТОГ ГЕНЕРАЦИИ</string>
     <string name="auth_checkbox_label">ПОДТВЕРЖДАЮ РАЦИОНАЛЬНЫЙ ВЫБОР</string>
-    <string name="auth_submit">ПОДТВЕРДИТЬ И СОХРАНИТЬ</string>
+    <string name="auth_submit">ЗАФИКСИРОВАТЬ АНАЛИЗ</string>
     <string name="auth_cancel">ОТМЕНА</string>
 
     <!-- Earned Pride. -->
@@ -59,6 +66,8 @@
     <string name="sabotage_defect_body">Артефакт машины — это математическая погрешность весов модели, а не личное оскорбление оператора. Брак подлежит инженерному алгоритмическому исправлению. Эмоции не меняют пиксели.</string>
     <string name="sabotage_comparison_title">СОЦИАЛЬНОЕ СРАВНЕНИЕ</string>
     <string name="sabotage_comparison_body">Чужой результат есть закономерное следствие чужого вложенного времени. Сравнение несопоставимых переменных логически ошибочно и ведёт исключительно к нейробиологической потере.</string>
+    <string name="sabotage_acknowledge">ЗАФИКСИРОВАТЬ ДИАГНОЗ</string>
+    <string name="sabotage_acknowledged">✓ ЗАФИКСИРОВАНО</string>
     <string name="sabotage_return">ВЕРНУТЬСЯ К ПУЛЬТУ</string>
 
     <!-- Evening close. -->
@@ -68,13 +77,15 @@
     <string name="closing_pride">ГОРДОСТЬ</string>
     <string name="closing_integrity">ЦЕЛОСТНОСТЬ</string>
     <string name="closing_defect_label">КЛАССИФИКАЦИЯ НУЛЕВОГО РЕЗУЛЬТАТА</string>
-    <string name="closing_defect_hint">Ядро не зафиксировано. Выберите тип отклонения.</string>
+    <string name="closing_defect_hint">Анализ генерации не зафиксирован. Выберите тип провала.</string>
     <string name="closing_defect_kind_defect">ПОМЕХА</string>
     <string name="closing_defect_kind_waste">УКЛОНЕНИЕ</string>
     <string name="closing_journal_label">ЖУРНАЛ ДНЯ</string>
     <string name="closing_journal_hint">Сжатое резюме смены. До 500 знаков.</string>
     <string name="closing_journal_counter">%1$d / %2$d</string>
     <string name="closing_submit">ЗАФИКСИРОВАТЬ ЗАКРЫТИЕ СМЕНЫ</string>
+    <string name="closing_prior_bottleneck_label">ТЕКУЩЕЕ ОГРАНИЧЕНИЕ</string>
+    <string name="closing_virtue_suggestion_hint">Подсказка от метрик дня. Решение — за оператором.</string>
 
     <!-- Virtues. -->
     <string name="virtue_rationality">РАЗУМНОСТЬ</string>
@@ -86,13 +97,17 @@
     <string name="audit_header">ОЦЕНКА НЕДЕЛИ</string>
     <string name="audit_loading">СБОР МЕТРИК…</string>
     <string name="audit_metrics_label">МЕТРИКИ ЗА 7 ДНЕЙ</string>
-    <string name="audit_metric_core_hours">ЧАСЫ ЯДРА</string>
-    <string name="audit_metric_days_approved">ДНЕЙ С APPROVED</string>
+    <string name="audit_metric_core_hours">ЧАСЫ ГЕНЕРАЦИЙ</string>
+    <string name="audit_metric_days_approved">ДНЕЙ С АНАЛИЗОМ</string>
     <string name="audit_metric_defects">ПОМЕХИ</string>
     <string name="audit_metric_wastes">УКЛОНЕНИЯ</string>
-    <string name="audit_metric_mvd_days">ДНИ MVD</string>
+    <string name="audit_metric_mvd_days">ДНИ МИНИМУМА</string>
     <string name="audit_metric_virtues">СУММА ДОБРОДЕТЕЛЕЙ</string>
     <string name="audit_bottleneck_label">ОГРАНИЧЕНИЕ НА СЛЕДУЮЩУЮ НЕДЕЛЮ</string>
+    <string name="audit_evasions_label">ДИАГНОЗЫ УКЛОНЕНИЯ</string>
+    <string name="audit_evasions_summary">ЗА НЕДЕЛЮ ЗАФИКСИРОВАНО %1$d (ПОДМЕНА %2$d · БРАК %3$d · СРАВНЕНИЕ %4$d)</string>
+    <string name="audit_prior_label">ОГРАНИЧЕНИЕ ПРОШЛОЙ НЕДЕЛИ</string>
+    <string name="audit_prior_question">Выполнено?</string>
     <string name="audit_submit">ЗАФИКСИРОВАТЬ</string>
     <string name="audit_open_history">ОТКРЫТЬ ТРЕКЕР</string>
     <string name="audit_open_pulpit">ОТКРЫТЬ ПУЛЬТ</string>
@@ -102,10 +117,15 @@
     <string name="nav_tab_library">БИБЛИОТЕКА</string>
     <string name="nav_tab_audit">ОЦЕНКА</string>
     <string name="nav_tab_history">ТРЕКЕР</string>
+    <string name="nav_tab_mode">РЕЖИМ</string>
 
     <!-- Library. -->
     <string name="library_header">БИБЛИОТЕКА</string>
     <string name="library_quote_of_day_label">ЦИТАТА ДНЯ</string>
+    <string name="library_history_label">ПРЕДЫДУЩИЕ ЦИТАТЫ ДНЯ</string>
+    <string name="library_principles_label">ПРИНЦИПЫ</string>
+    <string name="library_pin">ЗАКРЕПИТЬ КАК ПРИНЦИП</string>
+    <string name="library_unpin">УБРАТЬ ИЗ ПРИНЦИПОВ</string>
     <string name="library_virtues_label">ПОДБОРКИ ПО ДОБРОДЕТЕЛЯМ</string>
     <string name="library_empty_state">ПО ЭТОЙ ДОБРОДЕТЕЛИ ЦИТАТ НЕТ.</string>
     <string name="library_footer_note">Источник: Айн Рэнд, Леонард Пейкофф. Куратор подборки — оператор.</string>
@@ -125,9 +145,9 @@
 
     <!-- Notification. -->
     <string name="notification_evening_title">ТРЕБУЕТСЯ ЗАКРЫТИЕ СМЕНЫ</string>
-    <string name="notification_evening_body">Зафиксируйте состояние Ядра и добродетели.</string>
+    <string name="notification_evening_body">Зафиксируйте анализ генерации и добродетели.</string>
     <string name="focus_notification_title">КОНЦЕНТРАЦИЯ · %1$s</string>
-    <string name="focus_notification_body">Активная фокус-сессия. Тап — пульт.</string>
+    <string name="focus_notification_body">Активная концентрация. Тап — пульт.</string>
     <string name="focus_notification_placeholder_title">КОНЦЕНТРАЦИЯ</string>
 
     <!-- Quick Settings Tile. -->
@@ -144,7 +164,7 @@
     <string name="permission_open_settings">НАСТРОЙКИ</string>
 
     <!-- Pulpit transient error banner. -->
-    <string name="error_infra_locked">Заблокировано до первого Ядра</string>
+    <string name="error_infra_locked">Ядро отмечается через «Анализ генерации»</string>
     <string name="error_another_focus_active">Сессия уже идёт</string>
     <string name="error_already_approved">Ядро уже зафиксировано</string>
     <string name="error_not_authorised">Чекбокс авторизации не активирован</string>
@@ -162,19 +182,15 @@
     <string name="a11y_state_on">включено</string>
     <string name="a11y_state_off">выключено</string>
     <string name="a11y_status_idle">статус Idle — действий не выполнено</string>
-    <string name="a11y_status_standard">статус Standard — стандартная отметка</string>
-    <string name="a11y_status_mvd">статус MVD — минимально-достаточное действие</string>
+    <string name="a11y_status_standard">статус Стандарт — отметка о полном выполнении</string>
+    <string name="a11y_status_mvd">статус Минимум — минимально-достаточное действие</string>
     <string name="a11y_status_approved">статус Approved — Ядро зафиксировано</string>
     <string name="a11y_status_fail">статус Fail — Ядро провалено</string>
     <string name="a11y_status_locked">заблокировано до утверждения Ядра</string>
     <string name="a11y_pulpit_date">Дата текущей смены. Долгое нажатие — конфиг.</string>
     <string name="a11y_flash_start">Запустить фокус-сессию: %1$s</string>
     <string name="a11y_flash_stop">Завершить активную фокус-сессию</string>
-    <string name="a11y_save_shot">Сохранить шот Ядра — открыть осознанную авторизацию</string>
     <string name="a11y_sabotage">Открыть диагностику уклонения</string>
-    <string name="a11y_mvd_on">MVD-режим активен. Нажмите чтобы выключить.</string>
-    <string name="a11y_mvd_off">MVD-режим выключен. Нажмите чтобы активировать.</string>
-    <string name="a11y_infra_locked">%1$s заблокировано до утверждения Ядра</string>
 
     <!-- Settings (long-press on date strip to reach). -->
     <string name="settings_header">КОНФИГ</string>
@@ -244,7 +260,44 @@
     <string name="settings_chronometer_ignition_hint">Утреннее уведомление с актуальным остатком ресурса.</string>
 
     <!-- Chronometer notification. -->
-    <string name="notification_ignition_title">СУТКИ #%1$d · ОСТАТОК ~%2$d</string>
-    <string name="notification_ignition_body_extracted">ВЧЕРА — РЕАЛИЗОВАНО.</string>
-    <string name="notification_ignition_body_loss">ВЧЕРА — УКЛОНЕНИЕ.</string>
+    <string name="notification_ignition_title">СУТКИ #%1$d</string>
+    <string name="notification_ignition_body_extracted">Вчера: анализ генерации зафиксирован.</string>
+    <string name="notification_ignition_body_loss">Вчера: анализ не зафиксирован.</string>
+
+    <!-- Midday check notification. -->
+    <string name="notification_midday_title">ПОЛДЕНЬ · ЯДРО НЕ ЗАКРЫТО</string>
+    <string name="notification_midday_body">Половина продуктивного окна позади.</string>
+
+    <!-- Status fixation notifications + in-app banner. -->
+    <string name="notification_status_fix_title">%1$s · %2$s</string>
+    <string name="notification_status_fix_body">%1$s ЗАФИКСИРОВАН.</string>
+    <string name="banner_status_fix">%1$s · %2$s · %3$s ЗАФИКСИРОВАН</string>
+
+    <!-- Standards (definitions of what counts as Standard / Minimum per habit). -->
+    <!-- Midday check + Pomodoro settings. -->
+    <string name="settings_midday_label">ПОЛУДЕННАЯ ПРОВЕРКА</string>
+    <string name="settings_midday_toggle">ПРОВЕРКА В ПОЛДЕНЬ</string>
+    <string name="settings_midday_hint">Тихое уведомление, если к указанному часу Ядро ещё не закрыто.</string>
+    <string name="settings_pomodoro_label">ПОМОДОРО</string>
+    <string name="settings_pomodoro_toggle">АВТО-ОСТАНОВКА</string>
+    <string name="settings_pomodoro_hint">Концентрация авто-завершается через выбранное количество минут.</string>
+    <string name="settings_pomodoro_minutes_label">МИНУТ</string>
+
+    <!-- Mode tab: day-mode picker + per-habit standards. -->
+    <string name="mode_header">РЕЖИМ ДНЯ</string>
+    <string name="mode_day_picker_label">СЕГОДНЯШНИЙ РЕЖИМ</string>
+    <string name="mode_day_picker_hint">Выбор фиксируется на сегодня. Хронометр классифицирует сутки по этому полю.</string>
+    <string name="mode_day_picker_locked">Решение зафиксировано. Изменить нельзя.</string>
+    <string name="mode_day_picker_pick_standard">ПОСТАВИТЬ СТАНДАРТ</string>
+    <string name="mode_day_picker_pick_mvd">ПОСТАВИТЬ МИНИМУМ</string>
+    <string name="mode_day_current_standard">РЕЖИМ: СТАНДАРТ</string>
+    <string name="mode_day_current_mvd">РЕЖИМ: МИНИМУМ</string>
+    <string name="mode_day_current_unset">РЕЖИМ НЕ ВЫБРАН</string>
+
+    <string name="mode_standards_label">КРИТЕРИИ</string>
+    <string name="mode_standards_hint">Что считается СТАНДАРТОМ и МИНИМУМОМ для каждой привычки. ГЕНЕРАЦИИ — главное дело: планка выше остальных. Пересматривается на воскресной оценке.</string>
+    <string name="mode_standards_field_standard">СТАНДАРТ</string>
+    <string name="mode_standards_field_mvd">МИНИМУМ</string>
+    <string name="mode_standards_reset">ЗАПОЛНИТЬ ЗНАЧЕНИЯМИ ПО УМОЛЧАНИЮ</string>
+    <string name="mode_standards_core_note">ГЛАВНОЕ ДЕЛО</string>
 </resources>
