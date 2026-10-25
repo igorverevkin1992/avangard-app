@@ -47,7 +47,10 @@ fun IterMeumNavHost(navController: NavHostController, startDestination: String) 
             })
         }
         composable(NavRoute.Today.route) {
-            TodayScreen(onOpenSettings = { navController.navigate(NavRoute.Settings.route) })
+            TodayScreen(
+                onOpenSettings = { navController.navigate(NavRoute.Settings.route) },
+                onMilestone = { navController.navigate(NavRoute.Milestone.of(it)) },
+            )
         }
         composable(NavRoute.Work.route) {
             WorkScreen(

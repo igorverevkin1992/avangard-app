@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.itermeum.app.core.database.entity.NormEntity
+import java.time.LocalDate
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -30,6 +31,9 @@ interface NormDao {
 
     @Query("UPDATE norm SET userTime = :minutes WHERE id = :id")
     suspend fun setUserTime(id: String, minutes: Int?)
+
+    @Query("UPDATE norm SET pausedUntil = :until WHERE id = :id AND isCore = 0")
+    suspend fun pauseUntil(id: String, until: LocalDate?)
 
     @Query("SELECT COUNT(*) FROM norm")
     suspend fun count(): Int

@@ -45,7 +45,7 @@ class MainActivity : ComponentActivity() {
             when (onboardingDone) {
                 null -> IterMeumTheme { Box(Modifier.fillMaxSize()) }
                 false -> IterMeumRoot(deepLinkRoute = null, startDestination = NavRoute.Onboarding.route)
-                true -> IterMeumRoot(deepLinkRoute = target, startDestination = NavRoute.Today.route)
+                true -> IterMeumRoot(deepLinkRoute = target, startDestination = NavRoute.Today.route, accent = root.accent)
             }
         }
     }
@@ -62,8 +62,8 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-private fun IterMeumRoot(deepLinkRoute: String?, startDestination: String) {
-    IterMeumTheme {
+private fun IterMeumRoot(deepLinkRoute: String?, startDestination: String, accent: androidx.compose.ui.graphics.Color = com.itermeum.app.core.designsystem.ImColors.Ordinary) {
+    IterMeumTheme(accent = accent) {
         val navController = rememberNavController()
         val showBottomBar = shouldShowBottomNav(navController)
         Scaffold(

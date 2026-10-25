@@ -48,6 +48,8 @@ class CalendarViewModel @Inject constructor(private val calendar: LiturgicalCale
     fun day(date: LocalDate): LiturgicalDay = calendar.day(date)
 }
 
+fun accent(color: LiturgicalColor): Color = color.accent()
+
 fun LiturgicalColor.accent(): Color = when (this) {
     LiturgicalColor.GREEN -> ImColors.Ordinary; LiturgicalColor.VIOLET -> ImColors.Penitential; LiturgicalColor.ROSE -> ImColors.Rose
     LiturgicalColor.WHITE -> ImColors.Festive; LiturgicalColor.RED -> ImColors.Martyr

@@ -65,6 +65,7 @@ object DayScheduleEngine {
 
     fun isActive(norm: NormEntity, input: Input): Boolean {
         if (!norm.enabled) return false
+        if (norm.pausedUntil != null && !input.date.isAfter(norm.pausedUntil)) return false
         if (norm.requiresBaptism && !input.profile.baptized) return false
         if (!norm.daysOfWeek.includes(input.date.dayOfWeek)) return false
         if (input.sick && norm.id != NormCatalog.EXAMEN) return false

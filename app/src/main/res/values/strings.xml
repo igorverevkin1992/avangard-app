@@ -396,4 +396,10 @@
     <string name="settings_travel_auto">Автоматически по часовому поясу</string>
     <string name="settings_travel_start">Начать вручную</string>
     <string name="settings_travel_end">Завершить</string>
+
+    <!-- Section 6.6 -->
+    <string name="lower_offer">Снизить планку на неделю?</string>
+    <string name="lower_offer_hint">Три срыва за семь дней. Можно поставить на паузу одну-две неядровые нормы на 7 дней. Ядро (подъём, звонки, Examen) остаётся.</string>
+    <string name="lower_keep">Оставить как есть</string>
+    <string name="lower_calm_restart">Семь дней без засчитанного дня. Начни с одной нормы: испытание совести сегодня вечером. Этого достаточно.</string>
 </resources>

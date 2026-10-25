@@ -89,6 +89,8 @@
         <receiver android:name=".sync.alarm.AlarmReceiver" android:exported="false" />
         <receiver android:name=".sync.alarm.MorningEventReceiver" android:exported="false" />
         <receiver android:name=".sync.alarm.AlarmHealthReceiver" android:exported="false" />
+        <receiver android:name=".sync.scheduler.NormReminderReceiver" android:exported="false" />
+        <receiver android:name=".sync.scheduler.DayCloseReceiver" android:exported="false" />
 
         <service
             android:name=".sync.tile.RitualTileService"

@@ -30,6 +30,8 @@ data class NormEntity(
     /** True for norms whose default time shifts with wakeTime (section 4, rule 2). */
     val followsWakeTime: Boolean,
     val orderIndex: Int,
+    /** Section 6.6: a non-core norm paused for a week after three failures. */
+    val pausedUntil: LocalDate? = null,
 )
 
 enum class CompletionQuality { FULL, PARTIAL, LATE }

@@ -76,6 +76,8 @@ class NormRepository @Inject constructor(
     suspend fun setUserTime(id: String, minutes: Int?) = normDao.setUserTime(id, minutes)
 
     suspend fun norm(id: String): NormEntity? = normDao.get(id)
+    suspend fun pauseForWeek(id: String, from: LocalDate) = normDao.pauseUntil(id, from.plusDays(6))
+    suspend fun unpause(id: String) = normDao.pauseUntil(id, null)
 
     companion object {
         val CORE = setOf(NormCatalog.WAKE, NormCatalog.FROG, NormCatalog.EXAMEN)

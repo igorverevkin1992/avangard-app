@@ -7,7 +7,12 @@ import com.itermeum.app.core.content.NormCatalog
 import com.itermeum.app.core.data.MorningRepository
 import com.itermeum.app.core.data.NormRepository
 import com.itermeum.app.core.data.ProfileRepository
+import com.itermeum.app.core.data.StreakRepository
 import com.itermeum.app.core.data.WorkRepository
+import com.itermeum.app.core.database.entity.MilestoneEntity
+import com.itermeum.app.core.database.entity.StreakStateEntity
+import com.itermeum.app.sync.notifications.NotificationBudget
+import com.itermeum.app.sync.scheduler.DayCloseRunner
 import com.itermeum.app.core.database.entity.ScriptSessionEntity
 import com.itermeum.app.core.database.entity.MorningStateEntity
 import com.itermeum.app.core.database.entity.NormEntity
@@ -22,6 +27,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -50,10 +56,43 @@ class TodayViewModel @Inject constructor(
     private val profiles: ProfileRepository,
     private val calendar: LiturgicalCalendar,
     private val work: WorkRepository,
+    private val streaks: StreakRepository,
+    private val dayClose: DayCloseRunner,
+    private val budget: NotificationBudget,
     private val clock: Clock,
 ) : ViewModel() {
 
     private val date: LocalDate = clock.logicalToday()
+
+    val streakStates: StateFlow<List<StreakStateEntity>> = streaks.observeStreaks().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+    val unseenMilestone: StateFlow<MilestoneEntity?> = streaks.observeUnseenMilestone().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+    val calls: StateFlow<Int> = work.observeOutreachCount(date).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
+    val agreements: StateFlow<Int> = work.observeAgreements(date).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
+    val banner = kotlinx.coroutines.flow.MutableStateFlow<String?>(null)
+    val lowerBar = kotlinx.coroutines.flow.MutableStateFlow<LowerBar?>(null)
+
+    /** Section 6.6: 3 failures in 7 days → offer to pause 1–2 non-core norms; 7 days without a counted day → one calm screen. */
+    data class LowerBar(val offerPause: Boolean, val calmRestart: Boolean)
+
+    init {
+        viewModelScope.launch {
+            dayClose.run()
+            banner.value = budget.takeBanner()
+            val fidelity = streaks.observeStreaks().first().firstOrNull { it.type == com.itermeum.app.core.database.entity.StreakType.FIDELITY }
+            val recent = (1..7).map { date.minusDays(it.toLong()) }.filter { it >= (profiles.get().createdAt ?: date) }
+            val failures = recent.count { !com.itermeum.app.core.engine.StreakEngine.fidelityMet(streaks.facts(it)) }
+            val noneCounted = recent.size >= 7 && failures >= 7
+            lowerBar.value = when {
+                noneCounted -> LowerBar(offerPause = false, calmRestart = true)
+                failures >= 3 && fidelity != null -> LowerBar(offerPause = true, calmRestart = false)
+                else -> null
+            }
+        }
+    }
+
+    fun markMilestoneSeen(id: String) = viewModelScope.launch { streaks.markMilestoneSeen(id) }
+    fun pauseNorm(id: String) = viewModelScope.launch { norms.pauseForWeek(id, date); lowerBar.value = null }
+    fun dismissLowerBar() { lowerBar.value = null }
 
     val activeScript: StateFlow<ScriptSessionEntity?> = work.observeActiveScript().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
     val scriptSessionsToday: StateFlow<Int> = work.observeScriptCount(date).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)

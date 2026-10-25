@@ -43,8 +43,15 @@ import java.util.Locale
 import kotlinx.coroutines.delay
 
 @Composable
-fun TodayScreen(onOpenSettings: () -> Unit, viewModel: TodayViewModel = hiltViewModel()) {
+fun TodayScreen(onOpenSettings: () -> Unit, onMilestone: (String) -> Unit = {}, viewModel: TodayViewModel = hiltViewModel()) {
     val ui by viewModel.ui.collectAsState()
+    val streaks by viewModel.streakStates.collectAsState()
+    val unseen by viewModel.unseenMilestone.collectAsState()
+    val calls by viewModel.calls.collectAsState()
+    val agreements by viewModel.agreements.collectAsState()
+    val banner by viewModel.banner.collectAsState()
+    val lowerBar by viewModel.lowerBar.collectAsState()
+    LaunchedEffect(unseen) { unseen?.let { m -> viewModel.markMilestoneSeen(m.id); onMilestone(m.id) } }
     val context = LocalContext.current
     val hyperOsOk = remember { HyperOsChecks.coreHealthy(context) }
     Column(
@@ -63,6 +70,22 @@ fun TodayScreen(onOpenSettings: () -> Unit, viewModel: TodayViewModel = hiltView
                 Text(stringResource(R.string.hyperos_reset_banner), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
             }
         }
+        banner?.let { ImPanel { Text(it, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.primary) } }
+        val accent = ui.liturgical?.color?.let { com.itermeum.app.feature.prayer.accent(it) } ?: MaterialTheme.colorScheme.primary
+        DayRing(
+            total = ui.items.size,
+            done = ui.items.map { it.normId in ui.done },
+            accent = accent,
+            calls = calls, agreements = agreements,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            com.itermeum.app.core.database.entity.StreakType.entries.forEach { t ->
+                val s = streaks.firstOrNull { it.type == t }
+                StreakStrip(when (t) { com.itermeum.app.core.database.entity.StreakType.FIDELITY -> "Верность"; com.itermeum.app.core.database.entity.StreakType.WAKE -> "Подъём"; com.itermeum.app.core.database.entity.StreakType.FROG -> "Лягушка" }, s?.current ?: 0, s?.best ?: 0, accent)
+            }
+        }
+        lowerBar?.let { bar -> LowerBarCard(bar, ui, viewModel) }
         MorningCard(ui, viewModel)
         ScriptCard(viewModel)
         ui.next?.let { next ->
@@ -82,6 +105,24 @@ fun TodayScreen(onOpenSettings: () -> Unit, viewModel: TodayViewModel = hiltView
             TextButton(onClick = { viewModel.setSick(!ui.sick) }) {
                 Text(if (ui.sick) stringResource(R.string.today_sick_off) else stringResource(R.string.today_sick))
             }
+        }
+    }
+}
+
+/** Section 6.6: failure handling without shame. */
+@Composable
+private fun LowerBarCard(bar: TodayViewModel.LowerBar, ui: TodayUi, viewModel: TodayViewModel) {
+    ImPanel {
+        if (bar.calmRestart) {
+            Text(stringResource(R.string.lower_calm_restart), style = MaterialTheme.typography.bodyLarge)
+            ImSecondaryButton(stringResource(R.string.done), onClick = viewModel::dismissLowerBar)
+        } else {
+            Text(stringResource(R.string.lower_offer), style = MaterialTheme.typography.bodyLarge)
+            Text(stringResource(R.string.lower_offer_hint), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            ui.items.filter { !it.isCore && it.normId in setOf("gym", "reading", "srs", "rosary", "mental_prayer") }.forEach { item ->
+                ImSecondaryButton((ui.norms[item.normId]?.title ?: item.normId) + " — пауза 7 дней", onClick = { viewModel.pauseNorm(item.normId) })
+            }
+            TextButton(onClick = viewModel::dismissLowerBar) { Text(stringResource(R.string.lower_keep)) }
         }
     }
 }
