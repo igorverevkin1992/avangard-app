@@ -67,6 +67,13 @@ android {
     // Robolectric reads merged res + assets (strings, assets/*.json) in unit tests.
     testOptions {
         unitTests.isIncludeAndroidResources = true
+        unitTests.all {
+            it.testLogging {
+                events("failed")
+                exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+                showStackTraces = false
+            }
+        }
     }
 }
 

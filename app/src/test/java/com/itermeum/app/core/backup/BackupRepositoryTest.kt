@@ -13,7 +13,6 @@ import com.itermeum.app.core.database.entity.NormCompletionEntity
 import com.itermeum.app.core.database.entity.OutreachKind
 import com.itermeum.app.core.database.entity.OutreachLogEntity
 import com.itermeum.app.core.database.entity.OutreachOutcome
-import com.itermeum.app.core.database.entity.ProfileEntity
 import com.itermeum.app.core.database.entity.StreakStateEntity
 import com.itermeum.app.core.database.entity.StreakType
 import java.time.LocalDate
@@ -50,7 +49,7 @@ class BackupRepositoryTest {
         seeder.seedIfNeeded()
         repo = BackupRepository(db, cipher, seeder, clock)
         val d = LocalDate.of(2026, 11, 5)
-        db.profileDao().upsert(ProfileEntity(name = "Игорь", wakeTime = LocalTime.of(6, 45), baptized = false, onboardingDone = true, createdAt = d))
+        db.profileDao().upsert(db.profileDao().get()!!.copy(name = "Игорь", wakeTime = LocalTime.of(6, 45), baptized = false, onboardingDone = true, createdAt = d))
         db.completionDao().upsert(NormCompletionEntity(normId = "wake", logicalDate = d, completedAt = 1L))
         db.outreachDao().insert(OutreachLogEntity(logicalDate = d, at = 2L, personLabel = "Ирина", role = "героиня", kind = OutreachKind.CALL, outcome = OutreachOutcome.AGREEMENT, beforeCutoff = true))
         db.examenDao().upsert(ExamenEntity(logicalDate = d, propositoEnc = cipher.encrypt("Завтра до 13:00 позвоню трём героям"), completedAt = 3L, aveCount = 3))

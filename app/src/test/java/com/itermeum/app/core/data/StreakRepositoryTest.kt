@@ -87,7 +87,7 @@ class StreakRepositoryTest {
         assertEquals(0, st.current)
         assertEquals(3, st.best)
         assertEquals(3, st.totalDays)
-        assertEquals(2, db.streakDao().freezesUsed("2026-11"))
+        assertEquals(2, db.streakDao().freezesUsed("2026-11", StreakType.FIDELITY))
     }
 
     @Test
@@ -97,7 +97,7 @@ class StreakRepositoryTest {
         repo.closeDaysUpTo(start.plusDays(1))
         val st = db.streakDao().get(StreakType.FIDELITY)!!
         assertEquals(1, st.current)
-        assertEquals(0, db.streakDao().freezesUsed("2026-11"))
+        assertEquals(0, db.streakDao().freezesUsed("2026-11", StreakType.FIDELITY))
         assertEquals(start.plusDays(1), st.lastCountedDate)
     }
 
@@ -118,8 +118,8 @@ class StreakRepositoryTest {
         // Nov 28, 29 missed → two November freezes; Dec 1 missed → December freeze, streak intact.
         goodDay(LocalDate.of(2026, 11, 30))
         val results = repo.closeDaysUpTo(LocalDate.of(2026, 12, 1))
-        assertEquals(2, db.streakDao().freezesUsed("2026-11"))
-        assertEquals(1, db.streakDao().freezesUsed("2026-12"))
+        assertEquals(2, db.streakDao().freezesUsed("2026-11", StreakType.FIDELITY))
+        assertEquals(1, db.streakDao().freezesUsed("2026-12", StreakType.FIDELITY))
         assertTrue(results.last().outcomes[StreakType.FIDELITY] is StreakEngine.Outcome.Frozen)
         assertTrue(db.streakDao().get(StreakType.FIDELITY)!!.current > 0)
     }

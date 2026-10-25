@@ -51,7 +51,8 @@ class StreakRepository @Inject constructor(
     fun observeUnseenMilestone(): Flow<MilestoneEntity?> = streakDao.observeUnseen()
     fun observeFreezes(yearMonth: String): Flow<List<FreezeLedgerEntity>> = streakDao.observeFreezes(yearMonth)
 
-    suspend fun freezesLeft(yearMonth: String): Int = (StreakEngine.FREEZES_PER_MONTH - streakDao.freezesUsed(yearMonth)).coerceAtLeast(0)
+    /** Section 6.4: two «Милосердие» freezes a month, counted per streak (D-20). */
+    suspend fun freezesLeft(yearMonth: String, type: StreakType): Int = (StreakEngine.FREEZES_PER_MONTH - streakDao.freezesUsed(yearMonth, type)).coerceAtLeast(0)
 
     /** Facts for one logical day, from what the day recorded. */
     suspend fun facts(date: LocalDate): StreakEngine.DayFacts {
@@ -99,7 +100,7 @@ class StreakRepository @Inject constructor(
             val state = streakDao.get(type) ?: StreakStateEntity(type = type)
             if (state.lastCountedDate != null && !state.lastCountedDate.isBefore(date)) continue
             val verdict = StreakEngine.verdict(type, facts)
-            val left = freezesLeft(yearMonth)
+            val left = freezesLeft(yearMonth, type)
             val outcome = StreakEngine.apply(StreakEngine.State(state.current, state.best, state.totalDays), verdict, left)
             if (outcome is StreakEngine.Outcome.Frozen) streakDao.insertFreeze(FreezeLedgerEntity(yearMonth = yearMonth, usedOn = date, streakType = type))
             streakDao.upsert(state.copy(current = outcome.state.current, best = outcome.state.best, totalDays = outcome.state.totalDays, lastCountedDate = date))

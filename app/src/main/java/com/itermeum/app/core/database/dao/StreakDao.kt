@@ -27,8 +27,11 @@ interface StreakDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertIgnore(states: List<StreakStateEntity>)
 
+    @Query("SELECT COUNT(*) FROM freeze_ledger WHERE yearMonth = :yearMonth AND streakType = :type")
+    suspend fun freezesUsed(yearMonth: String, type: StreakType): Int
+
     @Query("SELECT COUNT(*) FROM freeze_ledger WHERE yearMonth = :yearMonth")
-    suspend fun freezesUsed(yearMonth: String): Int
+    suspend fun freezesUsedTotal(yearMonth: String): Int
 
     @Query("SELECT * FROM freeze_ledger WHERE yearMonth = :yearMonth")
     fun observeFreezes(yearMonth: String): Flow<List<FreezeLedgerEntity>>
