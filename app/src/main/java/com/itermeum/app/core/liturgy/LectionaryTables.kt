@@ -10,7 +10,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
 /**
- * Raw access to `assets/lectionary/*.json` (section 11.2). The calendar
+ * Raw access to `assets/lectionary/…json` (section 11.2). The calendar
  * engine (phase 3) decides which key applies to a date; this class only
  * resolves keys to gospel references.
  */

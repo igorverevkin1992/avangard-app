@@ -45,7 +45,7 @@ class ContentSeederTest {
         assertEquals(14, db.srsDao().count())
         assertTrue(db.readingDao().planCount() >= 9)
         assertEquals(3, db.streakDao().all().size)
-        assertEquals(16, db.streakDao().observeMilestones().let { 16 })
+        assertEquals(16, db.streakDao().milestoneCount())
         assertEquals(assets.prayers.contentPackVersion, db.profileDao().get()!!.contentPackVersion)
     }
 

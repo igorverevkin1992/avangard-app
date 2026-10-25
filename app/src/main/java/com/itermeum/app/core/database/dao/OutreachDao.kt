@@ -15,8 +15,11 @@ interface OutreachDao {
     @Query("SELECT * FROM outreach_log WHERE logicalDate = :date ORDER BY at")
     fun observeForDate(date: LocalDate): Flow<List<OutreachLogEntity>>
 
-    @Query("SELECT COUNT(*) FROM outreach_log WHERE logicalDate = :date AND (:beforeCutoff = 0 OR beforeCutoff = 1)")
-    suspend fun countFor(date: LocalDate, beforeCutoff: Boolean): Int
+    @Query("SELECT COUNT(*) FROM outreach_log WHERE logicalDate = :date")
+    suspend fun countFor(date: LocalDate): Int
+
+    @Query("SELECT COUNT(*) FROM outreach_log WHERE logicalDate = :date AND beforeCutoff = 1")
+    suspend fun countBeforeCutoff(date: LocalDate): Int
 
     @Query("SELECT COUNT(*) FROM outreach_log WHERE logicalDate = :date")
     fun observeCount(date: LocalDate): Flow<Int>

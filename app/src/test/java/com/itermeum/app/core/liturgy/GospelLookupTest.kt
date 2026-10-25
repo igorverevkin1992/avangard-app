@@ -22,7 +22,7 @@ class GospelLookupTest {
     private val tables = LectionaryTables(ApplicationProvider.getApplicationContext(), json)
 
     private val fixtures = listOf(
-        "Mt 24:37-44" to "Но как было во дни Ноя",
+        "Mt 24:37-44" to "но, как было во дни Ноя",
         "Mk 13:33-37" to "Смотрите, бодрствуйте, молитесь",
         "Lk 21:25-28,34-36" to "И будут знамения",
         "Jn 1:1-18" to "В начале было Слово",

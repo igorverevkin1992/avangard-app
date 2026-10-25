@@ -44,7 +44,7 @@ data class AsceticJson(val id: String, val book: String, val number: String, val
 @Serializable data class GlossaryFile(val items: List<List<String>>)
 @Serializable data class NotificationsFile(val items: Map<String, Map<String, String>>)
 
-/** Typed access to `assets/content/*.json` (section 7). Each file is parsed once. */
+/** Typed access to `assets/content/…json` (section 7). Each file is parsed once. */
 @Singleton
 class ContentAssets @Inject constructor(
     @ApplicationContext private val context: Context,

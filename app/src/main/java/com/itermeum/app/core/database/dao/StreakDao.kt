@@ -39,6 +39,9 @@ interface StreakDao {
     @Query("SELECT * FROM milestone")
     fun observeMilestones(): Flow<List<MilestoneEntity>>
 
+    @Query("SELECT COUNT(*) FROM milestone")
+    suspend fun milestoneCount(): Int
+
     @Query("SELECT * FROM milestone WHERE id = :id")
     suspend fun milestone(id: String): MilestoneEntity?
 
