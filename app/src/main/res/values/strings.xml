@@ -384,7 +384,7 @@
     <string name="chronicle_ahead">Впереди</string>
     <string name="baptized_since">Крещён %1$s</string>
     <string name="settings_baptized">Я крещён</string>
-    <string name="settings_baptized_hint">Введи дату крещения и слово КРЕЩЁН. После этого «Духовное причастие» становится «Причастие на Мессе (или духовное)», появляется ежемесячная норма исповеди.</string>
+    <string name="settings_baptized_hint">Введи дату крещения и слово КРЕЩЁН. Автоматически ничего не переключается. После нажатия норма Мессы меняется на полную, с таинствами, и появляется ежемесячная норма исповеди.</string>
     <string name="settings_baptism_date">Дата (ГГГГ-ММ-ДД)</string>
     <string name="settings_baptism_word">Слово подтверждения</string>
     <string name="settings_confession_every">Исповедь раз в N дней</string>
