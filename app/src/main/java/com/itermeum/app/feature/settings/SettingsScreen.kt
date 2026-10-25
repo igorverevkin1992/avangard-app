@@ -92,6 +92,43 @@ fun SettingsScreen(onBack: () -> Unit, onOpenAbout: () -> Unit, viewModel: Setti
         }
         ImTimeField(stringResource(R.string.settings_mass_time), p.massTime ?: java.time.LocalTime.of(19, 0), { t -> viewModel.update { it.copy(massTime = t) } }, Modifier.fillMaxWidth())
 
+        ImSectionLabel(stringResource(R.string.settings_tone))
+        Row(horizontalArrangement = Arrangement.spacedBy(ImSpacing.grid)) {
+            listOf("CALM" to R.string.tone_calm, "FIRM" to R.string.tone_firm, "STERN" to R.string.tone_stern).forEach { (code, res) ->
+                ImSecondaryButton(stringResource(res), { viewModel.update { it.copy(notificationTone = code) } }, Modifier.weight(1f), enabled = p.notificationTone != code)
+            }
+        }
+
+        ImSectionLabel(stringResource(R.string.settings_travel))
+        val travel by viewModel.travel.collectAsState()
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+            Text(stringResource(R.string.settings_travel_auto), style = MaterialTheme.typography.bodyLarge)
+            androidx.compose.material3.Switch(checked = p.travelAuto, onCheckedChange = { v -> viewModel.update { it.copy(travelAuto = v) } })
+        }
+        if (travel == null) ImSecondaryButton(stringResource(R.string.settings_travel_start), viewModel::startTravel)
+        else ImSecondaryButton(stringResource(R.string.settings_travel_end) + " (с ${travel!!.startDate})", viewModel::endTravel)
+
+        ImSectionLabel(stringResource(R.string.settings_baptized))
+        if (p.baptized) {
+            Text(stringResource(R.string.baptized_since, p.baptismDate?.toString() ?: ""), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.primary)
+            OutlinedTextField(
+                value = p.confessionEveryDays.toString(),
+                onValueChange = { v -> v.toIntOrNull()?.coerceIn(7, 90)?.let { n -> viewModel.update { it.copy(confessionEveryDays = n) } } },
+                label = { Text(stringResource(R.string.settings_confession_every)) }, singleLine = true, modifier = Modifier.fillMaxWidth(),
+            )
+        } else {
+            var bDate by remember { mutableStateOf("") }
+            var bWord by remember { mutableStateOf("") }
+            var bError by remember { mutableStateOf(false) }
+            Text(stringResource(R.string.settings_baptized_hint), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            OutlinedTextField(value = bDate, onValueChange = { bDate = it }, label = { Text(stringResource(R.string.settings_baptism_date)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(value = bWord, onValueChange = { bWord = it; bError = false }, label = { Text(stringResource(R.string.settings_baptism_word)) }, singleLine = true, isError = bError, modifier = Modifier.fillMaxWidth())
+            ImSecondaryButton(stringResource(R.string.settings_baptized), onClick = {
+                val d = runCatching { java.time.LocalDate.parse(bDate) }.getOrNull()
+                if (d == null || !viewModel.markBaptized(d, bWord)) bError = true
+            })
+        }
+
         ImSectionLabel(stringResource(R.string.settings_hyperos))
         HyperOsChecklist()
 

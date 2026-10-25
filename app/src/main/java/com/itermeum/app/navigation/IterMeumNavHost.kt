@@ -6,7 +6,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.itermeum.app.feature.about.AboutScreen
 import com.itermeum.app.feature.onboarding.OnboardingScreen
+import com.itermeum.app.feature.path.CatechesisScreen
+import com.itermeum.app.feature.path.ChronicleScreen
+import com.itermeum.app.feature.path.MilestoneScreen
+import com.itermeum.app.feature.path.MonthSummaryScreen
 import com.itermeum.app.feature.path.PathScreen
+import com.itermeum.app.feature.path.QuarterScreen
+import com.itermeum.app.feature.path.WeeklyReviewScreen
 import com.itermeum.app.feature.examen.ExamenScreen
 import com.itermeum.app.feature.prayer.AngelusScreen
 import com.itermeum.app.feature.prayer.CalendarScreen
@@ -93,7 +99,23 @@ fun IterMeumNavHost(navController: NavHostController, startDestination: String) 
         composable(NavRoute.PrayerAngelus.route) { AngelusScreen(onBack = { navController.popBackStack() }) }
         composable(NavRoute.PrayerMass.route) { MassScreen(onBack = { navController.popBackStack() }) }
         composable(NavRoute.Examen.route) { ExamenScreen(onBack = { navController.popBackStack() }) }
-        composable(NavRoute.Path.route) { PathScreen() }
+        composable(NavRoute.Path.route) {
+            PathScreen(
+                onCatechesis = { navController.navigate(NavRoute.PathCatechesis.of(it)) },
+                onReview = { navController.navigate(NavRoute.PathReview.route) },
+                onMonth = { navController.navigate(NavRoute.PathMonth.route) },
+                onQuarter = { navController.navigate(NavRoute.PathQuarter.route) },
+                onChronicle = { navController.navigate(NavRoute.PathChronicle.route) },
+            )
+        }
+        composable(NavRoute.PathCatechesis.route, arguments = listOf(navArgument("noteId") { nullable = true; defaultValue = null })) { entry ->
+            CatechesisScreen(noteId = entry.arguments?.getString("noteId")?.toLongOrNull(), onBack = { navController.popBackStack() })
+        }
+        composable(NavRoute.PathReview.route) { WeeklyReviewScreen(onBack = { navController.popBackStack() }) }
+        composable(NavRoute.PathMonth.route) { MonthSummaryScreen(onBack = { navController.popBackStack() }) }
+        composable(NavRoute.PathQuarter.route) { QuarterScreen(onBack = { navController.popBackStack() }) }
+        composable(NavRoute.PathChronicle.route) { ChronicleScreen(onBack = { navController.popBackStack() }) }
+        composable(NavRoute.Milestone.route) { entry -> MilestoneScreen(id = entry.arguments?.getString("id") ?: "", onDone = { navController.popBackStack() }) }
         composable(NavRoute.Settings.route) {
             SettingsScreen(
                 onBack = { navController.popBackStack() },

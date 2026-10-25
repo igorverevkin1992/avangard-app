@@ -32,6 +32,12 @@ sealed class NavRoute(val route: String) {
     data object PrayerAngelus : NavRoute("prayer/angelus")
     data object PrayerMass : NavRoute("prayer/mass")
     data object Examen : NavRoute("examen")
+    data object PathCatechesis : NavRoute("path/catechesis?noteId={noteId}") { fun of(id: Long?) = "path/catechesis" + (id?.let { "?noteId=$it" } ?: "") }
+    data object PathReview : NavRoute("path/review")
+    data object PathMonth : NavRoute("path/month")
+    data object PathQuarter : NavRoute("path/quarter")
+    data object PathChronicle : NavRoute("path/chronicle")
+    data object Milestone : NavRoute("milestone/{id}") { fun of(id: String) = "milestone/$id" }
 
     companion object {
         val tabs: List<NavRoute> = listOf(Today, Work, Prayer, Path)
@@ -53,7 +59,8 @@ sealed class NavRoute(val route: String) {
                 "mental" -> PrayerMental.route
                 "reading", "gospel" -> PrayerGospel.route
                 "srs" -> PrayerSrs.route
-                "path", "catechesis" -> Path.route
+                "path" -> Path.route
+                "catechesis" -> PathCatechesis.of(null)
                 else -> null
             }
         }
