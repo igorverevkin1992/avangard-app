@@ -34,6 +34,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
+      - name: Cache Robolectric android-all jars
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository/org/robolectric
+          key: ${{ runner.os }}-robolectric-${{ hashFiles('**/libs.versions.toml', '**/robolectric.properties') }}
+
       - name: Run unit tests
         run: ./gradlew :app:testDebugUnitTest --stacktrace
 
