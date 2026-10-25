@@ -21,6 +21,17 @@ sealed class NavRoute(val route: String) {
     data object WorkProject : NavRoute("work/project/{id}") { fun of(id: Long) = "work/project/$id" }
     data object WorkStudio : NavRoute("work/studio")
     data object Ritual : NavRoute("ritual")
+    data object PrayerBook : NavRoute("prayer/book")
+    data object PrayerItem : NavRoute("prayer/item/{id}") { fun of(id: String) = "prayer/item/$id" }
+    data object PrayerRosary : NavRoute("prayer/rosary")
+    data object PrayerJaculatory : NavRoute("prayer/jaculatory?situation={situation}") { fun of(s: String?) = "prayer/jaculatory" + (s?.let { "?situation=$it" } ?: "") }
+    data object PrayerGospel : NavRoute("prayer/gospel")
+    data object PrayerSrs : NavRoute("prayer/srs")
+    data object PrayerCalendar : NavRoute("prayer/calendar?ym={ym}")
+    data object PrayerMental : NavRoute("prayer/mental")
+    data object PrayerAngelus : NavRoute("prayer/angelus")
+    data object PrayerMass : NavRoute("prayer/mass")
+    data object Examen : NavRoute("examen")
 
     companion object {
         val tabs: List<NavRoute> = listOf(Today, Work, Prayer, Path)
@@ -35,7 +46,13 @@ sealed class NavRoute(val route: String) {
                 "outreach" -> WorkOutreach.route
                 "laststone" -> WorkLastStone.route
                 "ritual" -> Ritual.route
-                "prayer", "angelus", "rosary", "examen" -> Prayer.route
+                "prayer" -> Prayer.route
+                "angelus" -> PrayerAngelus.route
+                "rosary" -> PrayerRosary.route
+                "examen" -> Examen.route
+                "mental" -> PrayerMental.route
+                "reading", "gospel" -> PrayerGospel.route
+                "srs" -> PrayerSrs.route
                 "path", "catechesis" -> Path.route
                 else -> null
             }

@@ -77,6 +77,15 @@
             android:exported="false"
             android:foregroundServiceType="mediaPlayback" />
 
+        <service
+            android:name=".sync.service.SessionTimerService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="user-started prayer or reading timer with a visible chronometer" />
+        </service>
+
         <receiver android:name=".sync.alarm.AlarmReceiver" android:exported="false" />
         <receiver android:name=".sync.alarm.MorningEventReceiver" android:exported="false" />
         <receiver android:name=".sync.alarm.AlarmHealthReceiver" android:exported="false" />

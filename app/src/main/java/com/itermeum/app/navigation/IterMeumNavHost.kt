@@ -7,7 +7,18 @@ import androidx.navigation.compose.composable
 import com.itermeum.app.feature.about.AboutScreen
 import com.itermeum.app.feature.onboarding.OnboardingScreen
 import com.itermeum.app.feature.path.PathScreen
+import com.itermeum.app.feature.examen.ExamenScreen
+import com.itermeum.app.feature.prayer.AngelusScreen
+import com.itermeum.app.feature.prayer.CalendarScreen
+import com.itermeum.app.feature.prayer.GospelScreen
+import com.itermeum.app.feature.prayer.JaculatoriaScreen
+import com.itermeum.app.feature.prayer.MassScreen
+import com.itermeum.app.feature.prayer.MentalPrayerScreen
+import com.itermeum.app.feature.prayer.PrayerBookScreen
+import com.itermeum.app.feature.prayer.PrayerItemScreen
 import com.itermeum.app.feature.prayer.PrayerScreen
+import com.itermeum.app.feature.prayer.RosaryScreen
+import com.itermeum.app.feature.prayer.SrsScreen
 import com.itermeum.app.feature.settings.SettingsScreen
 import com.itermeum.app.feature.today.TodayScreen
 import androidx.navigation.NavType
@@ -53,7 +64,35 @@ fun IterMeumNavHost(navController: NavHostController, startDestination: String) 
         }
         composable(NavRoute.WorkStudio.route) { StudioScreen(onBack = { navController.popBackStack() }) }
         composable(NavRoute.Ritual.route) { TransitionRitualScreen(onDone = { navController.popBackStack() }) }
-        composable(NavRoute.Prayer.route) { PrayerScreen() }
+        composable(NavRoute.Prayer.route) {
+            PrayerScreen(
+                onBook = { navController.navigate(NavRoute.PrayerBook.route) },
+                onRosary = { navController.navigate(NavRoute.PrayerRosary.route) },
+                onJaculatory = { navController.navigate(NavRoute.PrayerJaculatory.of(null)) },
+                onGospel = { navController.navigate(NavRoute.PrayerGospel.route) },
+                onSrs = { navController.navigate(NavRoute.PrayerSrs.route) },
+                onCalendar = { navController.navigate("prayer/calendar") },
+                onMental = { navController.navigate(NavRoute.PrayerMental.route) },
+                onExamen = { navController.navigate(NavRoute.Examen.route) },
+                onAngelus = { navController.navigate(NavRoute.PrayerAngelus.route) },
+                onMass = { navController.navigate(NavRoute.PrayerMass.route) },
+            )
+        }
+        composable(NavRoute.PrayerBook.route) { PrayerBookScreen(onBack = { navController.popBackStack() }, onOpen = { navController.navigate(NavRoute.PrayerItem.of(it)) }) }
+        composable(NavRoute.PrayerItem.route) { entry -> PrayerItemScreen(id = entry.arguments?.getString("id") ?: "", onBack = { navController.popBackStack() }) }
+        composable(NavRoute.PrayerRosary.route) { RosaryScreen(onBack = { navController.popBackStack() }) }
+        composable(NavRoute.PrayerJaculatory.route, arguments = listOf(navArgument("situation") { nullable = true; defaultValue = null })) { entry ->
+            JaculatoriaScreen(initialSituation = entry.arguments?.getString("situation"), onBack = { navController.popBackStack() })
+        }
+        composable(NavRoute.PrayerGospel.route) { GospelScreen(onBack = { navController.popBackStack() }) }
+        composable(NavRoute.PrayerSrs.route) { SrsScreen(onBack = { navController.popBackStack() }) }
+        composable(NavRoute.PrayerCalendar.route, arguments = listOf(navArgument("ym") { nullable = true; defaultValue = null })) { entry ->
+            CalendarScreen(yearMonth = entry.arguments?.getString("ym"), onBack = { navController.popBackStack() })
+        }
+        composable(NavRoute.PrayerMental.route) { MentalPrayerScreen(onBack = { navController.popBackStack() }, gospelTitle = null) }
+        composable(NavRoute.PrayerAngelus.route) { AngelusScreen(onBack = { navController.popBackStack() }) }
+        composable(NavRoute.PrayerMass.route) { MassScreen(onBack = { navController.popBackStack() }) }
+        composable(NavRoute.Examen.route) { ExamenScreen(onBack = { navController.popBackStack() }) }
         composable(NavRoute.Path.route) { PathScreen() }
         composable(NavRoute.Settings.route) {
             SettingsScreen(
