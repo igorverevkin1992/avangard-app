@@ -14,6 +14,13 @@ sealed class NavRoute(val route: String) {
     data object Settings : NavRoute("settings")
     data object About : NavRoute("about")
     data object Onboarding : NavRoute("onboarding")
+    data object WorkPlan : NavRoute("work/plan")
+    data object WorkOutreach : NavRoute("work/outreach")
+    data object WorkLastStone : NavRoute("work/laststone")
+    data object WorkProjects : NavRoute("work/projects")
+    data object WorkProject : NavRoute("work/project/{id}") { fun of(id: Long) = "work/project/$id" }
+    data object WorkStudio : NavRoute("work/studio")
+    data object Ritual : NavRoute("ritual")
 
     companion object {
         val tabs: List<NavRoute> = listOf(Today, Work, Prayer, Path)
@@ -24,7 +31,10 @@ sealed class NavRoute(val route: String) {
             return when (uri.host) {
                 "today" -> Today.route
                 "settings" -> Settings.route
-                "work", "outreach", "laststone" -> Work.route
+                "work" -> Work.route
+                "outreach" -> WorkOutreach.route
+                "laststone" -> WorkLastStone.route
+                "ritual" -> Ritual.route
                 "prayer", "angelus", "rosary", "examen" -> Prayer.route
                 "path", "catechesis" -> Path.route
                 else -> null

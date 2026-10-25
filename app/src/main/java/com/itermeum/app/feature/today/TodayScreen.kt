@@ -64,6 +64,7 @@ fun TodayScreen(onOpenSettings: () -> Unit, viewModel: TodayViewModel = hiltView
             }
         }
         MorningCard(ui, viewModel)
+        ScriptCard(viewModel)
         ui.next?.let { next ->
             ImSectionLabel(stringResource(R.string.today_next_norm))
             ImPanel {
@@ -81,6 +82,26 @@ fun TodayScreen(onOpenSettings: () -> Unit, viewModel: TodayViewModel = hiltView
             TextButton(onClick = { viewModel.setSick(!ui.sick) }) {
                 Text(if (ui.sick) stringResource(R.string.today_sick_off) else stringResource(R.string.today_sick))
             }
+        }
+    }
+}
+
+/** Section 5.5: «Поработал над сценарием» — before 12:00, not a norm, no streak effect. */
+@Composable
+private fun ScriptCard(viewModel: TodayViewModel) {
+    val active by viewModel.activeScript.collectAsState()
+    val count by viewModel.scriptSessionsToday.collectAsState()
+    if (!viewModel.beforeWork && active == null) return
+    var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(active) { while (active != null) { delay(1_000); now = System.currentTimeMillis() } }
+    ImPanel {
+        val a = active
+        if (a == null) {
+            ImSecondaryButton(stringResource(R.string.script_button) + if (count > 0) " ($count)" else "", onClick = viewModel::startScript)
+        } else {
+            val el = now - a.startedAt
+            Text(stringResource(R.string.script_running, "%02d:%02d".format(el / 60_000, (el / 1000) % 60)), style = MaterialTheme.typography.titleLarge)
+            ImSecondaryButton(stringResource(R.string.script_stop), onClick = viewModel::stopScript)
         }
     }
 }

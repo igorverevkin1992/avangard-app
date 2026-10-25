@@ -2,6 +2,7 @@ package com.itermeum.app.feature.onboarding
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -114,7 +115,9 @@ private fun StepQr(ui: OnboardingUi, vm: OnboardingViewModel) {
     Text(stringResource(R.string.onboarding_qr_title), style = MaterialTheme.typography.headlineMedium)
     Text(stringResource(R.string.onboarding_qr_hint), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     val bitmap = remember(ui.qrUuid) { vm.qrBitmap() }
-    Image(bitmap.asImageBitmap(), contentDescription = stringResource(R.string.onboarding_qr_title), modifier = Modifier.size(240.dp).align(Alignment.CenterHorizontally))
+    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        Image(bitmap.asImageBitmap(), contentDescription = stringResource(R.string.onboarding_qr_title), modifier = Modifier.size(240.dp))
+    }
     ImSecondaryButton(if (ui.qrSaved) stringResource(R.string.onboarding_qr_saved) else stringResource(R.string.onboarding_qr_save), onClick = { vm.saveQr() })
     if (!scanning) {
         ImSecondaryButton(if (ui.qrTestPassed) stringResource(R.string.onboarding_qr_test_ok) else stringResource(R.string.onboarding_qr_test), onClick = { scanning = true })

@@ -3,6 +3,7 @@ package com.itermeum.app.feature.settings
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -61,7 +62,7 @@ fun SettingsScreen(onBack: () -> Unit, onOpenAbout: () -> Unit, viewModel: Setti
         }
         ImSecondaryButton(stringResource(R.string.settings_show_qr), { showQr = !showQr })
         if (showQr) {
-            viewModel.qrBitmap()?.let { Image(it.asImageBitmap(), contentDescription = null, modifier = Modifier.size(240.dp).align(Alignment.CenterHorizontally)) }
+            viewModel.qrBitmap()?.let { Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { Image(it.asImageBitmap(), contentDescription = null, modifier = Modifier.size(240.dp)) } }
         }
 
         ImSectionLabel(stringResource(R.string.settings_alarm_sound))

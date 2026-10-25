@@ -28,7 +28,7 @@ private val tabs = listOf(
 fun shouldShowBottomNav(navController: NavHostController): Boolean {
     val entry by navController.currentBackStackEntryAsState()
     val route = entry?.destination?.route ?: return true
-    return tabs.any { it.route.route == route }
+    return tabs.any { it.route.route == route } || route.startsWith("work/") || route.startsWith("prayer/") || route.startsWith("path/")
 }
 
 @Composable

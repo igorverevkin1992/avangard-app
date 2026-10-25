@@ -7,6 +7,8 @@ import com.itermeum.app.core.content.NormCatalog
 import com.itermeum.app.core.data.MorningRepository
 import com.itermeum.app.core.data.NormRepository
 import com.itermeum.app.core.data.ProfileRepository
+import com.itermeum.app.core.data.WorkRepository
+import com.itermeum.app.core.database.entity.ScriptSessionEntity
 import com.itermeum.app.core.database.entity.MorningStateEntity
 import com.itermeum.app.core.database.entity.NormEntity
 import com.itermeum.app.core.database.entity.ProfileEntity
@@ -47,10 +49,18 @@ class TodayViewModel @Inject constructor(
     private val morning: MorningRepository,
     private val profiles: ProfileRepository,
     private val calendar: LiturgicalCalendar,
+    private val work: WorkRepository,
     private val clock: Clock,
 ) : ViewModel() {
 
     private val date: LocalDate = clock.logicalToday()
+
+    val activeScript: StateFlow<ScriptSessionEntity?> = work.observeActiveScript().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+    val scriptSessionsToday: StateFlow<Int> = work.observeScriptCount(date).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
+    val beforeWork: Boolean get() = clock.localTime().isBefore(java.time.LocalTime.of(12, 0))
+
+    fun startScript() = viewModelScope.launch { work.startScript() }
+    fun stopScript() = viewModelScope.launch { work.stopScript(null) }
 
     val ui: StateFlow<TodayUi> = profiles.flow.flatMapLatest { profile ->
         combine(
