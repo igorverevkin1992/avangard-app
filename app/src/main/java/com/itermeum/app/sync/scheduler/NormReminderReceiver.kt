@@ -24,6 +24,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
@@ -60,7 +61,7 @@ class NormReminderReceiver : BroadcastReceiver() {
         val input = norms.inputFor(date)
         val schedule = DayScheduleEngine.schedule(input)
         val item = schedule.firstOrNull { it.normId == normId }
-        val doneIds = norms.observeDoneIds(date).let { f -> kotlinx.coroutines.flow.first(f) }
+        val doneIds = norms.observeDoneIds(date).first()
         if (normId != THREAT && (item == null || normId in doneIds)) return
         val quiet = DayScheduleEngine.quietWindows(input.events)
         val now = clock.now()
