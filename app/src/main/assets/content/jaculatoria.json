@@ -1,0 +1,487 @@
+{
+ "note": "Раздел 7.4. Ссылки на стихи — verify:true до сверки.",
+ "situations": [
+  {
+   "id": "BEFORE_CALL",
+   "title": "Перед звонком"
+  },
+  {
+   "id": "BEFORE_PITCH",
+   "title": "Перед питчингом"
+  },
+  {
+   "id": "AFTER_REJECTION",
+   "title": "После отказа"
+  },
+  {
+   "id": "WANT_TO_POSTPONE",
+   "title": "Хочу отложить"
+  },
+  {
+   "id": "BEFORE_SCRIPT",
+   "title": "Перед сценарием"
+  },
+  {
+   "id": "TRAFFIC",
+   "title": "В пробке"
+  },
+  {
+   "id": "TIRED",
+   "title": "Устал"
+  },
+  {
+   "id": "ENVY",
+   "title": "Зависть"
+  },
+  {
+   "id": "ANGER",
+   "title": "Гнев"
+  },
+  {
+   "id": "SUCCESS",
+   "title": "Успех"
+  },
+  {
+   "id": "HARD_TALK",
+   "title": "Трудный разговор"
+  },
+  {
+   "id": "BEFORE_SHOOT",
+   "title": "Перед съёмкой"
+  }
+ ],
+ "items": [
+  {
+   "id": "before_call_1",
+   "situation": "BEFORE_CALL",
+   "text": "Господи, дай мне смелости и любви к этому человеку",
+   "source": "текст приложения",
+   "sourceKind": "app",
+   "legal": "собственный текст",
+   "verify": false
+  },
+  {
+   "id": "before_call_2",
+   "situation": "BEFORE_CALL",
+   "text": "Serviam — служу",
+   "source": "текст приложения",
+   "sourceKind": "app",
+   "legal": "собственный текст",
+   "verify": false
+  },
+  {
+   "id": "before_call_3",
+   "situation": "BEFORE_CALL",
+   "text": "Мария, Матерь моя, говори через меня",
+   "source": "текст приложения",
+   "sourceKind": "app",
+   "legal": "собственный текст",
+   "verify": false
+  },
+  {
+   "id": "before_call_4",
+   "situation": "BEFORE_CALL",
+   "text": "Святой Ангел-хранитель, иди к его Ангелу впереди меня",
+   "source": "текст приложения",
+   "sourceKind": "app",
+   "legal": "собственный текст",
+   "verify": false
+  },
+  {
+   "id": "before_call_5",
+   "situation": "BEFORE_CALL",
+   "text": "Всё могу в укрепляющем меня Иисусе Христе",
+   "source": "Писание, Синодальный перевод: Флп 4:13",
+   "sourceKind": "scripture",
+   "legal": "общественное достояние",
+   "verify": true
+  },
+  {
+   "id": "before_call_6",
+   "situation": "BEFORE_CALL",
+   "text": "Не бойся, только веруй",
+   "source": "Писание, Синодальный перевод: Мк 5:36",
+   "sourceKind": "scripture",
+   "legal": "общественное достояние",
+   "verify": true
+  },
+  {
+   "id": "before_pitch_1",
+   "situation": "BEFORE_PITCH",
+   "text": "Deo omnis gloria",
+   "source": "традиционный возглас",
+   "sourceKind": "trad",
+   "legal": "общественное достояние",
+   "verify": false
+  },
+  {
+   "id": "before_pitch_2",
+   "situation": "BEFORE_PITCH",
+   "text": "Господи, не мне, а Тебе",
+   "source": "текст приложения",
+   "sourceKind": "app",
+   "legal": "собственный текст",
+   "verify": false
+  },
+  {
+   "id": "before_pitch_3",
+   "situation": "BEFORE_PITCH",
+   "text": "Пусть увидят дело, а не меня",
+   "source": "текст приложения",
+   "sourceKind": "app",
+   "legal": "собственный текст",
+   "verify": false
+  },
+  {
+   "id": "before_pitch_4",
+   "situation": "BEFORE_PITCH",
+   "text": "Господи, дай мне ясности и честности",
+   "source": "текст приложения",
+   "sourceKind": "app",
+   "legal": "собственный текст",
+   "verify": false
+  },
+  {
+   "id": "after_rejection_1",
+   "situation": "AFTER_REJECTION",
+   "text": "Omnia in bonum",
+   "source": "традиционный возглас",
+   "sourceKind": "trad",
+   "legal": "общественное достояние",
+   "verify": false
+  },
+  {
+   "id": "after_rejection_2",
+   "situation": "AFTER_REJECTION",
+   "text": "Да будет воля Твоя",
+   "source": "Писание, Синодальный перевод: Мф 6:10",
+   "sourceKind": "scripture",
+   "legal": "общественное достояние",
+   "verify": true
+  },
+  {
+   "id": "after_rejection_3",
+   "situation": "AFTER_REJECTION",
+   "text": "Господи, благодарю и за это",
+   "source": "текст приложения",
+   "sourceKind": "app",
+   "legal": "собственный текст",
+   "verify": false
+  },
+  {
+   "id": "after_rejection_4",
+   "situation": "AFTER_REJECTION",
+   "text": "Любящим Бога всё содействует ко благу",
+   "source": "Писание, Синодальный перевод: Рим 8:28",
+   "sourceKind": "scripture",
+   "legal": "общественное достояние",
+   "verify": true
+  },
+  {
+   "id": "after_rejection_5",
+   "situation": "AFTER_REJECTION",
+   "text": "Ещё один звонок — ради Тебя",
+   "source": "текст приложения",
+   "sourceKind": "app",
+   "legal": "собственный текст",
+   "verify": false
+  },
+  {
+   "id": "want_to_postpone_1",
+   "situation": "WANT_TO_POSTPONE",
+   "text": "Сейчас, Господи. Не потом",
+   "source": "текст приложения",
+   "sourceKind": "app",
+   "legal": "собственный текст",
+   "verify": false
+  },
+  {
+   "id": "want_to_postpone_2",
+   "situation": "WANT_TO_POSTPONE",
+   "text": "Делай, что делаешь",
+   "source": "традиционный возглас",
+   "sourceKind": "trad",
+   "legal": "общественное достояние",
+   "verify": false
+  },
+  {
+   "id": "want_to_postpone_3",
+   "situation": "WANT_TO_POSTPONE",
+   "text": "Героическая минута — и сейчас",
+   "source": "текст приложения",
+   "sourceKind": "app",
+   "legal": "собственный текст",
+   "verify": false
+  },
+  {
+   "id": "want_to_postpone_4",
+   "situation": "WANT_TO_POSTPONE",
+   "text": "Господи, это — для Тебя. Начинаю",
+   "source": "текст приложения",
+   "sourceKind": "app",
+   "legal": "собственный текст",
+   "verify": false
+  },
+  {
+   "id": "want_to_postpone_5",
+   "situation": "WANT_TO_POSTPONE",
+   "text": "Domine, ut sit!",
+   "source": "традиционный возглас",
+   "sourceKind": "trad",
+   "legal": "общественное достояние",
+   "verify": false
+  },
+  {
+   "id": "before_script_1",
+   "situation": "BEFORE_SCRIPT",
+   "text": "Дух Святой, дай мне свет",
+   "source": "традиционный возглас",
+   "sourceKind": "trad",
+   "legal": "общественное достояние",
+   "verify": false
+  },
+  {
+   "id": "before_script_2",
+   "situation": "BEFORE_SCRIPT",
+   "text": "Господи, пусть эта история служит добру",
+   "source": "текст приложения",
+   "sourceKind": "app",
+   "legal": "собственный текст",
+   "verify": false
+  },
+  {
+   "id": "before_script_3",
+   "situation": "BEFORE_SCRIPT",
+   "text": "Помоги показать зло правдиво и не сделать его привлекательным",
+   "source": "текст приложения",
+   "sourceKind": "app",
+   "legal": "собственный текст",
+   "verify": false
+  },
+  {
+   "id": "before_script_4",
+   "situation": "BEFORE_SCRIPT",
+   "text": "Святой Иосиф, мастер, научи меня труду",
+   "source": "текст приложения",
+   "sourceKind": "app",
+   "legal": "собственный текст",
+   "verify": false
+  },
+  {
+   "id": "traffic_1",
+   "situation": "TRAFFIC",
+   "text": "Господи, моё время — Твоё",
+   "source": "текст приложения",
+   "sourceKind": "app",
+   "legal": "собственный текст",
+   "verify": false
+  },
+  {
+   "id": "traffic_2",
+   "situation": "TRAFFIC",
+   "text": "Одна декада Розария",
+   "source": "текст приложения",
+   "sourceKind": "app",
+   "legal": "собственный текст",
+   "verify": false
+  },
+  {
+   "id": "traffic_3",
+   "situation": "TRAFFIC",
+   "text": "Иисус, Мария, Иосиф",
+   "source": "традиционный возглас",
+   "sourceKind": "trad",
+   "legal": "общественное достояние",
+   "verify": false
+  },
+  {
+   "id": "traffic_4",
+   "situation": "TRAFFIC",
+   "text": "Благословен Господь во все дни",
+   "source": "Писание, Синодальный перевод: Пс 67:20",
+   "sourceKind": "scripture",
+   "legal": "общественное достояние",
+   "verify": true
+  },
+  {
+   "id": "tired_1",
+   "situation": "TIRED",
+   "text": "Придите ко Мне все труждающиеся и обременённые, и Я успокою вас",
+   "source": "Писание, Синодальный перевод: Мф 11:28",
+   "sourceKind": "scripture",
+   "legal": "общественное достояние",
+   "verify": true
+  },
+  {
+   "id": "tired_2",
+   "situation": "TIRED",
+   "text": "Господи, я устал — прими и это",
+   "source": "текст приложения",
+   "sourceKind": "app",
+   "legal": "собственный текст",
+   "verify": false
+  },
+  {
+   "id": "tired_3",
+   "situation": "TIRED",
+   "text": "Сила Моя совершается в немощи",
+   "source": "Писание, Синодальный перевод: 2 Кор 12:9",
+   "sourceKind": "scripture",
+   "legal": "общественное достояние",
+   "verify": true
+  },
+  {
+   "id": "tired_4",
+   "situation": "TIRED",
+   "text": "Ещё немного — ради Тебя",
+   "source": "текст приложения",
+   "sourceKind": "app",
+   "legal": "собственный текст",
+   "verify": false
+  },
+  {
+   "id": "envy_1",
+   "situation": "ENVY",
+   "text": "Господи, благослови его успех",
+   "source": "текст приложения",
+   "sourceKind": "app",
+   "legal": "собственный текст",
+   "verify": false
+  },
+  {
+   "id": "envy_2",
+   "situation": "ENVY",
+   "text": "Радоваться с радующимися",
+   "source": "Писание, Синодальный перевод: Рим 12:15",
+   "sourceKind": "scripture",
+   "legal": "общественное достояние",
+   "verify": true
+  },
+  {
+   "id": "envy_3",
+   "situation": "ENVY",
+   "text": "Что у тебя есть, чего бы ты не получил?",
+   "source": "Писание, Синодальный перевод: 1 Кор 4:7",
+   "sourceKind": "scripture",
+   "legal": "общественное достояние",
+   "verify": true
+  },
+  {
+   "id": "envy_4",
+   "situation": "ENVY",
+   "text": "Вся слава — Богу, не мне и не ему",
+   "source": "текст приложения",
+   "sourceKind": "app",
+   "legal": "собственный текст",
+   "verify": false
+  },
+  {
+   "id": "anger_1",
+   "situation": "ANGER",
+   "text": "Господи, кротость — сейчас",
+   "source": "текст приложения",
+   "sourceKind": "app",
+   "legal": "собственный текст",
+   "verify": false
+  },
+  {
+   "id": "anger_2",
+   "situation": "ANGER",
+   "text": "Гневаясь, не согрешайте",
+   "source": "Писание, Синодальный перевод: Еф 4:26",
+   "sourceKind": "scripture",
+   "legal": "общественное достояние",
+   "verify": true
+  },
+  {
+   "id": "anger_3",
+   "situation": "ANGER",
+   "text": "Твёрдо в деле, мягко в манере",
+   "source": "традиционный возглас",
+   "sourceKind": "trad",
+   "legal": "общественное достояние",
+   "verify": false
+  },
+  {
+   "id": "anger_4",
+   "situation": "ANGER",
+   "text": "Выговор — завтра, не сегодня",
+   "source": "текст приложения",
+   "sourceKind": "app",
+   "legal": "собственный текст",
+   "verify": false
+  },
+  {
+   "id": "success_1",
+   "situation": "SUCCESS",
+   "text": "Deo omnis gloria",
+   "source": "традиционный возглас",
+   "sourceKind": "trad",
+   "legal": "общественное достояние",
+   "verify": false
+  },
+  {
+   "id": "success_2",
+   "situation": "SUCCESS",
+   "text": "Не нам, Господи, не нам, но имени Твоему дай славу",
+   "source": "Писание, Синодальный перевод: Пс 113:9",
+   "sourceKind": "scripture",
+   "legal": "общественное достояние",
+   "verify": true
+  },
+  {
+   "id": "success_3",
+   "situation": "SUCCESS",
+   "text": "Благодарю, Господи, — и команде спасибо",
+   "source": "текст приложения",
+   "sourceKind": "app",
+   "legal": "собственный текст",
+   "verify": false
+  },
+  {
+   "id": "hard_talk_1",
+   "situation": "HARD_TALK",
+   "text": "Господи, дай мне правду и любовь",
+   "source": "текст приложения",
+   "sourceKind": "app",
+   "legal": "собственный текст",
+   "verify": false
+  },
+  {
+   "id": "hard_talk_2",
+   "situation": "HARD_TALK",
+   "text": "Святой Михаил Архангел, защити меня в борьбе",
+   "source": "традиционный возглас",
+   "sourceKind": "trad",
+   "legal": "общественное достояние",
+   "verify": false
+  },
+  {
+   "id": "hard_talk_3",
+   "situation": "HARD_TALK",
+   "text": "Пусть мои слова будут «да, да», «нет, нет»",
+   "source": "Писание, Синодальный перевод: Мф 5:37",
+   "sourceKind": "scripture",
+   "legal": "общественное достояние",
+   "verify": true
+  },
+  {
+   "id": "before_shoot_1",
+   "situation": "BEFORE_SHOOT",
+   "text": "Господи, благослови всех на площадке",
+   "source": "текст приложения",
+   "sourceKind": "app",
+   "legal": "собственный текст",
+   "verify": false
+  },
+  {
+   "id": "before_shoot_2",
+   "situation": "BEFORE_SHOOT",
+   "text": "Святой Иосиф, покровитель труда, будь с нами",
+   "source": "текст приложения",
+   "sourceKind": "app",
+   "legal": "собственный текст",
+   "verify": false
+  }
+ ]
+}

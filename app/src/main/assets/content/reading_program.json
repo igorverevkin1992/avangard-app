@@ -1,0 +1,100 @@
+{
+ "note": "Раздел 7.7. Текстов книг в приложении нет; книги ведут на escriva.org/ru или бумажное издание. Пропуск дня не создаёт долга.",
+ "months": [
+  {
+   "month": 1,
+   "items": [
+    {
+     "bookId": "camino",
+     "title": "«Путь»",
+     "section": "главы «Характер», «Воля», «Учёба и труд», «Порядок», «Мелочи», «Чистота намерения»",
+     "url": "https://escriva.org/ru/camino/"
+    },
+    {
+     "bookId": "conversaciones",
+     "title": "«Беседы»",
+     "section": "гомилия «Страстно любить мир» (№ 113–123)",
+     "url": "https://escriva.org/ru/conversaciones/"
+    }
+   ]
+  },
+  {
+   "month": 2,
+   "items": [
+    {
+     "bookId": "havard_vl",
+     "title": "А. Хавард, «Нравственное лидерство»",
+     "section": "целиком",
+     "url": "https://alexhavard.ru/"
+    },
+    {
+     "bookId": "havard_cfg",
+     "title": "А. Хавард, «Сотворены для величия»",
+     "section": "целиком",
+     "url": "https://alexhavard.ru/"
+    }
+   ]
+  },
+  {
+   "month": 3,
+   "items": [
+    {
+     "bookId": "es_cristo",
+     "title": "«Христос проходит рядом»",
+     "section": "«В мастерской Иосифа» (№ 39–56), «Христос Царь» (№ 179–187)",
+     "url": "https://escriva.org/ru/es-cristo-que-pasa/"
+    }
+   ]
+  },
+  {
+   "month": 4,
+   "items": [
+    {
+     "bookId": "amigos",
+     "title": "«Друзья Божии»",
+     "section": "«Человеческие добродетели», «Величие обычной жизни», «Чтобы не пропадало время»",
+     "url": "https://escriva.org/ru/amigos-de-dios/"
+    }
+   ]
+  },
+  {
+   "month": 5,
+   "items": [
+    {
+     "bookId": "surco",
+     "title": "«Борозда»",
+     "section": "главы «Труд», «Дисциплина»",
+     "url": "https://escriva.org/ru/surco/"
+    },
+    {
+     "bookId": "forja",
+     "title": "«Кузня»",
+     "section": "выборочно",
+     "url": "https://escriva.org/ru/forja/"
+    }
+   ]
+  },
+  {
+   "month": 6,
+   "items": [
+    {
+     "bookId": "allen",
+     "title": "Джон Аллен, «Opus Dei: An Objective Look…»",
+     "section": "целиком",
+     "url": null
+    }
+   ]
+  },
+  {
+   "month": 7,
+   "items": [
+    {
+     "bookId": "compendium",
+     "title": "Компендиум Катехизиса Католической Церкви",
+     "section": "по темам катехизации",
+     "url": null
+    }
+   ]
+  }
+ ]
+}
