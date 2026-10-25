@@ -27,6 +27,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.itermeum.app.R
+import com.itermeum.app.feature.prayer.accent
 import com.itermeum.app.core.data.MorningRepository
 import com.itermeum.app.core.database.entity.MorningStage
 import com.itermeum.app.core.designsystem.ImHeader
@@ -71,7 +72,7 @@ fun TodayScreen(onOpenSettings: () -> Unit, onMilestone: (String) -> Unit = {}, 
             }
         }
         banner?.let { ImPanel { Text(it, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.primary) } }
-        val accent = ui.liturgical?.color?.let { com.itermeum.app.feature.prayer.accent(it) } ?: MaterialTheme.colorScheme.primary
+        val accent = ui.liturgical?.color?.let { it.accent() } ?: MaterialTheme.colorScheme.primary
         DayRing(
             total = ui.items.size,
             done = ui.items.map { it.normId in ui.done },
