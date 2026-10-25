@@ -6,7 +6,10 @@ import com.itermeum.app.core.data.PathRepository
 import com.itermeum.app.core.data.StreakRepository
 import com.itermeum.app.core.database.entity.StreakType
 import com.itermeum.app.core.engine.StreakEngine
+import android.content.Context
 import com.itermeum.app.sync.notifications.NotificationBudget
+import com.itermeum.app.sync.widget.DayWidget
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.sync.Mutex
@@ -20,6 +23,7 @@ import kotlinx.coroutines.sync.withLock
  */
 @Singleton
 class DayCloseRunner @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val streaks: StreakRepository,
     private val path: PathRepository,
     private val budget: NotificationBudget,
@@ -47,5 +51,6 @@ class DayCloseRunner @Inject constructor(
             path.ensureMassEvent(d)
             d = d.plusDays(1)
         }
+        DayWidget.refresh(context)
     }
 }

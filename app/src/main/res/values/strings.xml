@@ -402,4 +402,25 @@
     <string name="lower_offer_hint">Три срыва за семь дней. Можно поставить на паузу одну-две неядровые нормы на 7 дней. Ядро (подъём, звонки, Examen) остаётся.</string>
     <string name="lower_keep">Оставить как есть</string>
     <string name="lower_calm_restart">Семь дней без засчитанного дня. Начни с одной нормы: испытание совести сегодня вечером. Этого достаточно.</string>
+
+    <!-- Backup (5.17) -->
+    <string name="backup_title">Резервная копия</string>
+    <string name="backup_hint">Шифрованный файл itermeum-backup-v1.json.enc в скрытой папке Google Drive. Ключ — из пароля (PBKDF2, 210 000 итераций, AES-GCM). Без пароля копию не прочитать — запиши его. Ежедневно в 03:30 при сети и зарядке.</string>
+    <string name="backup_sign_in">Войти через Google</string>
+    <string name="backup_sign_out">Выйти из Google</string>
+    <string name="backup_account">Аккаунт: %1$s</string>
+    <string name="backup_password">Пароль копии (не короче 8)</string>
+    <string name="backup_enable">Включить ежедневную копию</string>
+    <string name="backup_disable">Выключить копию</string>
+    <string name="backup_now">Сохранить сейчас</string>
+    <string name="backup_last">Последняя загрузка: %1$s</string>
+    <string name="backup_restore">Восстановить из Drive</string>
+    <string name="wipe_all">Стереть все данные</string>
+    <string name="wipe_confirm">Будут удалены все записи на телефоне. Копия в Drive останется. Продолжить?</string>
+    <string name="wipe_yes">Да, стереть</string>
+
+    <!-- Widget (section 9) -->
+    <string name="widget_label">Iter Meum · день</string>
+    <string name="widget_description">Круг дня, следующая норма, ритуал перехода, звонки.</string>
+    <string name="widget_preview_next">12:05 · Обзвон героев</string>
 </resources>

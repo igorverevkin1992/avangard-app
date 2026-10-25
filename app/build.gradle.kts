@@ -120,6 +120,9 @@ dependencies {
     implementation(libs.mlkit.barcode.scanning)
     implementation(libs.zxing.core)
 
+    // Section 9: Glance 4×2 home-screen widget (D-17).
+    implementation(libs.androidx.glance.appwidget)
+
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 

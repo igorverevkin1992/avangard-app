@@ -1,17 +1,20 @@
 package com.itermeum.app.core.database.entity
 
 import androidx.room.Entity
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.time.LocalDate
 
 enum class FormationType { CATECHESIS, MASS }
 
+@Serializable
 @Entity(tableName = "formation_event", indices = [Index("logicalDate")])
 data class FormationEventEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val type: FormationType,
-    val logicalDate: LocalDate,
+    @Contextual val logicalDate: LocalDate,
     val startAt: Long,
     val endAt: Long,
     val attended: Boolean? = null,
@@ -19,40 +22,44 @@ data class FormationEventEntity(
     val missedForTravel: Boolean = false,
 )
 
+@Serializable
 @Entity(tableName = "catechesis_note")
 data class CatechesisNoteEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val eventId: Long?,
-    val logicalDate: LocalDate,
+    @Contextual val logicalDate: LocalDate,
     val topic: String,
     val theses: String,
     val question: String,
     val homework: String,
-    val homeworkDue: LocalDate?,
+    @Contextual val homeworkDue: LocalDate?,
     val homeworkDone: Boolean = false,
     val savedAt: Long,
 )
 
 enum class StreakType { FIDELITY, WAKE, FROG }
 
+@Serializable
 @Entity(tableName = "streak_state")
 data class StreakStateEntity(
     @PrimaryKey val type: StreakType,
     val current: Int = 0,
     val best: Int = 0,
-    val lastCountedDate: LocalDate? = null,
+    @Contextual val lastCountedDate: LocalDate? = null,
     val totalDays: Int = 0,
 )
 
+@Serializable
 @Entity(tableName = "freeze_ledger", indices = [Index("yearMonth")])
 data class FreezeLedgerEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     /** "2026-11" */
     val yearMonth: String,
-    val usedOn: LocalDate,
+    @Contextual val usedOn: LocalDate,
     val streakType: StreakType,
 )
 
+@Serializable
 @Entity(tableName = "milestone")
 data class MilestoneEntity(
     @PrimaryKey val id: String,
@@ -64,6 +71,7 @@ enum class Market { RU, EN, LATAM }
 
 enum class ProjectStage { CONCEPT, SCRIPT, PREPRODUCTION, SHOOTING, POST, RELEASED, ARCHIVED }
 
+@Serializable
 @Entity(tableName = "project")
 data class ProjectEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
@@ -80,6 +88,7 @@ data class ProjectEntity(
 
 enum class GoalStatus { DONE, PARTIAL, NOT_DONE, OPEN }
 
+@Serializable
 @Entity(tableName = "quarter_goal")
 data class QuarterGoalEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
@@ -89,12 +98,14 @@ data class QuarterGoalEntity(
     val status: GoalStatus = GoalStatus.OPEN,
 )
 
+@Serializable
 @Entity(tableName = "quarter_income")
 data class QuarterIncomeEntity(
     @PrimaryKey val quarter: String,
     val amountRub: Long,
 )
 
+@Serializable
 @Entity(tableName = "vanity_check")
 data class VanityCheckEntity(
     @PrimaryKey val quarter: String,
@@ -102,9 +113,10 @@ data class VanityCheckEntity(
     val completedAt: Long,
 )
 
+@Serializable
 @Entity(tableName = "weekly_review")
 data class WeeklyReviewEntity(
-    @PrimaryKey val weekStart: LocalDate,
+    @PrimaryKey @Contextual val weekStart: LocalDate,
     val planEnc: String? = null,
     val virtue: String? = null,
     val completedAt: Long? = null,
@@ -113,18 +125,20 @@ data class WeeklyReviewEntity(
     val fidelityDays: Int = 0,
 )
 
+@Serializable
 @Entity(tableName = "mortification_log")
 data class MortificationLogEntity(
-    @PrimaryKey val logicalDate: LocalDate,
+    @PrimaryKey @Contextual val logicalDate: LocalDate,
     val item: String,
     val done: Boolean = false,
 )
 
+@Serializable
 @Entity(tableName = "travel_period")
 data class TravelPeriodEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val startDate: LocalDate,
-    val endDate: LocalDate? = null,
+    @Contextual val startDate: LocalDate,
+    @Contextual val endDate: LocalDate? = null,
     val timezone: String,
     val manual: Boolean,
 )
@@ -135,9 +149,10 @@ enum class MorningStage { SCHEDULED, RINGING, PROOF_PENDING, PROVEN, HEROIC_DONE
  * Section 5.1 state machine, one row per logical day. Not in the section 8
  * list — recorded in docs/DECISIONS.md (D-07).
  */
+@Serializable
 @Entity(tableName = "morning_state")
 data class MorningStateEntity(
-    @PrimaryKey val logicalDate: LocalDate,
+    @PrimaryKey @Contextual val logicalDate: LocalDate,
     val alarmAt: Long,
     val stage: MorningStage = MorningStage.SCHEDULED,
     val rangAt: Long? = null,
@@ -150,6 +165,7 @@ data class MorningStateEntity(
     val sick: Boolean = false,
 )
 
+@Serializable
 @Entity(tableName = "monthly_summary_view")
 data class MonthlySummaryViewEntity(
     @PrimaryKey val yearMonth: String,

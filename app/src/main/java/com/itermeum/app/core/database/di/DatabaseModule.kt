@@ -36,4 +36,5 @@ object DatabaseModule {
     @Provides fun projectDao(db: AppDatabase) = db.projectDao()
     @Provides fun reviewDao(db: AppDatabase) = db.reviewDao()
     @Provides fun morningDao(db: AppDatabase) = db.morningDao()
+    @Provides fun backupDao(db: AppDatabase) = db.backupDao()
 }

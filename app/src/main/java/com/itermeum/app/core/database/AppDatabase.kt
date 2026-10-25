@@ -3,6 +3,7 @@ package com.itermeum.app.core.database
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import com.itermeum.app.core.database.dao.BackupDao
 import com.itermeum.app.core.database.dao.CompletionDao
 import com.itermeum.app.core.database.dao.DayPlanDao
 import com.itermeum.app.core.database.dao.ExamenDao
@@ -95,6 +96,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun projectDao(): ProjectDao
     abstract fun reviewDao(): ReviewDao
     abstract fun morningDao(): MorningDao
+    abstract fun backupDao(): BackupDao
 
     companion object {
         const val DB_NAME = "itermeum.db"

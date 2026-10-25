@@ -132,6 +132,8 @@ fun SettingsScreen(onBack: () -> Unit, onOpenAbout: () -> Unit, viewModel: Setti
         ImSectionLabel(stringResource(R.string.settings_hyperos))
         HyperOsChecklist()
 
+        BackupSection()
+
         ImPanel(modifier = Modifier.fillMaxWidth().clickable(onClick = onOpenAbout)) {
             Text(stringResource(R.string.settings_about), style = MaterialTheme.typography.bodyLarge)
         }

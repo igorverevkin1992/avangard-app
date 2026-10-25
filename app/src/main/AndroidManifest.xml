@@ -90,6 +90,18 @@
         <receiver android:name=".sync.alarm.MorningEventReceiver" android:exported="false" />
         <receiver android:name=".sync.alarm.AlarmHealthReceiver" android:exported="false" />
         <receiver android:name=".sync.scheduler.NormReminderReceiver" android:exported="false" />
+
+        <receiver
+            android:name=".sync.widget.DayWidgetReceiver"
+            android:exported="true"
+            android:label="@string/widget_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/day_widget_info" />
+        </receiver>
         <receiver android:name=".sync.scheduler.DayCloseReceiver" android:exported="false" />
 
         <service
