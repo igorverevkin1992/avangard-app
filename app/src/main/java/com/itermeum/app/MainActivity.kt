@@ -1,0 +1,78 @@
+package com.itermeum.app
+
+import android.content.Intent
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.navigation.compose.rememberNavController
+import com.itermeum.app.core.designsystem.IterMeumTheme
+import com.itermeum.app.navigation.IterMeumNavHost
+import com.itermeum.app.navigation.IterMeumNavigationBar
+import com.itermeum.app.navigation.NavRoute
+import com.itermeum.app.navigation.shouldShowBottomNav
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.MutableStateFlow
+
+@AndroidEntryPoint
+class MainActivity : ComponentActivity() {
+
+    /** Latest intent, so deep-links delivered to the running singleTop activity re-route. */
+    private val intentState = MutableStateFlow<Intent?>(null)
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        intentState.value = intent
+        setContent {
+            val current by intentState.collectAsState()
+            val target = NavRoute.fromDeepLink(current?.data) ?: current?.getStringExtra(EXTRA_ROUTE)
+            IterMeumRoot(target)
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        intentState.value = intent
+    }
+
+    companion object {
+        const val EXTRA_ROUTE = "route"
+    }
+}
+
+@Composable
+private fun IterMeumRoot(deepLinkRoute: String?) {
+    IterMeumTheme {
+        val navController = rememberNavController()
+        val showBottomBar = shouldShowBottomNav(navController)
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            containerColor = MaterialTheme.colorScheme.background,
+            contentWindowInsets = WindowInsets.systemBars,
+            bottomBar = { if (showBottomBar) IterMeumNavigationBar(navController) },
+        ) { padding ->
+            LaunchedEffect(deepLinkRoute) {
+                if (deepLinkRoute != null && deepLinkRoute != NavRoute.Today.route) {
+                    navController.navigate(deepLinkRoute) { launchSingleTop = true }
+                }
+            }
+            Box(Modifier.padding(padding)) {
+                IterMeumNavHost(navController = navController)
+            }
+        }
+    }
+}

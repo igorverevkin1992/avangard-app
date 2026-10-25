@@ -1,303 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Prime mover</string>
+    <string name="app_name">Iter Meum</string>
+    <string name="app_tagline">Труд. Молитва. Путь к купели.</string>
 
-    <!-- Pulpit header. -->
-    <string name="pulpit_sabotage">УКЛОНЕНИЕ</string>
+    <!-- Bottom navigation -->
+    <string name="nav_today">Сегодня</string>
+    <string name="nav_work">Труд</string>
+    <string name="nav_prayer">Молитва</string>
+    <string name="nav_path">Путь</string>
 
-    <!-- Pulpit cards. -->
-    <string name="pulpit_flash_start">КОНЦЕНТРАЦИЯ</string>
-    <string name="pulpit_intent_placeholder">Что именно сделаю (опционально)</string>
-    <string name="pulpit_day_mode_unset">РЕЖИМ ДНЯ: ВЫБРАТЬ</string>
-    <string name="pulpit_day_mode_standard">РЕЖИМ ДНЯ: СТАНДАРТ</string>
-    <string name="pulpit_day_mode_mvd">РЕЖИМ ДНЯ: МИНИМУМ</string>
-    <string name="pulpit_day_mode_picker_title">РЕЖИМ ДНЯ</string>
-    <string name="pulpit_day_mode_picker_warning">Решение фиксируется на сегодня. Изменить нельзя.</string>
-    <string name="pulpit_day_mode_pick_standard">СТАНДАРТ</string>
-    <string name="pulpit_day_mode_pick_mvd">МИНИМУМ</string>
-    <string name="pulpit_day_mode_picker_cancel">ОТМЕНА</string>
-    <string name="pulpit_analysis">АНАЛИЗ ГЕНЕРАЦИИ</string>
-    <string name="pulpit_flash_stop">ЗАВЕРШИТЬ</string>
-    <string name="pulpit_mark_done">ВЫПОЛНЕНО</string>
-    <string name="pulpit_mark_undo">СБРОСИТЬ</string>
-    <string name="pulpit_core_reminder">01·ГЕНЕРАЦИИ — главное дело дня. Анализ ещё не зафиксирован.</string>
-    <string name="pulpit_close_shift">ЗАКРЫТЬ СМЕНУ</string>
-    <string name="pulpit_evening_nudge">СМЕНА НЕ ЗАКРЫТА · ТАП ДЛЯ ВЕЧЕРНЕГО ЗАКРЫТИЯ</string>
-    <string name="pulpit_quote_of_day_label">ЦИТАТА ДНЯ · ТАП ДЛЯ ПОЛНОГО ТЕКСТА</string>
+    <!-- Placeholders for the empty skeleton (phase 1) -->
+    <string name="placeholder_today">Круг дня появится здесь.</string>
+    <string name="placeholder_work">План дня, обзвон, последний камень.</string>
+    <string name="placeholder_prayer">Молитвенник, Розарий, Евангелие дня.</string>
+    <string name="placeholder_path">Катехизация, обзор недели, Летопись.</string>
 
-    <!-- Sign-in / cloud sync (v3.8). default_web_client_id is intentionally
-         empty here; release builds inject a real value via build.gradle's
-         resValue or a CI-managed override. AuthRepository tolerates an
-         empty value by skipping requestIdToken — Drive AppData scope works
-         off the Android OAuth client alone. -->
-    <string name="default_web_client_id" translatable="false">523959581530-ge2e8g9oo3nuug1hnp8pukfksmja129a.apps.googleusercontent.com</string>
-    <string name="signin_title">PRIME MOVER · СИНХРОНИЗАЦИЯ</string>
-    <string name="signin_subtitle">Войдите через Google для сохранения данных между устройствами. Резервная копия живёт в скрытой папке Google Drive — она недоступна из обычного Drive-интерфейса и видна только этому приложению.</string>
-    <string name="signin_button">ВОЙТИ ЧЕРЕЗ GOOGLE</string>
-    <string name="signin_failed">Вход отменён или недоступен. OAuth-клиент должен быть зарегистрирован в Google Cloud Console (см. README).</string>
-    <string name="restoring_title">ВОССТАНОВЛЕНИЕ</string>
-    <string name="restoring_subtitle">Загружаем резервную копию из Google Drive. Это занимает несколько секунд на медленной сети.</string>
-    <string name="restoring_failed_title">ОШИБКА ВОССТАНОВЛЕНИЯ</string>
-    <string name="restoring_failed_body">Снимок повреждён или несовместим. Продолжите с пустой базой или выйдите и попробуйте другой аккаунт.</string>
-    <string name="restoring_failed_continue">ПРОДОЛЖИТЬ БЕЗ ВОССТАНОВЛЕНИЯ</string>
-    <string name="restoring_failed_sign_out">ВЫЙТИ</string>
-    <!-- Focus-session daily totals on each habit card. -->
-    <string name="pulpit_focus_stats_active">КОНЦЕНТРАЦИЯ · %1$s   |   СЕГОДНЯ · %2$d × %3$s</string>
-    <string name="pulpit_focus_stats_idle">СЕГОДНЯ · %1$d СЕССИЙ · %2$s</string>
+    <!-- About -->
+    <string name="about_title">О приложении</string>
+    <string name="about_body">Iter Meum. Личный инструмент для дисциплины труда и молитвы. Приложение не является официальным приложением Прелатуры Opus Dei, Архиепархии Божией Матери в Москве или Кафедрального собора. Оно не заменяет катехизацию, духовное руководство и таинства. Номера пунктов книг св. Хосемарии Эскривы приводятся для ориентира; полные тексты — на escriva.org/ru, права — у Fundación Studium. Тексты Писания — Синодальный перевод (общественное достояние). Тексты молитв — по редакциям, указанным в карточке каждой молитвы.</string>
+    <string name="about_version">Версия %1$s</string>
 
-    <!-- Authorisation modal (АНАЛИЗ ГЕНЕРАЦИИ). -->
-    <string name="auth_title">АНАЛИЗ ГЕНЕРАЦИИ</string>
-    <string name="auth_question">Присутствует ли в этом результате мой рациональный выбор, или это слепой автоматизм?</string>
-    <string name="auth_prompt_label">ИТОГ ГЕНЕРАЦИИ</string>
-    <string name="auth_checkbox_label">ПОДТВЕРЖДАЮ РАЦИОНАЛЬНЫЙ ВЫБОР</string>
-    <string name="auth_submit">ЗАФИКСИРОВАТЬ АНАЛИЗ</string>
-    <string name="auth_cancel">ОТМЕНА</string>
+    <!-- Settings -->
+    <string name="settings_title">Настройки</string>
+    <string name="settings_about">О приложении</string>
 
-    <!-- Earned Pride. -->
-    <string name="earned_pride_line_1">ФАКТ УСТАНОВЛЕН.</string>
-    <string name="earned_pride_line_2">РЕСУРС КОНВЕРТИРОВАН В КАПИТАЛ.</string>
-    <string name="earned_pride_axiom">A = A</string>
+    <!-- Google Sign-In: web client id for id_token (optional). The Drive AppData
+         scope works off the Android OAuth client alone. Left empty until the
+         user registers a new OAuth client for com.itermeum.app. -->
+    <string name="default_web_client_id" translatable="false"></string>
 
-    <!-- Sabotage protocol. -->
-    <string name="sabotage_header">ДИАГНОСТИКА УКЛОНЕНИЯ</string>
-    <string name="sabotage_substitution_title">ИМПУЛЬС ПОДМЕНЫ</string>
-    <string name="sabotage_substitution_body">Потребление не является производством. Иллюзия работы не производит объективной ценности. Изучение инструмента без его применения есть потеря времени. Вернуться к Ядру.</string>
-    <string name="sabotage_defect_title">РЕАКЦИЯ НА БРАК</string>
-    <string name="sabotage_defect_body">Артефакт машины — это математическая погрешность весов модели, а не личное оскорбление оператора. Брак подлежит инженерному алгоритмическому исправлению. Эмоции не меняют пиксели.</string>
-    <string name="sabotage_comparison_title">СОЦИАЛЬНОЕ СРАВНЕНИЕ</string>
-    <string name="sabotage_comparison_body">Чужой результат есть закономерное следствие чужого вложенного времени. Сравнение несопоставимых переменных логически ошибочно и ведёт исключительно к нейробиологической потере.</string>
-    <string name="sabotage_acknowledge">ЗАФИКСИРОВАТЬ ДИАГНОЗ</string>
-    <string name="sabotage_acknowledged">✓ ЗАФИКСИРОВАНО</string>
-    <string name="sabotage_return">ВЕРНУТЬСЯ К ПУЛЬТУ</string>
-
-    <!-- Evening close. -->
-    <string name="closing_header">ЗАКРЫТИЕ СМЕНЫ</string>
-    <string name="closing_indicators_label">ИНДИКАТОРЫ ДНЯ</string>
-    <string name="closing_productivity">ПРОДУКТИВНОСТЬ</string>
-    <string name="closing_pride">ГОРДОСТЬ</string>
-    <string name="closing_integrity">ЦЕЛОСТНОСТЬ</string>
-    <string name="closing_defect_label">КЛАССИФИКАЦИЯ НУЛЕВОГО РЕЗУЛЬТАТА</string>
-    <string name="closing_defect_hint">Анализ генерации не зафиксирован. Выберите тип провала.</string>
-    <string name="closing_defect_kind_defect">ПОМЕХА</string>
-    <string name="closing_defect_kind_waste">УКЛОНЕНИЕ</string>
-    <string name="closing_journal_label">ЖУРНАЛ ДНЯ</string>
-    <string name="closing_journal_hint">Сжатое резюме смены. До 500 знаков.</string>
-    <string name="closing_journal_counter">%1$d / %2$d</string>
-    <string name="closing_submit">ЗАФИКСИРОВАТЬ ЗАКРЫТИЕ СМЕНЫ</string>
-    <string name="closing_prior_bottleneck_label">ТЕКУЩЕЕ ОГРАНИЧЕНИЕ</string>
-    <string name="closing_virtue_suggestion_hint">Подсказка от метрик дня. Решение — за оператором.</string>
-
-    <!-- Virtues. -->
-    <string name="virtue_rationality">РАЗУМНОСТЬ</string>
-    <string name="virtue_independence">НЕЗАВИСИМОСТЬ</string>
-    <string name="virtue_honesty">ЧЕСТНОСТЬ</string>
-    <string name="virtue_justice">СПРАВЕДЛИВОСТЬ</string>
-
-    <!-- Sunday audit. -->
-    <string name="audit_header">ОЦЕНКА НЕДЕЛИ</string>
-    <string name="audit_loading">СБОР МЕТРИК…</string>
-    <string name="audit_metrics_label">МЕТРИКИ ЗА 7 ДНЕЙ</string>
-    <string name="audit_metric_core_hours">ЧАСЫ ГЕНЕРАЦИЙ</string>
-    <string name="audit_metric_days_approved">ДНЕЙ С АНАЛИЗОМ</string>
-    <string name="audit_metric_defects">ПОМЕХИ</string>
-    <string name="audit_metric_wastes">УКЛОНЕНИЯ</string>
-    <string name="audit_metric_mvd_days">ДНИ МИНИМУМА</string>
-    <string name="audit_metric_virtues">СУММА ДОБРОДЕТЕЛЕЙ</string>
-    <string name="audit_bottleneck_label">ОГРАНИЧЕНИЕ НА СЛЕДУЮЩУЮ НЕДЕЛЮ</string>
-    <string name="audit_evasions_label">ДИАГНОЗЫ УКЛОНЕНИЯ</string>
-    <string name="audit_evasions_summary">ЗА НЕДЕЛЮ ЗАФИКСИРОВАНО %1$d (ПОДМЕНА %2$d · БРАК %3$d · СРАВНЕНИЕ %4$d)</string>
-    <string name="audit_prior_label">ОГРАНИЧЕНИЕ ПРОШЛОЙ НЕДЕЛИ</string>
-    <string name="audit_prior_question">Выполнено?</string>
-    <string name="audit_submit">ЗАФИКСИРОВАТЬ</string>
-    <string name="audit_open_history">ОТКРЫТЬ ТРЕКЕР</string>
-    <string name="audit_open_pulpit">ОТКРЫТЬ ПУЛЬТ</string>
-
-    <!-- Bottom navigation tabs. -->
-    <string name="nav_tab_pulpit">ПУЛЬТ</string>
-    <string name="nav_tab_library">БИБЛИОТЕКА</string>
-    <string name="nav_tab_audit">ОЦЕНКА</string>
-    <string name="nav_tab_history">ТРЕКЕР</string>
-    <string name="nav_tab_mode">РЕЖИМ</string>
-
-    <!-- Library. -->
-    <string name="library_header">БИБЛИОТЕКА</string>
-    <string name="library_quote_of_day_label">ЦИТАТА ДНЯ</string>
-    <string name="library_history_label">ПРЕДЫДУЩИЕ ЦИТАТЫ ДНЯ</string>
-    <string name="library_principles_label">ПРИНЦИПЫ</string>
-    <string name="library_pin">ЗАКРЕПИТЬ КАК ПРИНЦИП</string>
-    <string name="library_unpin">УБРАТЬ ИЗ ПРИНЦИПОВ</string>
-    <string name="library_virtues_label">ПОДБОРКИ ПО ДОБРОДЕТЕЛЯМ</string>
-    <string name="library_empty_state">ПО ЭТОЙ ДОБРОДЕТЕЛИ ЦИТАТ НЕТ.</string>
-    <string name="library_footer_note">Источник: Айн Рэнд, Леонард Пейкофф. Куратор подборки — оператор.</string>
-    <string name="library_back">НАЗАД</string>
-    <string name="library_share">ПОДЕЛИТЬСЯ</string>
-    <string name="library_quote_not_found">Цитата не найдена. Возможно, обновлён каталог.</string>
-    <string name="audit_submitted_confirmation">✓ ЗАФИКСИРОВАНО · ОГРАНИЧЕНИЕ СОХРАНЕНО</string>
-    <string name="audit_completed_label">СОСТОЯНИЕ ОЦЕНКИ</string>
-    <string name="audit_completed_header">ОЦЕНКА ЗАВЕРШЕНА</string>
-    <string name="audit_completed_subtitle">Ограничение для следующей недели зафиксировано. Изменение возможно только в следующий цикл.</string>
-
-    <!-- Weekday lock — only the Sunday audit is gated now; the history grid
-         is read-only and reachable every day. -->
-    <string name="weekday_lock_title">ОЦЕНКА — ВОСКРЕСЕНЬЕ</string>
-    <string name="weekday_lock_body">Оценка недели открывается только в день рефлексии. Трекер привычек доступен каждый день.</string>
-    <string name="weekday_lock_return">ВЕРНУТЬСЯ К ПУЛЬТУ</string>
-
-    <!-- Notification. -->
-    <string name="notification_evening_title">ТРЕБУЕТСЯ ЗАКРЫТИЕ СМЕНЫ</string>
-    <string name="notification_evening_body">Зафиксируйте анализ генерации и добродетели.</string>
-    <string name="focus_notification_title">КОНЦЕНТРАЦИЯ · %1$s</string>
-    <string name="focus_notification_body">Активная концентрация. Тап — пульт.</string>
-    <string name="focus_notification_placeholder_title">КОНЦЕНТРАЦИЯ</string>
-
-    <!-- Quick Settings Tile. -->
-    <string name="tile_flash_label">КОНЦЕНТРАЦИЯ</string>
-    <string name="tile_flash_active">АКТИВНА КОНЦЕНТРАЦИЯ</string>
-    <string name="tile_flash_idle">ЗАПУСТИТЬ КОНЦЕНТРАЦИЮ</string>
-
-    <!-- Permission banners on the pulpit. -->
-    <string name="permission_notifications_title">УВЕДОМЛЕНИЯ ВЫКЛЮЧЕНЫ</string>
-    <string name="permission_notifications_body">Без разрешения системы вечернее напоминание о закрытии смены не будет показано.</string>
-    <string name="permission_exact_alarm_title">ТОЧНЫЕ АЛАРМЫ ВЫКЛЮЧЕНЫ</string>
-    <string name="permission_exact_alarm_body">Без точного будильника напоминание в 21:00 может срабатывать с задержкой до десятков минут.</string>
-    <string name="permission_grant">РАЗРЕШИТЬ</string>
-    <string name="permission_open_settings">НАСТРОЙКИ</string>
-
-    <!-- Pulpit transient error banner. -->
-    <string name="error_infra_locked">Ядро отмечается через «Анализ генерации»</string>
-    <string name="error_another_focus_active">Сессия уже идёт</string>
-    <string name="error_already_approved">Ядро уже зафиксировано</string>
-    <string name="error_not_authorised">Чекбокс авторизации не активирован</string>
-    <string name="error_prompt_empty">Промпт не указан</string>
-    <string name="error_missing_defect_kind">Выберите тип отклонения</string>
-    <string name="error_evening_closed_already">Смена уже закрыта</string>
-    <string name="error_history_locked">Трекер доступен в воскресенье</string>
-
-    <!-- Sunday audit empty state. -->
-    <string name="audit_empty_state">ДАННЫЕ ОТСУТСТВУЮТ. ЗАЛОЖИТЕ ПЕРВУЮ НЕДЕЛЮ.</string>
-
-    <!-- Accessibility content descriptions. -->
-    <string name="a11y_state_checked">установлен</string>
-    <string name="a11y_state_unchecked">не установлен</string>
-    <string name="a11y_state_on">включено</string>
-    <string name="a11y_state_off">выключено</string>
-    <string name="a11y_status_idle">статус Idle — действий не выполнено</string>
-    <string name="a11y_status_standard">статус Стандарт — отметка о полном выполнении</string>
-    <string name="a11y_status_mvd">статус Минимум — минимально-достаточное действие</string>
-    <string name="a11y_status_approved">статус Approved — Ядро зафиксировано</string>
-    <string name="a11y_status_fail">статус Fail — Ядро провалено</string>
-    <string name="a11y_status_locked">заблокировано до утверждения Ядра</string>
-    <string name="a11y_pulpit_date">Дата текущей смены. Долгое нажатие — конфиг.</string>
-    <string name="a11y_flash_start">Запустить фокус-сессию: %1$s</string>
-    <string name="a11y_flash_stop">Завершить активную фокус-сессию</string>
-    <string name="a11y_sabotage">Открыть диагностику уклонения</string>
-
-    <!-- Settings (long-press on date strip to reach). -->
-    <string name="settings_header">КОНФИГ</string>
-    <string name="settings_evening_close_label">ВЕЧЕРНИЙ СИГНАЛ</string>
-    <string name="settings_evening_close_hint">Время напоминания о закрытии смены.</string>
-    <string name="settings_hour_label">ЧАС</string>
-    <string name="settings_minute_label">МИНУТА</string>
-    <string name="settings_cold_start_label">ПОРОГ ХОЛОДНОГО ЗАПУСКА</string>
-    <string name="settings_cold_start_hint">После какого времени Flash-таймер переключает цвет.</string>
-    <string name="settings_cloud_label">ОБЛАЧНАЯ СИНХРОНИЗАЦИЯ</string>
-    <string name="settings_cloud_account_label">АККАУНТ</string>
-    <string name="settings_cloud_account_empty">не подключён</string>
-    <string name="settings_cloud_last_sync_label">ПОСЛЕДНЯЯ ВЫГРУЗКА</string>
-    <string name="settings_cloud_last_sync_never">—</string>
-    <string name="settings_cloud_sync_now">СИНХРОНИЗОВАТЬ СЕЙЧАС</string>
-    <string name="settings_cloud_sign_out">ВЫЙТИ</string>
-    <string name="settings_wipe_label">ЛОКАЛЬНАЯ БАЗА</string>
-    <string name="settings_wipe_request">СТЕРЕТЬ ВСЁ</string>
-    <string name="settings_wipe_confirm">ПОДТВЕРДИТЬ СТИРАНИЕ</string>
-    <string name="settings_wipe_cancel">ОТМЕНА</string>
-    <string name="settings_wipe_confirm_message">Все сессии, фокусы и привычки будут удалены без возможности восстановления.</string>
-    <string name="settings_wipe_in_progress">Стирание базы…</string>
-    <string name="settings_backup_label">КОПИЯ БАЗЫ</string>
-    <string name="settings_backup_hint">Экспорт в JSON через системный выбор хранилища. Поддерживает Drive, Files, OneDrive, локальный диск.</string>
-    <string name="settings_backup_export">ЭКСПОРТ КОПИИ</string>
-    <string name="settings_backup_import">ВОССТАНОВИТЬ ИЗ КОПИИ</string>
-    <string name="settings_backup_exporting">Снятие копии…</string>
-    <string name="settings_backup_importing">Восстановление…</string>
-    <string name="settings_backup_export_ok">Копия сохранена.</string>
-    <string name="settings_backup_import_ok">База восстановлена из копии.</string>
-    <string name="settings_backup_export_failed">Не удалось записать копию.</string>
-    <string name="settings_backup_import_not_json">Файл не является валидным JSON-снимком.</string>
-    <string name="settings_backup_import_unsupported">Несовместимая схема копии (версия %1$d).</string>
-    <string name="settings_backup_import_corrupted">Снимок нарушает целостность базы и был отклонён. Исходные данные сохранены.</string>
-    <string name="settings_backup_import_read_failed">Не удалось прочитать файл копии.</string>
-    <string name="settings_restore_confirm">ПОДТВЕРДИТЬ ВОССТАНОВЛЕНИЕ</string>
-    <string name="settings_restore_cancel">ОТМЕНА</string>
-    <string name="settings_restore_confirm_message">Все текущие данные будут замещены содержимым копии. Это необратимо.</string>
-    <string name="settings_return">ВЕРНУТЬСЯ К ПУЛЬТУ</string>
-
-    <!-- Chronometer. -->
-    <string name="chronometer_header">ХРОНОМЕТР</string>
-    <string name="chronometer_return">ВЕРНУТЬСЯ К ПУЛЬТУ</string>
-    <string name="chronometer_resource_label">РЕСУРС</string>
-    <string name="chronometer_empty_state">ДАТА РОЖДЕНИЯ НЕ УСТАНОВЛЕНА. ОТКРОЙТЕ КОНФИГ → ХРОНОМЕТР.</string>
-    <string name="chronometer_open_settings">КОНФИГ</string>
-    <string name="chronometer_days_lived">СУТКИ ПРОЖИТО</string>
-    <string name="chronometer_days_budget">СУТКИ В РЕСУРСЕ</string>
-    <string name="chronometer_days_remaining">ОСТАТОК</string>
-    <string name="chronometer_days_remaining_value">~%1$s · ~%2$s ЛЕТ</string>
-    <string name="chronometer_extracted">РЕАЛИЗОВАНО</string>
-    <string name="chronometer_partial">ЧАСТИЧНО</string>
-    <string name="chronometer_burned">УПУЩЕНО</string>
-    <string name="chronometer_count_with_pct">%1$s  (%2$s%%)</string>
-    <string name="chronometer_grid_label">СЕТКА · 1 ЯЧЕЙКА = 1 НЕДЕЛЯ</string>
-    <string name="chronometer_footer_note">НАСТРОЙКА В КОНФИГЕ · РЕСУРС РАСХОДУЕТСЯ НЕЗАВИСИМО ОТ ИСПОЛЬЗОВАНИЯ.</string>
-    <string name="pulpit_chronometer_chip">ХРОН.</string>
-    <string name="a11y_chronometer">Открыть Хронометр</string>
-
-    <!-- Chronometer settings section. -->
-    <string name="settings_chronometer_label">ХРОНОМЕТР</string>
-    <string name="settings_chronometer_birthday_label">ДАТА РОЖДЕНИЯ</string>
-    <string name="settings_chronometer_birthday_set">УСТАНОВИТЬ</string>
-    <string name="settings_chronometer_birthday_empty">—</string>
-    <string name="settings_chronometer_expectancy_label">РАСЧЁТНЫЙ РЕСУРС (ЛЕТ)</string>
-    <string name="settings_chronometer_ignition_toggle">УТРЕННИЙ СИГНАЛ</string>
-    <string name="settings_chronometer_ignition_hint">Утреннее уведомление с актуальным остатком ресурса.</string>
-
-    <!-- Chronometer notification. -->
-    <string name="notification_ignition_title">СУТКИ #%1$d</string>
-    <string name="notification_ignition_body_extracted">Вчера: анализ генерации зафиксирован.</string>
-    <string name="notification_ignition_body_loss">Вчера: анализ не зафиксирован.</string>
-
-    <!-- Midday check notification. -->
-    <string name="notification_midday_title">ПОЛДЕНЬ · ЯДРО НЕ ЗАКРЫТО</string>
-    <string name="notification_midday_body">Половина продуктивного окна позади.</string>
-
-    <!-- Status fixation notifications + in-app banner. -->
-    <string name="notification_status_fix_title">%1$s · %2$s</string>
-    <string name="notification_status_fix_body">%1$s ЗАФИКСИРОВАН.</string>
-    <string name="banner_status_fix">%1$s · %2$s · %3$s ЗАФИКСИРОВАН</string>
-
-    <!-- Standards (definitions of what counts as Standard / Minimum per habit). -->
-    <!-- Midday check + Pomodoro settings. -->
-    <string name="settings_midday_label">ПОЛУДЕННАЯ ПРОВЕРКА</string>
-    <string name="settings_midday_toggle">ПРОВЕРКА В ПОЛДЕНЬ</string>
-    <string name="settings_midday_hint">Тихое уведомление, если к указанному часу Ядро ещё не закрыто.</string>
-    <string name="settings_pomodoro_label">ПОМОДОРО</string>
-    <string name="settings_pomodoro_toggle">АВТО-ОСТАНОВКА</string>
-    <string name="settings_pomodoro_hint">Концентрация авто-завершается через выбранное количество минут.</string>
-    <string name="settings_pomodoro_minutes_label">МИНУТ</string>
-
-    <!-- Mode tab: day-mode picker + per-habit standards. -->
-    <string name="mode_header">РЕЖИМ ДНЯ</string>
-    <string name="mode_day_picker_label">СЕГОДНЯШНИЙ РЕЖИМ</string>
-    <string name="mode_day_picker_hint">Выбор фиксируется на сегодня. Хронометр классифицирует сутки по этому полю.</string>
-    <string name="mode_day_picker_locked">Решение зафиксировано. Изменить нельзя.</string>
-    <string name="mode_day_picker_pick_standard">ПОСТАВИТЬ СТАНДАРТ</string>
-    <string name="mode_day_picker_pick_mvd">ПОСТАВИТЬ МИНИМУМ</string>
-    <string name="mode_day_current_standard">РЕЖИМ: СТАНДАРТ</string>
-    <string name="mode_day_current_mvd">РЕЖИМ: МИНИМУМ</string>
-    <string name="mode_day_current_unset">РЕЖИМ НЕ ВЫБРАН</string>
-
-    <string name="mode_standards_label">КРИТЕРИИ</string>
-    <string name="mode_standards_hint">Что считается СТАНДАРТОМ и МИНИМУМОМ для каждой привычки. ГЕНЕРАЦИИ — главное дело: планка выше остальных. Пересматривается на воскресной оценке.</string>
-    <string name="mode_standards_field_standard">СТАНДАРТ</string>
-    <string name="mode_standards_field_mvd">МИНИМУМ</string>
-    <string name="mode_standards_reset">ЗАПОЛНИТЬ ЗНАЧЕНИЯМИ ПО УМОЛЧАНИЮ</string>
-    <string name="mode_standards_core_note">ГЛАВНОЕ ДЕЛО</string>
+    <!-- Notification channels (section 10) -->
+    <string name="channel_alarm_wake">Будильник</string>
+    <string name="channel_norm_reminders">Напоминания о нормах</string>
+    <string name="channel_norm_escalation">Ядровые нормы</string>
+    <string name="channel_timers">Таймеры</string>
+    <string name="channel_system_health">Здоровье будильника</string>
+    <string name="channel_backup">Резервная копия</string>
 </resources>

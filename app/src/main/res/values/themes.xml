@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.Avangard" parent="android:Theme.Material.NoActionBar">
-        <item name="android:statusBarColor">#1A1612</item>
-        <item name="android:navigationBarColor">#1A1612</item>
+    <style name="Theme.IterMeum" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">@color/im_background</item>
+        <item name="android:navigationBarColor">@color/im_background</item>
         <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowBackground">@color/im_background</item>
     </style>
 </resources>

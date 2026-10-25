@@ -8,31 +8,26 @@ plugins {
 }
 
 android {
-    namespace = "com.avangard.app"
+    namespace = "com.itermeum.app"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.avangard.app"
+        applicationId = "com.itermeum.app"
         minSdk = 26
         targetSdk = 34
         versionCode = 1
-        versionName = "0.1.0"
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables { useSupportLibrary = true }
-
-        // Sentry DSN — load from local.properties or env, default empty.
-        // Without DSN the SDK is initialised to no-op (release builds skip init).
-        val sentryDsn: String = providers.gradleProperty("sentry.dsn").orNull
-            ?: System.getenv("SENTRY_DSN")
-            ?: ""
-        buildConfigField("String", "SENTRY_DSN", "\"$sentryDsn\"")
     }
 
     buildTypes {
+        // No applicationIdSuffix on debug: the Google OAuth client is bound to
+        // the package name and the app ships as a sideloaded debug APK
+        // (docs/DECISIONS.md, D-02).
         debug {
             isMinifyEnabled = false
-            applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
         }
         release {
@@ -69,8 +64,7 @@ android {
         }
     }
 
-    // Robolectric needs merged res + assets to read app strings and
-    // bundled JSON datasets (assets/library_quotes.json) from unit tests.
+    // Robolectric reads merged res + assets (strings, assets/*.json) in unit tests.
     testOptions {
         unitTests.isIncludeAndroidResources = true
     }
@@ -93,7 +87,6 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
-    implementation(libs.androidx.compose.ui.text.google.fonts)
 
     implementation(libs.androidx.navigation.compose)
 
@@ -106,15 +99,13 @@ dependencies {
     ksp(libs.androidx.room.compiler)
 
     implementation(libs.androidx.datastore.preferences)
-
-    implementation(libs.sentry.android.core)
     implementation(libs.kotlinx.serialization.json)
 
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.coroutines.play.services)
 
-    // Google Sign-In + Drive AppData REST sync (v3.8).
+    // Google Sign-In + Drive AppData REST backup.
     implementation(libs.play.services.auth)
     implementation(libs.okhttp)
     implementation(libs.androidx.work.runtime.ktx)

@@ -20,5 +20,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Avangard"
+rootProject.name = "IterMeum"
 include(":app")
