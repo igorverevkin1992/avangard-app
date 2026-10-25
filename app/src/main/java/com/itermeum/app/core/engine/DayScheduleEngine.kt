@@ -121,9 +121,18 @@ object DayScheduleEngine {
         }.sortedWith(compareBy(nullsLast()) { it.time })
     }
 
-    /** Next item whose window has not yet closed. */
-    fun nextItem(items: List<ScheduledItem>, now: LocalDateTime, done: Set<String>): ScheduledItem? =
-        items.filter { it.normId !in done && it.time != null && now.isBefore(it.windowEnd) }.minByOrNull { it.time!! }
+    /**
+     * «Следующая норма» for the Today screen: an open item whose deadline is
+     * live (time ≤ now < windowEnd, windowEnd before the end of the logical
+     * day) wins by earliest deadline; otherwise the earliest upcoming item.
+     */
+    fun nextItem(items: List<ScheduledItem>, now: LocalDateTime, done: Set<String>): ScheduledItem? {
+        val dayEnd = now.toLocalDate().let { d -> if (now.toLocalTime().isBefore(LocalTime.of(3, 0))) d.atTime(3, 0) else d.plusDays(1).atTime(3, 0) }
+        val open = items.filter { it.normId !in done && it.time != null }
+        val live = open.filter { val at = it.windowStart.toLocalDate().atTime(it.time); !now.isBefore(at) && now.isBefore(it.windowEnd) && it.windowEnd.isBefore(dayEnd) }
+        live.minByOrNull { it.windowEnd }?.let { return it }
+        return open.filter { !it.windowStart.toLocalDate().atTime(it.time).isBefore(now) }.minByOrNull { it.time!! }
+    }
 
     fun isLastSundayOfQuarter(date: LocalDate): Boolean {
         if (date.dayOfWeek != DayOfWeek.SUNDAY) return false

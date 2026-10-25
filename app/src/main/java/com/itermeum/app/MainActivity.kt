@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,6 +32,7 @@ class MainActivity : ComponentActivity() {
 
     /** Latest intent, so deep-links delivered to the running singleTop activity re-route. */
     private val intentState = MutableStateFlow<Intent?>(null)
+    private val root: RootViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,7 +41,12 @@ class MainActivity : ComponentActivity() {
         setContent {
             val current by intentState.collectAsState()
             val target = NavRoute.fromDeepLink(current?.data) ?: current?.getStringExtra(EXTRA_ROUTE)
-            IterMeumRoot(target)
+            val onboardingDone by root.onboardingDone.collectAsState()
+            when (onboardingDone) {
+                null -> IterMeumTheme { Box(Modifier.fillMaxSize()) }
+                false -> IterMeumRoot(deepLinkRoute = null, startDestination = NavRoute.Onboarding.route)
+                true -> IterMeumRoot(deepLinkRoute = target, startDestination = NavRoute.Today.route)
+            }
         }
     }
 
@@ -55,7 +62,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-private fun IterMeumRoot(deepLinkRoute: String?) {
+private fun IterMeumRoot(deepLinkRoute: String?, startDestination: String) {
     IterMeumTheme {
         val navController = rememberNavController()
         val showBottomBar = shouldShowBottomNav(navController)
@@ -71,7 +78,7 @@ private fun IterMeumRoot(deepLinkRoute: String?) {
                 }
             }
             Box(Modifier.padding(padding)) {
-                IterMeumNavHost(navController = navController)
+                IterMeumNavHost(navController = navController, startDestination = startDestination)
             }
         }
     }

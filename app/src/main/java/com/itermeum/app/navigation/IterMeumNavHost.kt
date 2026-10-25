@@ -5,6 +5,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.itermeum.app.feature.about.AboutScreen
+import com.itermeum.app.feature.onboarding.OnboardingScreen
 import com.itermeum.app.feature.path.PathScreen
 import com.itermeum.app.feature.prayer.PrayerScreen
 import com.itermeum.app.feature.settings.SettingsScreen
@@ -12,8 +13,13 @@ import com.itermeum.app.feature.today.TodayScreen
 import com.itermeum.app.feature.work.WorkScreen
 
 @Composable
-fun IterMeumNavHost(navController: NavHostController) {
-    NavHost(navController = navController, startDestination = NavRoute.Today.route) {
+fun IterMeumNavHost(navController: NavHostController, startDestination: String) {
+    NavHost(navController = navController, startDestination = startDestination) {
+        composable(NavRoute.Onboarding.route) {
+            OnboardingScreen(onFinished = {
+                navController.navigate(NavRoute.Today.route) { popUpTo(NavRoute.Onboarding.route) { inclusive = true } }
+            })
+        }
         composable(NavRoute.Today.route) {
             TodayScreen(onOpenSettings = { navController.navigate(NavRoute.Settings.route) })
         }

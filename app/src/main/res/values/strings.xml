@@ -36,4 +36,132 @@
     <string name="channel_timers">Таймеры</string>
     <string name="channel_system_health">Здоровье будильника</string>
     <string name="channel_backup">Резервная копия</string>
+
+    <!-- Common -->
+    <string name="yes">Да</string>
+    <string name="no">Нет</string>
+    <string name="grant">Разрешить</string>
+    <string name="retry">Ещё раз</string>
+    <string name="save">Сохранить</string>
+    <string name="next">Далее</string>
+    <string name="back">Назад</string>
+    <string name="done">Готово</string>
+    <string name="cancel">Отмена</string>
+    <string name="open_settings">Открыть настройки</string>
+
+    <!-- Morning block (5.1) -->
+    <string name="alarm_notification_title">Serviam. Подъём.</string>
+    <string name="alarm_notification_text">Подтверди подъём: QR на кухне.</string>
+    <string name="ring_title">Serviam</string>
+    <string name="ring_subtitle">Героическая минута. Без колебаний — встань.</string>
+    <string name="ring_go_to_proof">Я встал — к подтверждению</string>
+    <string name="ring_no_snooze">Кнопки «отложить» нет. Звук стихнет после подтверждения.</string>
+    <string name="test_alarm_title">Тестовый будильник сработал. Звук и экран поверх блокировки — в порядке.</string>
+    <string name="test_alarm_works">Работает</string>
+    <string name="proof_title">Подтверждение подъёма</string>
+    <string name="proof_qr_hint">Наведи камеру на QR-код на кухне.</string>
+    <string name="proof_qr_wrong">Это не тот код. Нужен QR из настроек Iter Meum.</string>
+    <string name="proof_camera_needed">Для сканирования QR нужна камера.</string>
+    <string name="proof_use_steps">Нет QR — 20 шагов</string>
+    <string name="proof_steps_title">20 шагов за 2 минуты</string>
+    <string name="proof_steps_progress">%1$d из %2$d · осталось %3$d с</string>
+    <string name="proof_steps_expired">Время вышло. Начни заново.</string>
+    <string name="proof_reverse_hint">Введи код задом наперёд:</string>
+    <string name="proof_reverse_label">Код наоборот</string>
+    <string name="proof_confirm">Подтвердить</string>
+    <string name="heroic_title">Serviam!</string>
+    <string name="heroic_late">Поздний подъём: стрик не растёт, но и не горит.</string>
+    <string name="heroic_sign_of_cross">Во имя Отца, и Сына, и Святого Духа. Аминь.</string>
+    <string name="heroic_offering">Господи, приношу Тебе этот день: мысли, слова, дела, труд, радости и трудности. Пусть всё будет для Твоей славы. Serviam!</string>
+    <string name="heroic_next">Дальше — 30 минут без мессенджеров. Телефон отложи.</string>
+    <string name="heroic_skip_text">Прочитал про себя — дальше</string>
+    <string name="quarantine_question_title">Карантин сохранён?</string>
+    <string name="quarantine_question_text">30 минут без мессенджеров после подъёма — честный ответ.</string>
+    <string name="quarantine_timer">Карантин: %1$s</string>
+    <string name="quarantine_kept">Карантин сохранён</string>
+    <string name="quarantine_broken">Карантин нарушен — завтра снова</string>
+    <string name="gym_title">Зал</string>
+    <string name="gym_leave_in">Выход через %1$s</string>
+    <string name="gym_done">Зал</string>
+    <string name="gym_home">Домашняя тренировка 20 мин</string>
+    <string name="morning_missed">Подъём не подтверждён. День всё равно твой: Examen вечером.</string>
+    <string name="morning_proven">Подъём подтверждён</string>
+    <string name="morning_scheduled">Будильник завтра в %1$s</string>
+    <string name="morning_sick">Болею: будильник 08:00 без подтверждения</string>
+    <string name="alarm_health_title">Будильник на завтра не установлен</string>
+    <string name="alarm_health_text">Открой настройки и проверь точные будильники и автозапуск.</string>
+    <string name="exact_alarm_needed">Нужно разрешение на точные будильники — без него подъём не сработает вовремя.</string>
+
+    <!-- Onboarding (section 13) -->
+    <string name="onboarding_step">Шаг %1$d из %2$d</string>
+    <string name="onboarding_finish">Начать</string>
+    <string name="onboarding_name_title">Как к тебе обращаться?</string>
+    <string name="onboarding_name_label">Имя</string>
+    <string name="onboarding_day_title">Режим дня</string>
+    <string name="onboarding_day_hint">Подъём 06:30, выходные 07:30, отбой 23:00, работа 12:00–20:00. Всё можно изменить в настройках.</string>
+    <string name="onboarding_formation_title">Катехизация и Месса</string>
+    <string name="onboarding_catechesis_fixed">Катехизация: суббота 16:00, собор на Малой Грузинской. Напоминание в 15:30.</string>
+    <string name="onboarding_qr_title">QR на кухне</string>
+    <string name="onboarding_qr_hint">Распечатай этот код и повесь на кухне. Утром будильник стихнет только после сканирования. Код хранится только в телефоне.</string>
+    <string name="onboarding_qr_save">Сохранить PNG в галерею</string>
+    <string name="onboarding_qr_saved">Сохранено: Pictures/Iter Meum</string>
+    <string name="onboarding_qr_test">Тестовое сканирование</string>
+    <string name="onboarding_qr_test_ok">Сканирование работает</string>
+    <string name="onboarding_outreach_title">Цель звонков в день</string>
+    <string name="onboarding_outreach_hint">Обзвон героев — первое рабочее дело. Попыток до 14:00:</string>
+    <string name="onboarding_test_title">Тестовый будильник</string>
+    <string name="onboarding_test_hint">Через 2 минуты сработает тест: звук и экран поверх блокировки. Заблокируй телефон и подожди.</string>
+    <string name="onboarding_test_arm">Запустить тест через 2 минуты</string>
+    <string name="onboarding_test_armed">Тест запущен — заблокируй телефон</string>
+    <string name="onboarding_test_warning">Не все пункты 1–4 чеклиста в порядке: будильник может не сработать.</string>
+    <string name="onboarding_final_title">Завтра в %1$s. Serviam.</string>
+    <string name="onboarding_final_hint">Все нормы активны с первого дня. Верность, а не идеальность: срыв ведёт в испытание совести и к одному решению.</string>
+
+    <!-- HyperOS checklist (section 13) -->
+    <string name="hyperos_title">Настройка HyperOS</string>
+    <string name="hyperos_notifications">Уведомления разрешены</string>
+    <string name="hyperos_exact_alarms">Точные будильники</string>
+    <string name="hyperos_full_screen">Полноэкранные уведомления</string>
+    <string name="hyperos_battery">Батарея: «Без ограничений»</string>
+    <string name="hyperos_autostart">Автозапуск включён</string>
+    <string name="hyperos_no_suspend">«Приостанавливать неиспользуемые» — выкл.</string>
+    <string name="hyperos_lockscreen">Уведомления на экране блокировки, плавающие</string>
+    <string name="hyperos_pin_recents">Закрепить в недавних</string>
+    <string name="hyperos_steps">Шагомер (резервное подтверждение)</string>
+    <string name="hyperos_camera">Камера (QR)</string>
+    <string name="hyperos_manual">Проверь вручную — откроется экран системы</string>
+    <string name="hyperos_backup_alarm">Рекомендация: резервный системный будильник «Часы» на 06:35.</string>
+    <string name="hyperos_reset_banner">Настройки HyperOS сброшены: будильник под угрозой. Открой чеклист.</string>
+
+    <!-- Today -->
+    <string name="today_next_norm">Следующая норма</string>
+    <string name="today_norms">Нормы дня</string>
+    <string name="today_all_done">Все нормы дня выполнены. Deo omnis gloria.</string>
+    <string name="today_mark_done">Отметить</string>
+    <string name="today_sick">Болею</string>
+    <string name="today_sick_off">Выздоровел</string>
+    <string name="today_travel">Командировка</string>
+    <string name="today_travel_end">Командировка окончена</string>
+
+    <!-- Settings (5.17) -->
+    <string name="settings_day_mode">Режим дня</string>
+    <string name="settings_wake_weekday">Подъём (будни)</string>
+    <string name="settings_wake_weekend">Подъём (сб, вс)</string>
+    <string name="settings_bed">Отбой</string>
+    <string name="settings_work_start">Работа с</string>
+    <string name="settings_work_end">Работа до</string>
+    <string name="settings_wake_method">Подтверждение подъёма</string>
+    <string name="settings_wake_qr">QR на кухне</string>
+    <string name="settings_wake_steps">20 шагов</string>
+    <string name="settings_alarm_sound">Звук будильника</string>
+    <string name="settings_alarm_volume">Громкость, %</string>
+    <string name="settings_outreach_target">Цель звонков</string>
+    <string name="settings_mass_time">Время Мессы</string>
+    <string name="settings_mass_time_hint">Месса засчитывается раз в неделю — в субботу вечером или в воскресенье утром.</string>
+    <string name="mass_saturday">Суббота вечером</string>
+    <string name="mass_sunday">Воскресенье утром</string>
+    <string name="settings_hyperos">Чеклист HyperOS</string>
+    <string name="settings_show_qr">Показать QR</string>
+    <string name="settings_test_alarm">Тестовый будильник через 2 минуты</string>
+    <string name="settings_saved">Сохранено. Будильник переустановлен.</string>
 </resources>

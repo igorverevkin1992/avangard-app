@@ -66,11 +66,13 @@ class DayScheduleEngineTest {
     }
 
     @Test
-    fun `mass reminder is muted by its own quiet window and never hides the catechesis note`() {
+    fun `mass quiet window mutes reminders inside plus-minus 90 minutes only`() {
         val mass = saturday.atTime(19, 0) to saturday.atTime(20, 0)
         val items = DayScheduleEngine.schedule(input(date = saturday, events = listOf(mass)))
         assertTrue(items.of(NormCatalog.MASS).muted)
-        assertFalse(items.of(NormCatalog.ROSARY).muted) // 20:15 < 21:30? still inside → check below
+        assertTrue(items.of(NormCatalog.ROSARY).muted) // 20:15 is inside 17:30–21:30
+        assertFalse(items.of(NormCatalog.EXAMEN).muted) // 22:40 is outside
+        assertFalse(items.of(NormCatalog.ANGELUS).muted)
     }
 
     @Test
@@ -127,7 +129,11 @@ class DayScheduleEngineTest {
         val items = DayScheduleEngine.schedule(input())
         val next = DayScheduleEngine.nextItem(items, monday.atTime(12, 10), done = setOf(NormCatalog.ANGELUS, NormCatalog.DAY_PLAN))
         assertEquals(NormCatalog.FROG, next!!.normId)
-        val evening = DayScheduleEngine.nextItem(items, monday.atTime(21, 30), done = emptySet())
-        assertEquals(NormCatalog.ROSARY, evening!!.normId)
+        val afternoon = DayScheduleEngine.nextItem(items, monday.atTime(15, 0), done = setOf(NormCatalog.ANGELUS, NormCatalog.DAY_PLAN, NormCatalog.FROG))
+        assertEquals(NormCatalog.LAST_STONE, afternoon!!.normId)
+        val lateEvening = DayScheduleEngine.nextItem(items, monday.atTime(21, 30), done = emptySet())
+        assertEquals(NormCatalog.EXAMEN, lateEvening!!.normId)
+        val morning = DayScheduleEngine.nextItem(items, monday.atTime(6, 0), done = emptySet())
+        assertEquals(NormCatalog.WAKE, morning!!.normId)
     }
 }
