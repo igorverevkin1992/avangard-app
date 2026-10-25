@@ -134,7 +134,7 @@ class LiturgicalCalendarTest {
         val ctk = cal.day(d("2027-11-21"))
         assertEquals("OT34", ctk.celebrationId)
         assertEquals(34, ctk.weekOfSeason)
-        assertEquals("Mt 25:31-46", ctk.gospelRef)
+        assertEquals("Jn 18:33-37", ctk.gospelRef) // 2027 = year B
         val sat = cal.day(d("2027-11-27"))
         assertEquals("Lk 21:34-36", sat.gospelRef)
     }
