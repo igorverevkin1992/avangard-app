@@ -188,20 +188,30 @@ kotlin {
     }
 }
 
-// Robolectric's android-all jar comes through Gradle (retries, cache) instead of
-// Robolectric's own Maven Central download, which hit HTTP 429 in CI.
+// Robolectric's android-all jars come through Gradle (retries, cache) instead of
+// Robolectric's own Maven Central download, which hit HTTP 429 in CI. Both SDK
+// levels Robolectric 4.14 may pick are copied into one offline directory.
 val robolectricJars: Configuration by configurations.creating
-dependencies { robolectricJars("org.robolectric:android-all-instrumented:14-robolectric-10818077-i7") }
+dependencies {
+    robolectricJars("org.robolectric:android-all-instrumented:14-robolectric-10818077-i7")
+    robolectricJars("org.robolectric:android-all-instrumented:15-robolectric-12650502-i7")
+}
+
+val robolectricOfflineDir = layout.buildDirectory.dir("robolectric-jars")
+val syncRobolectricJars by tasks.registering(Sync::class) {
+    from(robolectricJars)
+    into(robolectricOfflineDir)
+}
 
 abstract class RobolectricOfflineArgs : CommandLineArgumentProvider {
-    @get:InputFiles
+    @get:InputDirectory
     @get:PathSensitive(PathSensitivity.NONE)
-    abstract val jars: ConfigurableFileCollection
+    abstract val dir: DirectoryProperty
     override fun asArguments(): Iterable<String> =
-        listOf("-Drobolectric.offline=true", "-Drobolectric.dependency.dir=" + jars.singleFile.parentFile.absolutePath)
+        listOf("-Drobolectric.offline=true", "-Drobolectric.dependency.dir=" + dir.get().asFile.absolutePath)
 }
 
 tasks.withType<Test>().configureEach {
-    jvmArgumentProviders.add(objects.newInstance<RobolectricOfflineArgs>().apply { jars.from(robolectricJars) })
+    dependsOn(syncRobolectricJars)
+    jvmArgumentProviders.add(objects.newInstance<RobolectricOfflineArgs>().apply { dir.set(robolectricOfflineDir) })
 }
-
