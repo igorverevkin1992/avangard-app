@@ -2,13 +2,12 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp" android:height="108dp"
     android:viewportWidth="108" android:viewportHeight="108">
-    <!-- Square with cut corners -->
-    <path android:fillColor="#00000000" android:strokeColor="#E8E4DC" android:strokeWidth="2.5"
-        android:pathData="M36,26 L72,26 L82,36 L82,72 L72,82 L36,82 L26,72 L26,36 Z" />
-    <!-- Latin cross with flared (pattée) ends -->
-    <path android:fillColor="#E8E4DC"
-        android:pathData="M50,32 L58,32 L56.5,46.5 L66,45 L66,53 L56.5,51.5 L58,70 L50,70 L51.5,51.5 L42,53 L42,45 L51.5,46.5 Z" />
-    <!-- Road line beneath -->
-    <path android:fillColor="#00000000" android:strokeColor="#E8E4DC" android:strokeWidth="2"
-        android:pathData="M40,76 L68,76" />
+    <!-- Heater shield, aged gold -->
+    <path android:fillColor="#00000000" android:strokeColor="#B8923A" android:strokeWidth="2.5"
+        android:pathData="M30,24 L78,24 L78,52 C78,68 62,78 54,86 C46,78 30,68 30,52 Z" />
+    <path android:fillColor="#00000000" android:strokeColor="#6B5527" android:strokeWidth="1"
+        android:pathData="M34,28 L74,28 L74,52 C74,65 61,74 54,81 C47,74 34,65 34,52 Z" />
+    <!-- Cross pattée, parchment -->
+    <path android:fillColor="#E8E2D4"
+        android:pathData="M49.2,36 L58.8,36 L56,48 L68,45.2 L68,54.8 L56,52 L58.8,64 L49.2,64 L52,52 L40,54.8 L40,45.2 L52,48 Z" />
 </vector>

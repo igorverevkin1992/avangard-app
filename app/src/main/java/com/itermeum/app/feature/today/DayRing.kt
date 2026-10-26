@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import com.itermeum.app.core.designsystem.ImMonoFamily
+import com.itermeum.app.core.designsystem.drawCrossPattee
 
 /**
  * Section 6.3 «круг дня»: one segment per active norm with 2dp gaps,
@@ -24,9 +25,24 @@ import com.itermeum.app.core.designsystem.ImMonoFamily
 @Composable
 fun DayRing(total: Int, done: List<Boolean>, accent: Color, calls: Int, agreements: Int, modifier: Modifier = Modifier) {
     val outline = MaterialTheme.colorScheme.outline
+    val gold = MaterialTheme.colorScheme.tertiary
+    val goldDim = MaterialTheme.colorScheme.outlineVariant
     Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(Modifier.size(180.dp), contentAlignment = Alignment.Center) {
+        Box(Modifier.size(196.dp), contentAlignment = Alignment.Center) {
             Canvas(Modifier.fillMaxSize()) {
+                // D-23: outer gold hairline with twelve ticks, like a rose window.
+                val outerR = size.minDimension / 2f - 1.dp.toPx()
+                drawCircle(goldDim, radius = outerR, style = Stroke(1f))
+                for (t in 0 until 12) {
+                    val a = Math.toRadians(t * 30.0 - 90)
+                    val len = if (t % 3 == 0) 6.dp.toPx() else 3.dp.toPx()
+                    val from = Offset(center.x + (outerR - len) * Math.cos(a).toFloat(), center.y + (outerR - len) * Math.sin(a).toFloat())
+                    val to = Offset(center.x + outerR * Math.cos(a).toFloat(), center.y + outerR * Math.sin(a).toFloat())
+                    drawLine(if (t == 0) gold else goldDim, from, to, strokeWidth = 1.5f)
+                }
+                drawCrossPattee(Offset(center.x, center.y - outerR + 11.dp.toPx()), 9.dp.toPx(), gold)
+            }
+            Canvas(Modifier.size(164.dp)) {
                 val stroke = 14.dp.toPx()
                 val gapPx = 2.dp.toPx()
                 val radius = (size.minDimension - stroke) / 2f

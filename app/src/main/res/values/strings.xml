@@ -158,6 +158,7 @@
     <string name="settings_outreach_target">Цель звонков</string>
     <string name="settings_mass_time">Время Мессы</string>
     <string name="settings_mass_time_hint">Месса засчитывается раз в неделю — в субботу вечером или в воскресенье утром.</string>
+    <string name="motto_serviam">Serviam · Ora et labora</string>
     <string name="mass_time_saturday">Суббота</string>
     <string name="mass_time_sunday">Воскресенье</string>
     <string name="mass_usual_day">Обычный день Мессы (напоминание и тихое окно ±90 мин):</string>

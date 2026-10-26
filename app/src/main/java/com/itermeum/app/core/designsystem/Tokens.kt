@@ -3,15 +3,24 @@ package com.itermeum.app.core.designsystem
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
-/** Section 12 colour tokens. Flat fills, no gradients. */
+/**
+ * Section 12 colour tokens, warmed towards a chapel-at-night palette (D-23):
+ * near-black stone, parchment text, aged gold for rules and ornaments,
+ * crimson reserved for the martyr accent and for danger.
+ */
 object ImColors {
-    val Background = Color(0xFF0E0E0E)
-    val Surface = Color(0xFF161616)
-    val SurfaceVariant = Color(0xFF222222)
-    val OnSurface = Color(0xFFE8E4DC)
-    val OnSurfaceVariant = Color(0xFF9A958C)
-    val Outline = Color(0xFF3A3A3A)
+    val Background = Color(0xFF0D0C0B)
+    val Surface = Color(0xFF171513)
+    val SurfaceVariant = Color(0xFF231F1B)
+    val OnSurface = Color(0xFFE8E2D4)
+    val OnSurfaceVariant = Color(0xFF9C9486)
+    val Outline = Color(0xFF433C34)
     val Error = Color(0xFFB3261E)
+
+    /** Ornament metals (D-23): hairlines, crosses, mottos. */
+    val Gold = Color(0xFFB8923A)
+    val GoldDim = Color(0xFF6B5527)
+    val Stone = Color(0xFF2C2722)
 
     /** Liturgical accents (section 12). Primary = colour of the current season. */
     val Ordinary = Color(0xFF3F6B3F)

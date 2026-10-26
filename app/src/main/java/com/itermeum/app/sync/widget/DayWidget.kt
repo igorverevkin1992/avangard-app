@@ -66,9 +66,9 @@ class DayWidget : GlanceAppWidget() {
 
     @Composable
     private fun Content(total: Int, done: Int, nextTitle: String?, nextTime: String?, calls: Int) {
-        val bg = ColorProvider(Color(0xFF0E0E0E))
-        val fg = ColorProvider(Color(0xFFE8E4DC))
-        val dim = ColorProvider(Color(0xFF9A958C))
+        val bg = ColorProvider(Color(0xFF0D0C0B))
+        val fg = ColorProvider(Color(0xFFE8E2D4))
+        val dim = ColorProvider(Color(0xFF9C9486))
         val accent = ColorProvider(Color(0xFF3F6B3F))
         val ctx = androidx.glance.LocalContext.current
         Column(
@@ -87,7 +87,7 @@ class DayWidget : GlanceAppWidget() {
             Spacer(GlanceModifier.height(8.dp))
             Row(GlanceModifier.fillMaxWidth()) {
                 repeat(maxOf(total, 1)) { i ->
-                    Spacer(GlanceModifier.height(6.dp).defaultWeight().background(if (i < done) accent else ColorProvider(Color(0xFF3A3A3A))))
+                    Spacer(GlanceModifier.height(6.dp).defaultWeight().background(if (i < done) accent else ColorProvider(Color(0xFF433C34))))
                     if (i < total - 1) Spacer(GlanceModifier.width(2.dp))
                 }
             }
@@ -95,7 +95,7 @@ class DayWidget : GlanceAppWidget() {
             Text(
                 "РИТУАЛ ПЕРЕХОДА · 15 с",
                 style = TextStyle(color = fg, fontSize = 12.sp, fontWeight = FontWeight.Bold),
-                modifier = GlanceModifier.fillMaxWidth().background(ColorProvider(Color(0xFF222222))).padding(8.dp)
+                modifier = GlanceModifier.fillMaxWidth().background(ColorProvider(Color(0xFF231F1B))).padding(8.dp)
                     .clickable(actionStartActivity(Intent(Intent.ACTION_VIEW, Uri.parse("itermeum://ritual")).setClass(ctx, MainActivity::class.java))),
             )
         }

@@ -9,6 +9,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavHostController
@@ -36,8 +39,9 @@ fun IterMeumNavigationBar(navController: NavHostController, modifier: Modifier =
     val entry by navController.currentBackStackEntryAsState()
     val currentRoute = entry?.destination?.route
     val scheme = MaterialTheme.colorScheme
+    val goldDim = scheme.outlineVariant
     NavigationBar(
-        modifier = modifier,
+        modifier = modifier.drawBehind { drawLine(goldDim, Offset(0f, 0f), Offset(size.width, 0f), strokeWidth = 1f) },
         containerColor = scheme.surface,
         contentColor = scheme.onSurface,
     ) {
@@ -59,9 +63,9 @@ fun IterMeumNavigationBar(navController: NavHostController, modifier: Modifier =
                         contentDescription = stringResource(tab.labelRes),
                     )
                 },
-                label = { Text(stringResource(tab.labelRes), style = MaterialTheme.typography.labelMedium) },
+                label = { Text(stringResource(tab.labelRes).uppercase(), style = MaterialTheme.typography.labelLarge.copy(fontSize = 11.sp)) },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = scheme.primary,
+                    selectedIconColor = scheme.tertiary,
                     selectedTextColor = scheme.onSurface,
                     indicatorColor = scheme.surfaceVariant,
                     unselectedIconColor = scheme.onSurfaceVariant,

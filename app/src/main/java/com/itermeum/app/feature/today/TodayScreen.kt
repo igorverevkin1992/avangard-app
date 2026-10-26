@@ -31,6 +31,7 @@ import com.itermeum.app.feature.prayer.accent
 import com.itermeum.app.core.data.MorningRepository
 import com.itermeum.app.core.database.entity.MorningStage
 import com.itermeum.app.core.designsystem.ImHeader
+import com.itermeum.app.core.designsystem.ImMotto
 import com.itermeum.app.core.designsystem.ImPanel
 import com.itermeum.app.core.designsystem.ImPrimaryButton
 import com.itermeum.app.core.designsystem.ImSecondaryButton
@@ -66,6 +67,7 @@ fun TodayScreen(onOpenSettings: () -> Unit, onMilestone: (String) -> Unit = {}, 
         ui.liturgical?.let {
             Text(it.title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
         }
+        ImMotto(stringResource(R.string.motto_serviam))
         if (!hyperOsOk) {
             ImPanel(Modifier.clickable(onClick = onOpenSettings)) {
                 Text(stringResource(R.string.hyperos_reset_banner), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)

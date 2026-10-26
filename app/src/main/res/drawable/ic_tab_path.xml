@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Heater shield with a cross. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
-    <path android:fillColor="#00000000" android:strokeColor="#FFFFFFFF" android:strokeWidth="2"
-        android:pathData="M12,2 L12,22" />
-    <path android:fillColor="#FFFFFFFF" android:pathData="M12,5 L15,8 L12,11 L9,8 Z M12,13 L15,16 L12,19 L9,16 Z" />
+    <path android:fillColor="#00000000" android:strokeColor="#FFFFFFFF" android:strokeWidth="1.8"
+        android:pathData="M4.5,3 L19.5,3 L19.5,11 C19.5,16.5 14,19.5 12,21.5 C10,19.5 4.5,16.5 4.5,11 Z" />
+    <path android:fillColor="#FFFFFFFF"
+        android:pathData="M11,6.5 L13,6.5 L13,9.5 L16,9.5 L16,11.5 L13,11.5 L13,16 L11,16 L11,11.5 L8,11.5 L8,9.5 L11,9.5 Z" />
 </vector>
