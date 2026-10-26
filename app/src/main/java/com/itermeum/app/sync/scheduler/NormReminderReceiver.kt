@@ -89,7 +89,16 @@ class NormReminderReceiver : BroadcastReceiver() {
             NormCatalog.ANGELUS -> assets.notificationText(if (calendar.day(date).reginaCaeli) "regina_caeli" else "angelus", 1) ?: return
             else -> assets.notificationText(normId, effectiveLevel(level, profile.notificationTone)) ?: assets.notificationText(normId, 1) ?: return
         }
-        val channel = if (level >= 2) NotificationChannels.NORM_ESCALATION else NotificationChannels.NORM_REMINDERS
+        // D-34: during working hours only work norms and the streak threat may pop up;
+        // the rest is shown quietly so it does not break the working order.
+        val inWork = NormCatalog.FROG in schedule.map { it.normId } &&
+            !now.toLocalTime().isBefore(profile.workStart) && now.toLocalTime().isBefore(profile.workEnd)
+        val workNorm = normId in setOf(NormCatalog.DAY_PLAN, NormCatalog.FROG, NormCatalog.LAST_STONE, THREAT)
+        val channel = when {
+            inWork && !workNorm -> NotificationChannels.QUIET_REMINDERS
+            level >= 2 -> NotificationChannels.NORM_ESCALATION
+            else -> NotificationChannels.NORM_REMINDERS
+        }
         val deepLink = DEEP_LINKS[normId] ?: "itermeum://today"
         presenter.post(
             notificationId(normId), channel,

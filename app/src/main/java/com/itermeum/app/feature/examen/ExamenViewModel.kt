@@ -19,6 +19,9 @@ import com.itermeum.app.core.database.dao.TaskDao
 import com.itermeum.app.core.database.entity.FollowUpAnswer
 import com.itermeum.app.core.database.entity.StreakType
 import com.itermeum.app.core.database.entity.TaskStatus
+import com.itermeum.app.core.database.entity.TaskType
+import com.itermeum.app.core.database.entity.OutreachOutcome
+import com.itermeum.app.core.database.entity.OutreachKind
 import com.itermeum.app.core.engine.ExamenValidator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.LocalDate
@@ -30,7 +33,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-enum class ExamenStep { CLOSED, FOLLOW_UP, PRESENCE, GRATITUDE, AUDIT, CONTRITION, PROPOSITO, AVE, WHAT_BROKE, DONE }
+enum class ExamenStep { CLOSED, CATCH_UP, FOLLOW_UP, PRESENCE, GRATITUDE, AUDIT, CONTRITION, PROPOSITO, PLAN_TOMORROW, AVE, WHAT_BROKE, DONE }
 
 data class ExamenUi(
     val date: LocalDate? = null,
@@ -55,6 +58,17 @@ data class ExamenUi(
     val alreadyDone: Boolean = false,
     /** Settings: the Examen opens only after the phone's PIN / biometrics. */
     val pinRequired: Boolean = false,
+    /** D-34 evening catch-up: what really happened today (minimums = what was logged). */
+    val heroesLogged: Int = 0,
+    val agreementsLogged: Int = 0,
+    val tasksDoneLogged: Int = 0,
+    val tasksTotal: Int = 0,
+    val heroes: Int = 0,
+    val agreements: Int = 0,
+    val tasksDone: Int = 0,
+    /** D-34: tomorrow is a working day without a plan yet. */
+    val planTomorrow: Boolean = false,
+    val tomorrowTitles: List<String> = listOf("", "", ""),
 )
 
 /** Section 5.12 wizard: [FOLLOW_UP of yesterday's resolution] → PRESENCE → GRATITUDE → AUDIT(1..5) → CONTRITION → PROPOSITO → AVE(3) → [WHAT_BROKE] → DONE. */
@@ -89,6 +103,14 @@ class ExamenViewModel @Inject constructor(
             val previous = examen.previousProposito(date)
             // Set by the day close when yesterday's fidelity was frozen or broken.
             val needsWhatBroke = flags.whatBroke(date.minusDays(1))
+            val workDay = norms.scheduleFor(date).any { it.normId == NormCatalog.FROG }
+            val tasks = taskDao.forDate(date)
+            val heroes0 = outreachDao.countFor(date)
+            val agreements0 = outreachDao.observeAgreements(date).first()
+            val tasksDone0 = tasks.count { it.status != TaskStatus.OPEN }
+            val tomorrow = date.plusDays(1)
+            val planTomorrow = norms.scheduleFor(tomorrow).any { it.normId == NormCatalog.DAY_PLAN } && work.tasksFor(tomorrow).isEmpty()
+            val target = work.targetFor(tomorrow)
             _ui.update {
                 it.copy(
                     date = date, questions = questions, presenceText = presence, contritionText = contrition, aveText = ave, previous = previous,
@@ -97,10 +119,16 @@ class ExamenViewModel @Inject constructor(
                     // Yesterday's resolution is asked first (section 5.12: «Исполнил? Да/Нет»).
                     step = when {
                         existing?.completedAt != null -> ExamenStep.DONE
+                        // A working day: first a one-minute catch-up of what really happened (D-34).
+                        workDay -> ExamenStep.CATCH_UP
                         previous != null -> ExamenStep.FOLLOW_UP
                         else -> ExamenStep.PRESENCE
                     },
                     pinRequired = profiles.get().examenPinEnabled,
+                    heroesLogged = heroes0, agreementsLogged = agreements0, tasksDoneLogged = tasksDone0, tasksTotal = tasks.size,
+                    heroes = heroes0, agreements = agreements0, tasksDone = tasksDone0,
+                    planTomorrow = planTomorrow,
+                    tomorrowTitles = listOf(context.getString(R.string.examen_tomorrow_heroes, target), "", ""),
                 )
             }
             if (_ui.value.step == ExamenStep.PRESENCE) startPresenceCountdown()
@@ -168,10 +196,59 @@ class ExamenViewModel @Inject constructor(
     fun submitProposito() {
         val s = _ui.value
         when (val r = ExamenValidator.validateProposito(s.proposito)) {
-            is ExamenValidator.Result.Ok -> { _ui.update { it.copy(step = ExamenStep.AVE, propositoError = null) }; persistDraft() }
+            is ExamenValidator.Result.Ok -> {
+                _ui.update { it.copy(step = if (it.planTomorrow) ExamenStep.PLAN_TOMORROW else ExamenStep.AVE, propositoError = null) }
+                persistDraft()
+            }
             is ExamenValidator.Result.Rejected -> _ui.update { it.copy(propositoError = r.reason) }
         }
     }
+
+    // ---- D-34 evening catch-up
+
+    fun setHeroes(n: Int) = _ui.update { it.copy(heroes = n.coerceAtLeast(it.heroesLogged), agreements = it.agreements.coerceAtMost(n.coerceAtLeast(it.heroesLogged))) }
+    fun setAgreements(n: Int) = _ui.update { it.copy(agreements = n.coerceIn(it.agreementsLogged, it.heroes)) }
+    fun setTasksDone(n: Int) = _ui.update { it.copy(tasksDone = n.coerceIn(it.tasksDoneLogged, it.tasksTotal)) }
+
+    /**
+     * Records the difference as after-cutoff attempts and late-closed tasks: it goes
+     * into the statistics and the audit hints, never into the streaks.
+     */
+    fun saveCatchUp() = viewModelScope.launch {
+        val s = _ui.value
+        val date = s.date ?: return@launch
+        val extraAgreements = (s.agreements - s.agreementsLogged).coerceAtLeast(0)
+        val extraOther = (s.heroes - s.heroesLogged - extraAgreements).coerceAtLeast(0)
+        val label = context.getString(R.string.examen_catchup_label)
+        repeat(extraAgreements) { work.logOutreach(date, label, null, null, OutreachKind.CALL, OutreachOutcome.AGREEMENT, null) }
+        repeat(extraOther) { work.logOutreach(date, label, null, null, OutreachKind.CALL, OutreachOutcome.REACHED, null) }
+        work.markTasksDoneLate(date, (s.tasksDone - s.tasksDoneLogged).coerceAtLeast(0))
+        _ui.update { it.copy(hints = hintsFor(date)) }
+        leaveCatchUp()
+    }
+
+    fun skipCatchUp() = leaveCatchUp()
+
+    private fun leaveCatchUp() {
+        _ui.update { it.copy(step = if (it.previous != null) ExamenStep.FOLLOW_UP else ExamenStep.PRESENCE) }
+        if (_ui.value.step == ExamenStep.PRESENCE) startPresenceCountdown()
+    }
+
+    // ---- D-34 tomorrow's plan, made the evening before
+
+    fun setTomorrowTitle(i: Int, v: String) = _ui.update { it.copy(tomorrowTitles = it.tomorrowTitles.toMutableList().also { l -> l[i] = v }) }
+
+    fun saveTomorrowPlan() = viewModelScope.launch {
+        val s = _ui.value
+        val tomorrow = s.date?.plusDays(1) ?: return@launch
+        val drafts = s.tomorrowTitles.mapIndexedNotNull { i, t ->
+            t.trim().takeIf { it.isNotEmpty() }?.let { WorkRepository.TaskDraft(i + 1, if (i == 0) TaskType.OUTREACH else TaskType.OPS, it) }
+        }
+        if (work.planIsValid(drafts, shootDay = false)) work.savePlan(tomorrow, drafts, null, false)
+        _ui.update { it.copy(step = ExamenStep.AVE, planTomorrow = false) }
+    }
+
+    fun skipTomorrowPlan() = _ui.update { it.copy(step = ExamenStep.AVE) }
 
     fun tapAve() {
         val s = _ui.value

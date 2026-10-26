@@ -79,7 +79,7 @@ class WorkViewModel @Inject constructor(
     fun planIsValid(drafts: List<WorkRepository.TaskDraft>, shootDay: Boolean) = work.planIsValid(drafts, shootDay)
 
     fun savePlan(drafts: List<WorkRepository.TaskDraft>, intention: String?, shootDay: Boolean, onDone: () -> Unit) {
-        viewModelScope.launch { work.savePlan(date, drafts, intention, shootDay); onDone() }
+        viewModelScope.launch { work.savePlan(date, drafts, intention, shootDay); widget.requestUpdate(); onDone() }
     }
 
     fun logOutreach(person: String, role: String?, kind: OutreachKind, outcome: OutreachOutcome, agreementDate: LocalDate?) {
@@ -92,9 +92,9 @@ class WorkViewModel @Inject constructor(
     fun ritualPrayer(): String = context.getString(R.string.ritual_prayer)
     suspend fun afterRejectionPrayer(): String = prayers.pickJaculatoria("AFTER_REJECTION")?.text ?: "Omnia in bonum"
 
-    fun closeTask(task: WorkTaskEntity, checklist: List<Boolean>) = viewModelScope.launch { work.closeTask(task, checklist) }
-    fun moveTask(task: WorkTaskEntity) = viewModelScope.launch { work.moveTask(task) }
-    fun reopenTask(task: WorkTaskEntity) = viewModelScope.launch { work.reopenTask(task) }
+    fun closeTask(task: WorkTaskEntity, checklist: List<Boolean>) = viewModelScope.launch { work.closeTask(task, checklist); widget.requestUpdate() }
+    fun moveTask(task: WorkTaskEntity) = viewModelScope.launch { work.moveTask(task); widget.requestUpdate() }
+    fun reopenTask(task: WorkTaskEntity) = viewModelScope.launch { work.reopenTask(task); widget.requestUpdate() }
     fun logRitual() = viewModelScope.launch { work.logRitual() }
 
     fun frogDone() = NormCatalog.FROG in ui.value.done

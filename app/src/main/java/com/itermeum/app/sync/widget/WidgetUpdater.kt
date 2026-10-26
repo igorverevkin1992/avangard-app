@@ -11,7 +11,11 @@ import kotlinx.coroutines.launch
 
 /** Refreshes the home-screen widget right after a mark, instead of waiting up to 30 minutes. */
 @Singleton
-class WidgetUpdater @Inject constructor(@ApplicationContext private val context: Context) {
+class WidgetUpdater @Inject constructor(
+    @ApplicationContext private val context: Context,
+    private val workCard: com.itermeum.app.sync.work.WorkCard,
+) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    fun requestUpdate() { scope.launch { DayWidget.refresh(context) } }
+    /** Home-screen widget and the work card in the shade follow every mark. */
+    fun requestUpdate() { scope.launch { DayWidget.refresh(context); runCatching { workCard.refresh() } } }
 }

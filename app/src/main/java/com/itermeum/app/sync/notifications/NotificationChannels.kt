@@ -22,6 +22,10 @@ class NotificationChannels @Inject constructor(
             Spec(TIMERS, R.string.channel_timers, NotificationManager.IMPORTANCE_LOW, vibrate = false),
             Spec(SYSTEM_HEALTH, R.string.channel_system_health, NotificationManager.IMPORTANCE_HIGH, vibrate = true),
             Spec(BACKUP, R.string.channel_backup, NotificationManager.IMPORTANCE_MIN, vibrate = false),
+            // D-34: the work card buzzes once at each block change, never rings.
+            Spec(WORK_CARD, R.string.channel_work_card, NotificationManager.IMPORTANCE_DEFAULT, vibrate = true, silent = true),
+            // Non-work reminders during working hours: shown, but without sound or pop-up.
+            Spec(QUIET_REMINDERS, R.string.channel_quiet_reminders, NotificationManager.IMPORTANCE_LOW, vibrate = false),
         )
         specs.forEach { spec ->
             if (manager.getNotificationChannel(spec.id) == null) {
@@ -29,6 +33,8 @@ class NotificationChannels @Inject constructor(
                     NotificationChannel(spec.id, context.getString(spec.nameRes), spec.importance).apply {
                         enableLights(false)
                         enableVibration(spec.vibrate)
+                        if (spec.vibrate && spec.silent) vibrationPattern = longArrayOf(0, 180, 120, 180)
+                        if (spec.silent) setSound(null, null)
                         setShowBadge(false)
                     },
                 )
@@ -36,7 +42,7 @@ class NotificationChannels @Inject constructor(
         }
     }
 
-    private data class Spec(val id: String, val nameRes: Int, val importance: Int, val vibrate: Boolean)
+    private data class Spec(val id: String, val nameRes: Int, val importance: Int, val vibrate: Boolean, val silent: Boolean = false)
 
     companion object {
         const val ALARM_WAKE = "alarm_wake"
@@ -45,5 +51,7 @@ class NotificationChannels @Inject constructor(
         const val TIMERS = "timers"
         const val SYSTEM_HEALTH = "system_health"
         const val BACKUP = "backup"
+        const val WORK_CARD = "work_card"
+        const val QUIET_REMINDERS = "quiet_reminders"
     }
 }

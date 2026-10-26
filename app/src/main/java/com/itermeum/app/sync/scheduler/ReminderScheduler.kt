@@ -36,6 +36,7 @@ class ReminderScheduler @Inject constructor(
     private val profiles: ProfileRepository,
     private val norms: NormRepository,
     private val wake: WakeAlarmScheduler,
+    private val workCard: com.itermeum.app.sync.work.WorkCard,
     private val clock: Clock,
 ) {
     private val alarms = ExactAlarms(context)
@@ -50,6 +51,8 @@ class ReminderScheduler @Inject constructor(
         scheduleAt(nextDaily(HEALTH_CHECK), ExactAlarms.RC_HEALTH, Intent(context, AlarmHealthReceiver::class.java).setAction(AlarmHealthReceiver.ACTION))
         scheduleAt(nextDaily(DAY_CLOSE), ExactAlarms.RC_DAY_CLOSE, Intent(context, DayCloseReceiver::class.java).setAction(DayCloseReceiver.ACTION))
         scheduleNormReminders()
+        workCard.scheduleTicks(profile.workStart, DayScheduleEngine.frogCutoff(profile), profile.workEnd)
+        workCard.refresh()
     }
 
     /**
@@ -79,7 +82,8 @@ class ReminderScheduler @Inject constructor(
             if (item.normId == NormCatalog.MORTIFICATION) { planned += Triple(date.atTime(8, 0), item.normId, 1); continue }
             val time = item.time ?: continue
             val at = date.atTime(time)
-            planned += Triple(at, item.normId, 1)
+            // The work card announces plan, heroes and last stone (D-34); their level-1 reminder would duplicate it.
+            if (item.normId !in CARD_ANNOUNCED) planned += Triple(at, item.normId, 1)
             // Level 2 per the section 10 table.
             when (item.normId) {
                 NormCatalog.DAY_PLAN -> planned += Triple(date.atTime(input.profile.workStart).plusMinutes(25), item.normId, 2)
@@ -138,5 +142,6 @@ class ReminderScheduler @Inject constructor(
         const val MAX_NORM_ALARMS = 17
         /** Max reminders per norm in a day (catechesis has three). */
         const val SLOTS_PER_NORM = 4
+        private val CARD_ANNOUNCED = setOf(NormCatalog.DAY_PLAN, NormCatalog.FROG, NormCatalog.LAST_STONE)
     }
 }

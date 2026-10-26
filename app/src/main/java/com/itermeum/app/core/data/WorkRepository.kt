@@ -40,6 +40,19 @@ class WorkRepository @Inject constructor(
 
     fun observePlan(date: LocalDate): Flow<DayPlanEntity?> = dayPlanDao.observe(date)
     fun observeTasks(date: LocalDate): Flow<List<WorkTaskEntity>> = taskDao.observeForDate(date)
+    suspend fun tasksFor(date: LocalDate): List<WorkTaskEntity> = taskDao.forDate(date)
+    suspend fun attemptsBeforeCutoff(date: LocalDate): Int = outreachDao.countBeforeCutoff(date)
+    suspend fun attemptsTotal(date: LocalDate): Int = outreachDao.countFor(date)
+
+    /**
+     * Evening catch-up (D-34): tasks done during a chaotic day are recorded as
+     * done for the statistics and the Examen, without crediting «последний камень».
+     */
+    suspend fun markTasksDoneLate(date: LocalDate, count: Int) {
+        taskDao.forDate(date).filter { it.status == TaskStatus.OPEN }.sortedBy { it.slot }.take(count).forEach {
+            taskDao.update(it.copy(status = TaskStatus.DONE, closedAt = clock.nowEpochMillis()))
+        }
+    }
     fun observeOutreach(date: LocalDate): Flow<List<OutreachLogEntity>> = outreachDao.observeForDate(date)
     fun observeOutreachCount(date: LocalDate): Flow<Int> = outreachDao.observeCount(date)
     fun observeAgreements(date: LocalDate): Flow<Int> = outreachDao.observeAgreements(date)
@@ -81,7 +94,8 @@ class WorkRepository @Inject constructor(
         }
         // Counted when saved before 12:30 (section 4).
         val plannedBy = profiles.get().workStart.plusMinutes(30)
-        if (clock.logicalToday() == date && clock.now().isBefore(date.atTime(plannedBy))) norms.markDone(NormCatalog.DAY_PLAN, date)
+        // Counted for its day when saved before workStart + 30 — including the evening before (D-34).
+        if (clock.now().isBefore(date.atTime(plannedBy))) norms.markDone(NormCatalog.DAY_PLAN, date)
     }
 
     /** Section 5.3: an attempt = call or message with a concrete request; rejection counts too. */

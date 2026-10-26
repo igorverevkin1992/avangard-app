@@ -138,7 +138,8 @@ fun TodayScreen(
 
         // ── «Сейчас»: one card, one action ─────────────────────────────────
         ImSectionLabel(stringResource(R.string.today_now))
-        NowCard(ui, viewModel, mortification, onOpenRoute)
+        val tasks by viewModel.tasks.collectAsState()
+        NowCard(ui, viewModel, mortification, tasks.isEmpty(), onOpenRoute)
 
         // ── The rest of the day, folded ────────────────────────────────────
         val groups = remember(ui.items) { groupByPartOfDay(ui.items) }
@@ -190,7 +191,7 @@ private fun TodayMenu(
  * its one action, or «all done».
  */
 @Composable
-private fun NowCard(ui: TodayUi, viewModel: TodayViewModel, mortification: com.itermeum.app.core.database.entity.MortificationLogEntity?, onOpenRoute: (String) -> Unit) {
+private fun NowCard(ui: TodayUi, viewModel: TodayViewModel, mortification: com.itermeum.app.core.database.entity.MortificationLogEntity?, noPlan: Boolean, onOpenRoute: (String) -> Unit) {
     val m = ui.morning
     val weekday = ui.date.dayOfWeek !in setOf(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY)
     val morningActive = m != null && (
@@ -200,10 +201,19 @@ private fun NowCard(ui: TodayUi, viewModel: TodayViewModel, mortification: com.i
         )
     val fridayChoice = viewModel.isFriday && mortification == null && ui.items.any { it.normId == NormCatalog.MORTIFICATION } &&
         LocalTime.now().isBefore(LocalTime.of(12, 0))
+    // D-34: the plan is made before work (morning, commute), so the working day starts with an order.
+    val planDue = noPlan && NormCatalog.DAY_PLAN in ui.items.map { it.normId } && NormCatalog.DAY_PLAN !in ui.done &&
+        LocalTime.now().isBefore(ui.profile.workStart.plusMinutes(30))
     when {
         ui.sick -> ImPanel { Text(stringResource(R.string.morning_sick), style = MaterialTheme.typography.bodyLarge) }
         morningActive -> MorningCard(ui, viewModel)
         fridayChoice -> MortificationCard(mortification, viewModel)
+        planDue -> ImPanel {
+            Text(stringResource(R.string.today_plan_before_work), style = MaterialTheme.typography.headlineMedium)
+            Text(stringResource(R.string.today_plan_before_work_hint, ui.profile.workStart.plusMinutes(30).toString()), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(Modifier.height(ImSpacing.grid))
+            ImPrimaryButton(stringResource(R.string.today_plan_before_work_button), onClick = { onOpenRoute(NavRoute.WorkPlan.route) })
+        }
         ui.next != null -> {
             val next = ui.next!!
             val route = normRoute(next.normId)

@@ -13,6 +13,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -38,6 +39,7 @@ import com.itermeum.app.core.designsystem.ImPrimaryButton
 import com.itermeum.app.core.designsystem.ImSecondaryButton
 import com.itermeum.app.core.designsystem.ImSectionLabel
 import com.itermeum.app.core.designsystem.ImSpacing
+import com.itermeum.app.core.designsystem.ImStepper
 import com.itermeum.app.core.engine.ExamenValidator
 
 @Composable
@@ -60,6 +62,25 @@ fun ExamenScreen(onBack: () -> Unit, viewModel: ExamenViewModel = hiltViewModel(
         }
         when (ui.step) {
             ExamenStep.CLOSED -> Text(stringResource(R.string.examen_closed), style = MaterialTheme.typography.bodyLarge)
+            ExamenStep.CATCH_UP -> {
+                // D-34: one minute to record a chaotic day — for the statistics and the audit, not the streaks.
+                ImSectionLabel(stringResource(R.string.examen_catchup_title))
+                Text(stringResource(R.string.examen_catchup_hint), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                ImStepper(stringResource(R.string.examen_catchup_heroes), ui.heroes, ui.heroesLogged..(ui.heroesLogged + 30), viewModel::setHeroes)
+                ImStepper(stringResource(R.string.examen_catchup_agreements), ui.agreements, ui.agreementsLogged..maxOf(ui.agreementsLogged, ui.heroes), viewModel::setAgreements)
+                if (ui.tasksTotal > 0) ImStepper(stringResource(R.string.examen_catchup_tasks, ui.tasksTotal), ui.tasksDone, ui.tasksDoneLogged..ui.tasksTotal, viewModel::setTasksDone)
+                ImPrimaryButton(stringResource(R.string.save), onClick = { viewModel.saveCatchUp() })
+                TextButton(onClick = viewModel::skipCatchUp) { Text(stringResource(R.string.examen_catchup_skip)) }
+            }
+            ExamenStep.PLAN_TOMORROW -> {
+                ImSectionLabel(stringResource(R.string.examen_tomorrow_title))
+                Text(stringResource(R.string.examen_tomorrow_hint), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                ui.tomorrowTitles.forEachIndexed { i, t ->
+                    OutlinedTextField(value = t, onValueChange = { viewModel.setTomorrowTitle(i, it) }, label = { Text("${i + 1}") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                }
+                ImPrimaryButton(stringResource(R.string.save), enabled = ui.tomorrowTitles.first().isNotBlank(), onClick = { viewModel.saveTomorrowPlan() })
+                TextButton(onClick = viewModel::skipTomorrowPlan) { Text(stringResource(R.string.examen_tomorrow_skip)) }
+            }
             ExamenStep.FOLLOW_UP -> ui.previous?.let { (d, text) ->
                 ImSectionLabel(stringResource(R.string.examen_previous, d.toString()))
                 ImPanel { Text(text, style = MaterialTheme.typography.bodyLarge) }
