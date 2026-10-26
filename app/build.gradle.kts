@@ -91,6 +91,9 @@ android {
     }
 
     // Robolectric reads merged res + assets (strings, assets/*.json) in unit tests.
+    // Committed Room schemas feed MigrationTestHelper in unit tests.
+    sourceSets { getByName("test").assets.srcDir("$projectDir/schemas") }
+
     testOptions {
         unitTests.isIncludeAndroidResources = true
         unitTests.all {

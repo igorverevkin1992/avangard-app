@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import com.itermeum.app.core.designsystem.IterMeumTheme
@@ -37,17 +38,29 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        intentState.value = intent
+        // A recreated activity (rotation, return from Recents) must not replay the deep link.
+        intentState.value = if (savedInstanceState == null) intent else null
         setContent {
             val current by intentState.collectAsState()
             val target = NavRoute.fromDeepLink(current?.data) ?: current?.getStringExtra(EXTRA_ROUTE)
             val onboardingDone by root.onboardingDone.collectAsState()
+            val day by root.logicalDate.collectAsState()
+            val accent by root.accent.collectAsState()
+            val light by root.lightTheme.collectAsState()
             when (onboardingDone) {
                 null -> IterMeumTheme { Box(Modifier.fillMaxSize()) }
-                false -> IterMeumRoot(deepLinkRoute = null, startDestination = NavRoute.Onboarding.route)
-                true -> IterMeumRoot(deepLinkRoute = target, startDestination = NavRoute.Today.route, accent = root.accent)
+                false -> IterMeumRoot(deepLinkRoute = null, startDestination = NavRoute.Onboarding.route, light = light, onDeepLinkConsumed = {})
+                // New logical day → fresh graph and fresh ViewModels for the new date.
+                true -> key(day) {
+                    IterMeumRoot(deepLinkRoute = target, startDestination = NavRoute.Today.route, accent = accent, light = light, onDeepLinkConsumed = { intentState.value = null })
+                }
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        root.refreshDate()
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -62,8 +75,14 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-private fun IterMeumRoot(deepLinkRoute: String?, startDestination: String, accent: androidx.compose.ui.graphics.Color = com.itermeum.app.core.designsystem.ImColors.Ordinary) {
-    IterMeumTheme(accent = accent) {
+private fun IterMeumRoot(
+    deepLinkRoute: String?,
+    startDestination: String,
+    accent: androidx.compose.ui.graphics.Color = com.itermeum.app.core.designsystem.ImColors.Ordinary,
+    light: Boolean = false,
+    onDeepLinkConsumed: () -> Unit,
+) {
+    IterMeumTheme(accent = accent, light = light) {
         val navController = rememberNavController()
         val showBottomBar = shouldShowBottomNav(navController)
         Scaffold(
@@ -73,8 +92,9 @@ private fun IterMeumRoot(deepLinkRoute: String?, startDestination: String, accen
             bottomBar = { if (showBottomBar) IterMeumNavigationBar(navController) },
         ) { padding ->
             LaunchedEffect(deepLinkRoute) {
-                if (deepLinkRoute != null && deepLinkRoute != NavRoute.Today.route) {
-                    navController.navigate(deepLinkRoute) { launchSingleTop = true }
+                if (deepLinkRoute != null) {
+                    if (deepLinkRoute != NavRoute.Today.route) navController.navigate(deepLinkRoute) { launchSingleTop = true }
+                    onDeepLinkConsumed()
                 }
             }
             Box(Modifier.padding(padding)) {

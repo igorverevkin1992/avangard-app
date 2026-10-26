@@ -14,6 +14,15 @@ import com.itermeum.app.sync.alarm.WakeAlarmScheduler
 import com.itermeum.app.sync.scheduler.ReminderScheduler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import com.itermeum.app.core.data.NormRepository
+import com.itermeum.app.core.database.entity.NormEntity
+import com.itermeum.app.core.designsystem.UiPrefs
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -26,7 +35,26 @@ class SettingsViewModel @Inject constructor(
     private val wake: WakeAlarmScheduler,
     private val path: PathRepository,
     private val streaks: StreakRepository,
+    private val norms: NormRepository,
+    private val uiPrefs: UiPrefs,
 ) : ViewModel() {
+
+    /** Section 5.17: every norm can be switched off (except the core) and given its own time. */
+    val normList: StateFlow<List<NormEntity>> = norms.observeNorms().map { list -> list.sortedBy { it.orderIndex } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+    fun setNormEnabled(id: String, enabled: Boolean) = viewModelScope.launch { norms.setEnabled(id, enabled); reminders.rescheduleAll() }
+    fun setNormTime(id: String, time: java.time.LocalTime?) = viewModelScope.launch {
+        norms.setUserTime(id, time?.let { it.hour * 60 + it.minute }); reminders.rescheduleAll()
+    }
+
+    val lightTheme: StateFlow<Boolean> = uiPrefs.light
+    fun setLightTheme(light: Boolean) = uiPrefs.setLight(light)
+
+    /** The wake QR is rendered off the main thread, once per uuid. */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val qr: StateFlow<Bitmap?> = profiles.flow.map { it.wakeQrUuid }.distinctUntilChanged()
+        .mapLatest { uuid -> uuid?.let { withContext(Dispatchers.Default) { QrCodeImage.bitmap(QrCodeImage.payload(it)) } } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     val travel: StateFlow<TravelPeriodEntity?> = path.observeActiveTravel().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
@@ -50,7 +78,6 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun qrBitmap(): Bitmap? = profile.value.wakeQrUuid?.let { QrCodeImage.bitmap(QrCodeImage.payload(it)) }
 
     fun testAlarm() = wake.scheduleTest(2)
 }

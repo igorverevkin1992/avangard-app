@@ -31,7 +31,8 @@ import kotlinx.coroutines.delay
 
 /** Section 5.6: 10 minutes in three phases — presence 1 min, theme 8 min, resolution 1 min. */
 @Composable
-fun MentalPrayerScreen(onBack: () -> Unit, gospelTitle: String?, viewModel: TimerViewModel = hiltViewModel()) {
+fun MentalPrayerScreen(onBack: () -> Unit, viewModel: TimerViewModel = hiltViewModel()) {
+    val gospelTitle by viewModel.gospelTitle.collectAsState()
     val session by viewModel.session.collectAsState()
     var now by remember { mutableLongStateOf(viewModel.now()) }
     LaunchedEffect(session) { while (session != null) { delay(1_000); now = viewModel.now() } }

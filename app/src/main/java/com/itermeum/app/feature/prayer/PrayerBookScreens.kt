@@ -87,6 +87,7 @@ fun AngelusScreen(onBack: () -> Unit, viewModel: PrayerHubViewModel = hiltViewMo
         ImSecondaryButton(
             if (com.itermeum.app.core.content.NormCatalog.ANGELUS in done) stringResource(R.string.marked) else stringResource(R.string.angelus_mark),
             onClick = { viewModel.markAngelus(); onBack() },
+            enabled = viewModel.angelusWindowOpen(),
         )
         Text(stringResource(R.string.angelus_window), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }

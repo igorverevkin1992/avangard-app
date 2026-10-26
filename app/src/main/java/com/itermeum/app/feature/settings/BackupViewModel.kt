@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.itermeum.app.R
 import com.itermeum.app.core.backup.BackupRepository
 import com.itermeum.app.core.common.Clock
 import com.itermeum.app.core.data.auth.AuthRepository
@@ -56,7 +57,7 @@ class BackupViewModel @Inject constructor(
 
     /** Sets the backup password and arms the daily 03:30 upload. */
     fun enable(password: String) {
-        if (password.length < 8) { _ui.update { it.copy(message = "Пароль не короче 8 символов") }; return }
+        if (password.length < 8) { _ui.update { it.copy(message = context.getString(R.string.backup_msg_password_short)) }; return }
         settings.password = password
         BackupUploadWorker.scheduleDaily(context, clock.localTime())
         BackupUploadWorker.uploadNow(context)
@@ -65,22 +66,25 @@ class BackupViewModel @Inject constructor(
 
     fun disable() { settings.password = null; BackupUploadWorker.cancel(context); refresh() }
 
-    fun uploadNow() { BackupUploadWorker.uploadNow(context); _ui.update { it.copy(message = "Загрузка поставлена в очередь") } }
+    fun uploadNow() { BackupUploadWorker.uploadNow(context); _ui.update { it.copy(message = context.getString(R.string.backup_msg_queued)) } }
 
     /** Restore from Drive with the given password; replaces local data. */
     fun restore(password: String) = viewModelScope.launch {
         _ui.update { it.copy(busy = true, message = null) }
         val result = runCatching {
-            val remote = drive.fetchRemote() ?: return@runCatching "В Drive нет копии Iter Meum"
+            val remote = drive.fetchRemote() ?: return@runCatching context.getString(R.string.backup_msg_none)
             when (val err = backup.import(remote.bytes, password.toCharArray())) {
-                null -> { reminders.rescheduleAll(); "Восстановлено" }
-                BackupRepository.ImportError.WrongPassword -> "Неверный пароль"
-                BackupRepository.ImportError.WrongFormat -> "Файл не является копией Iter Meum"
-                is BackupRepository.ImportError.Unsupported -> "Версия копии ${err.version} не поддерживается"
+                null -> { reminders.rescheduleAll(); context.getString(R.string.backup_msg_restored) }
+                BackupRepository.ImportError.WrongPassword -> context.getString(R.string.backup_msg_wrong_password)
+                BackupRepository.ImportError.WrongFormat -> context.getString(R.string.backup_msg_not_a_copy)
+                is BackupRepository.ImportError.Unsupported -> context.getString(R.string.backup_msg_unsupported, err.version)
             }
-        }.getOrElse { "Ошибка: ${it.message}" }
+        }.getOrElse {
+            if (it is com.itermeum.app.core.data.cloud.AuthRequiredException) context.getString(R.string.backup_error_sign_in)
+            else context.getString(R.string.backup_msg_error, it.message ?: "")
+        }
         _ui.update { it.copy(busy = false, message = result) }
     }
 
-    fun wipeAll() = viewModelScope.launch { backup.wipeAll(); _ui.update { it.copy(message = "Данные стёрты") } }
+    fun wipeAll() = viewModelScope.launch { backup.wipeAll(); _ui.update { it.copy(message = context.getString(R.string.backup_msg_wiped)) } }
 }

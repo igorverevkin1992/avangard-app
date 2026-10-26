@@ -17,7 +17,9 @@ import java.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.mapLatest
 
 /** Norms, their schedule for a date and completion marks. */
 @Singleton
@@ -32,6 +34,16 @@ class NormRepository @Inject constructor(
     private val clock: Clock,
 ) {
     fun observeNorms(): Flow<List<NormEntity>> = normDao.observeAll()
+
+    /**
+     * The schedule input, re-read whenever something that shapes the day changes:
+     * the day plan (sick, travel, shoot day), completions (weekly Mass, confession),
+     * norms, the profile and an active travel period.
+     */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun observeInput(date: LocalDate): Flow<DayScheduleEngine.Input> =
+        combine(dayPlanDao.observe(date), completionDao.observeForDate(date), normDao.observeAll(), profiles.flow, reviewDao.observeActiveTravel()) { _, _, _, _, _ -> Unit }
+            .mapLatest { inputFor(date) }
 
     fun observeCompletions(date: LocalDate): Flow<List<NormCompletionEntity>> = completionDao.observeForDate(date)
 

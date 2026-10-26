@@ -55,10 +55,13 @@ fun CatechesisScreen(noteId: Long?, onBack: () -> Unit, viewModel: PathViewModel
     var theses by remember { mutableStateOf("") }
     var question by remember { mutableStateOf("") }
     var homework by remember { mutableStateOf("") }
-    var date by remember { mutableStateOf(if (viewModel.today.dayOfWeek == java.time.DayOfWeek.SATURDAY) viewModel.today else viewModel.notes.value.firstOrNull()?.logicalDate ?: viewModel.today) }
+    // The class of this week: today on Saturday, otherwise the last Saturday.
+    var date by remember { mutableStateOf(viewModel.today.with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.SATURDAY))) }
     var existingId by remember { mutableStateOf(noteId) }
-    LaunchedEffect(noteId) {
-        noteId?.let { id -> viewModel.note(id)?.let { n -> topic = n.topic; theses = n.theses; question = n.question; homework = n.homework; date = n.logicalDate } }
+    LaunchedEffect(noteId, notes) {
+        val n = noteId?.let { viewModel.note(it) } ?: notes.firstOrNull { it.logicalDate == date }.takeIf { existingId == null }
+        // Editing the note for that Saturday instead of creating a second one.
+        n?.let { topic = it.topic; theses = it.theses; question = it.question; homework = it.homework; date = it.logicalDate; existingId = it.id }
     }
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(ImSpacing.screen), verticalArrangement = Arrangement.spacedBy(ImSpacing.grid)) {
         ImHeader(stringResource(R.string.path_catechesis), onBack = onBack)
@@ -201,6 +204,11 @@ fun ChronicleScreen(onBack: () -> Unit, viewModel: PathViewModel = hiltViewModel
 @Composable
 fun MilestoneScreen(id: String, onDone: () -> Unit, viewModel: PathViewModel = hiltViewModel()) {
     val meta = viewModel.milestoneMeta(id)
+    val milestones by viewModel.milestones.collectAsState()
+    // The day it was reached (often at the night close), not the day it is viewed.
+    val reached = milestones.firstOrNull { it.id == id }?.achievedAt?.let {
+        java.time.Instant.ofEpochMilli(it).atZone(java.time.ZoneId.systemDefault()).toLocalDate()
+    } ?: viewModel.today
     var visible by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { visible = true }
     androidx.compose.animation.AnimatedVisibility(visible = visible, enter = androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(600))) {
@@ -208,7 +216,7 @@ fun MilestoneScreen(id: String, onDone: () -> Unit, viewModel: PathViewModel = h
             Text(meta?.latin ?: "", style = MaterialTheme.typography.displayLarge, color = MaterialTheme.colorScheme.primary)
             Spacer(Modifier.height(ImSpacing.screen))
             Text(meta?.title ?: id, style = MaterialTheme.typography.headlineMedium)
-            Text(LocalDate.now().toString(), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(reached.toString(), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(Modifier.height(ImSpacing.screen))
             Text(meta?.scripture ?: "", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(Modifier.height(ImSpacing.screen * 2))

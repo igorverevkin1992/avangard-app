@@ -98,7 +98,7 @@ fun IterMeumNavHost(navController: NavHostController, startDestination: String) 
         composable(NavRoute.PrayerCalendar.route, arguments = listOf(navArgument("ym") { nullable = true; defaultValue = null })) { entry ->
             CalendarScreen(yearMonth = entry.arguments?.getString("ym"), onBack = { navController.popBackStack() })
         }
-        composable(NavRoute.PrayerMental.route) { MentalPrayerScreen(onBack = { navController.popBackStack() }, gospelTitle = null) }
+        composable(NavRoute.PrayerMental.route) { MentalPrayerScreen(onBack = { navController.popBackStack() }) }
         composable(NavRoute.PrayerAngelus.route) { AngelusScreen(onBack = { navController.popBackStack() }) }
         composable(NavRoute.PrayerMass.route) { MassScreen(onBack = { navController.popBackStack() }) }
         composable(NavRoute.Examen.route) { ExamenScreen(onBack = { navController.popBackStack() }) }

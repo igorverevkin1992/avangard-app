@@ -9,6 +9,14 @@ import com.itermeum.app.core.data.NormRepository
 import com.itermeum.app.core.data.ProfileRepository
 import com.itermeum.app.core.data.StreakRepository
 import com.itermeum.app.core.data.WorkRepository
+import com.itermeum.app.core.content.ContentAssets
+import com.itermeum.app.core.data.PathRepository
+import com.itermeum.app.core.data.ReadingRepository
+import com.itermeum.app.core.database.entity.MortificationLogEntity
+import com.itermeum.app.core.database.entity.WorkTaskEntity
+import com.itermeum.app.sync.scheduler.ReminderScheduler
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.mapLatest
 import com.itermeum.app.core.database.entity.MilestoneEntity
 import com.itermeum.app.core.database.entity.StreakStateEntity
 import com.itermeum.app.sync.notifications.NotificationBudget
@@ -59,6 +67,10 @@ class TodayViewModel @Inject constructor(
     private val streaks: StreakRepository,
     private val dayClose: DayCloseRunner,
     private val budget: NotificationBudget,
+    private val path: PathRepository,
+    private val reading: ReadingRepository,
+    private val assets: ContentAssets,
+    private val reminders: ReminderScheduler,
     private val clock: Clock,
 ) : ViewModel() {
 
@@ -91,8 +103,34 @@ class TodayViewModel @Inject constructor(
     }
 
     fun markMilestoneSeen(id: String) = viewModelScope.launch { streaks.markMilestoneSeen(id) }
-    fun pauseNorm(id: String) = viewModelScope.launch { norms.pauseForWeek(id, date); lowerBar.value = null }
+
+    /** Section 6.6: one or two non-core norms may be paused for 7 days. */
+    private val pausedNow = MutableStateFlow(0)
+    fun pauseNorm(id: String) = viewModelScope.launch {
+        norms.pauseForWeek(id, date)
+        pausedNow.value += 1
+        if (pausedNow.value >= MAX_PAUSED) lowerBar.value = null
+        reminders.rescheduleAll()
+    }
     fun dismissLowerBar() { lowerBar.value = null }
+
+    /** Section 9: the three tasks of the day, shown once work has started. */
+    val tasks: StateFlow<List<WorkTaskEntity>> = work.observeTasks(date).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /** Section 5.9: the focus phrase chosen in the Gospel of the day. */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val focusPhrase: StateFlow<String?> = reading.observeLogs(date).mapLatest { reading.focusPhrase(date) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    /** Section 3.4/7.8: Friday — choose a small mortification in the morning, mark it in the evening. */
+    val mortification: StateFlow<MortificationLogEntity?> = path.observeMortification(date).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+    val mortificationOptions: List<String> get() = assets.mortifications.items
+    val isFriday: Boolean get() = date.dayOfWeek == java.time.DayOfWeek.FRIDAY
+    fun chooseMortification(item: String) = viewModelScope.launch { path.chooseMortification(date, item) }
+    fun completeMortification() = viewModelScope.launch { path.completeMortification(date) }
+
+    /** Work has started (for the tasks card); re-read every minute by the screen. */
+    fun workStarted(profile: ProfileEntity): Boolean = !clock.localTime().isBefore(profile.workStart)
 
     val activeScript: StateFlow<ScriptSessionEntity?> = work.observeActiveScript().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
     val scriptSessionsToday: StateFlow<Int> = work.observeScriptCount(date).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
@@ -106,7 +144,7 @@ class TodayViewModel @Inject constructor(
             norms.observeNorms(),
             norms.observeDoneIds(date),
             morning.observe(date),
-            flow { emit(norms.inputFor(date)) },
+            norms.observeInput(date),
         ) { normList, done, morningState, input ->
             val items = DayScheduleEngine.schedule(input.copy(profile = profile, norms = normList))
             TodayUi(
@@ -133,8 +171,26 @@ class TodayViewModel @Inject constructor(
 
     fun answerQuarantine(kept: Boolean) = viewModelScope.launch { morning.answerQuarantine(date, kept) }
     fun markGym(home: Boolean) = viewModelScope.launch { morning.markGym(date, home) }
-    fun setSick(sick: Boolean) = viewModelScope.launch { morning.setSick(date, sick) }
+    /**
+     * Section 4: a sick day is marked before 06:00 or the evening before. Today can be
+     * switched on only before 06:00 (switching off is always allowed); otherwise it is
+     * set for tomorrow. Alarms are re-armed (sick wake = 08:00 without proof).
+     */
+    fun canSetSickToday(): Boolean = clock.localTime().let { !it.isBefore(java.time.LocalTime.of(3, 0)) && it.isBefore(java.time.LocalTime.of(6, 0)) }
+    fun setSick(sick: Boolean) = viewModelScope.launch { morning.setSick(date, sick); reminders.rescheduleAll() }
+    fun setSickTomorrow(sick: Boolean) = viewModelScope.launch { morning.setSick(date.plusDays(1), sick); reminders.rescheduleAll() }
+    val sickTomorrow: StateFlow<Boolean> = work.observePlan(date.plusDays(1)).map { it?.sick == true }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
     /** Simple norms that are completed by a tap on the Today list (phase 4). */
-    fun isTapCompletable(id: String): Boolean = id !in setOf(NormCatalog.WAKE, NormCatalog.SERVIAM, NormCatalog.QUARANTINE, NormCatalog.GYM)
+    fun isTapCompletable(id: String): Boolean =
+        id !in setOf(NormCatalog.WAKE, NormCatalog.SERVIAM, NormCatalog.QUARANTINE, NormCatalog.GYM, NormCatalog.MORTIFICATION)
+
+    /** Non-core norms that may be paused (section 6.6). */
+    fun pausable(items: List<DayScheduleEngine.ScheduledItem>): List<DayScheduleEngine.ScheduledItem> =
+        items.filter { !it.isCore && it.normId !in setOf(NormCatalog.SERVIAM, NormCatalog.QUARANTINE, NormCatalog.MASS, NormCatalog.CATECHESIS, NormCatalog.CONFESSION) }
+
+    companion object {
+        const val MAX_PAUSED = 2
+    }
 }

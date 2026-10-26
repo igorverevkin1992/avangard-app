@@ -80,7 +80,9 @@ fun CalendarScreen(yearMonth: String?, onBack: () -> Unit, viewModel: CalendarVi
                             Modifier.weight(1f).aspectRatio(1f).background(bg).clickable { selected = date },
                             contentAlignment = Alignment.Center,
                         ) {
-                            Text((idx + 1).toString(), style = MaterialTheme.typography.labelMedium, color = if (date == selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f))
+                            // Weekdays are a faint tint over the dark background; celebrations are solid accent.
+                            val fg = if (day.rank == Rank.WEEKDAY) MaterialTheme.colorScheme.onSurface else com.itermeum.app.core.designsystem.onAccent(day.color.accent())
+                            Text((idx + 1).toString(), style = MaterialTheme.typography.labelMedium.copy(fontWeight = if (date == selected) androidx.compose.ui.text.font.FontWeight.Bold else null), color = fg)
                         }
                     }
                 }

@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.itermeum.app.BuildConfig
 import com.itermeum.app.R
+import com.itermeum.app.core.designsystem.ImHeader
 import com.itermeum.app.core.designsystem.ImPanel
 import com.itermeum.app.core.designsystem.ImSpacing
 
@@ -24,13 +25,17 @@ fun AboutScreen(onBack: () -> Unit) {
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(ImSpacing.screen),
         verticalArrangement = Arrangement.spacedBy(ImSpacing.grid),
     ) {
-        TextButton(onClick = onBack) { Text("←") }
-        Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineLarge)
+        ImHeader(stringResource(R.string.app_name), onBack = onBack)
         Text(stringResource(R.string.app_tagline), style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant)
         ImPanel {
             Text(stringResource(R.string.about_body), style = MaterialTheme.typography.bodyMedium)
         }
+        Text(
+            stringResource(R.string.about_licences),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
         Text(
             stringResource(R.string.about_version, BuildConfig.VERSION_NAME),
             style = MaterialTheme.typography.labelMedium,

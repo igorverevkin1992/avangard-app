@@ -62,9 +62,10 @@ class PrayerHubViewModel @Inject constructor(
 
     fun angelusPrayerId(): String = if (liturgical.reginaCaeli) "regina_caeli" else "angelus"
 
+    /** Counted only 11:30–14:00 (section 5.7); returns false outside the window so the screen can say so. */
+    fun angelusWindowOpen(): Boolean = clock.localTime().let { !it.isBefore(java.time.LocalTime.of(11, 30)) && it.isBefore(java.time.LocalTime.of(14, 0)) }
     fun markAngelus() = viewModelScope.launch {
-        val t = clock.localTime()
-        if (!t.isBefore(java.time.LocalTime.of(11, 30)) && t.isBefore(java.time.LocalTime.of(14, 0))) norms.markDone(NormCatalog.ANGELUS, date)
+        if (angelusWindowOpen()) norms.markDone(NormCatalog.ANGELUS, date)
     }
 
     fun markMarianSaturday() = viewModelScope.launch { norms.markDone(NormCatalog.MARIAN_SATURDAY, date) }
@@ -89,6 +90,10 @@ class TimerViewModel @Inject constructor(
     private val clock: Clock,
 ) : ViewModel() {
     val session: StateFlow<TimerController.Session?> = timers.session
+
+    /** Section 5.6: the theme phase of mental prayer proposes the Gospel of the day. */
+    val gospelTitle = MutableStateFlow<String?>(null)
+    init { viewModelScope.launch { gospelTitle.value = runCatching { reading.gospel(clock.logicalToday())?.title }.getOrNull() } }
 
     fun startMental() { timers.start(TimerController.Kind.MENTAL_PRAYER, MENTAL_MS); SessionTimerService.start(context) }
     fun startReading(bookId: String) { timers.start(TimerController.Kind.READING, READING_MS, bookId); SessionTimerService.start(context) }

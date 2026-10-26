@@ -32,6 +32,8 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import java.time.LocalTime
@@ -132,11 +134,27 @@ fun ImHeader(title: String, onBack: (() -> Unit)? = null, trailing: @Composable 
     Column(Modifier.fillMaxWidth()) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             if (onBack != null) {
-                TextButton(onClick = onBack) { Text("←", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.tertiary) }
+                TextButton(onClick = onBack, modifier = Modifier.semantics { contentDescription = "Назад" }) { Text("←", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.tertiary) }
             }
             Text(title, style = MaterialTheme.typography.headlineMedium, modifier = Modifier.weight(1f))
             trailing()
         }
         ImRule()
+    }
+}
+
+/**
+ * Integer setting with − / + (replaces free text fields that coerced on every
+ * keystroke). [step] per tap; the value is always inside [range].
+ */
+@Composable
+fun ImStepper(label: String, value: Int, range: IntRange, onChange: (Int) -> Unit, modifier: Modifier = Modifier, step: Int = 1, suffix: String = "") {
+    Row(modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+        TextButton(onClick = { onChange((value - step).coerceIn(range)) }, enabled = value > range.first,
+            modifier = Modifier.semantics { contentDescription = "$label: меньше" }) { Text("−", style = MaterialTheme.typography.headlineMedium) }
+        Text("$value$suffix", style = MaterialTheme.typography.titleLarge.copy(fontFamily = ImMonoFamily))
+        TextButton(onClick = { onChange((value + step).coerceIn(range)) }, enabled = value < range.last,
+            modifier = Modifier.semantics { contentDescription = "$label: больше" }) { Text("+", style = MaterialTheme.typography.headlineMedium) }
     }
 }

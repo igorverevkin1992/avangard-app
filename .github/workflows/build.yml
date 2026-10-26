@@ -53,15 +53,13 @@ jobs:
       - name: Run unit tests
         run: ./gradlew :app:testDebugUnitTest --stacktrace
 
-      - name: Print Room schemas (temporary, to commit them)
+      - name: Room schema is committed
+        # A DB version bump must ship its exported schema (section 8: every version has a migration test).
         run: |
-          set -e
-          git fetch --no-tags --depth=50 origin "$GITHUB_REF"
-          git worktree add ../v1 dcc998f~1
-          (cd ../v1 && ./gradlew :app:kspDebugKotlin --no-configuration-cache -q)
-          for f in ../v1/app/schemas/com.itermeum.app.core.database.AppDatabase/1.json app/schemas/com.itermeum.app.core.database.AppDatabase/2.json; do
-            echo "=====SCHEMA $(basename $f)"; base64 -w0 "$f"; echo; echo "=====END"
-          done
+          if [ -n "$(git status --porcelain app/schemas)" ]; then
+            git status --porcelain app/schemas
+            echo "::error::Room schema changed: commit app/schemas and add a migration"; exit 1
+          fi
 
       - name: Assemble debug APK
         run: ./gradlew :app:assembleDebug --stacktrace

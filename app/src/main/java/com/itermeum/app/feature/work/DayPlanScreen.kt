@@ -73,7 +73,8 @@ fun DayPlanScreen(onBack: () -> Unit, viewModel: WorkViewModel = hiltViewModel()
         (0..2).forEach { i ->
             ImPanel {
                 ImSectionLabel(stringResource(R.string.plan_slot, i + 1))
-                Row(horizontalArrangement = Arrangement.spacedBy(ImSpacing.tight), modifier = Modifier.horizontalScrollable()) {
+                // Wraps onto several lines: six types do not fit a phone width.
+                FlowRowCompat {
                     val allowed = if (i == 0) listOf(TaskType.OUTREACH) + (if (shootDay) listOf(TaskType.SHOOT) else emptyList()) else TaskType.entries
                     allowed.forEach { t -> FilterChip(selected = types[i] == t, onClick = { types[i] = t }, label = { Text(t.label()) }) }
                 }
@@ -91,4 +92,4 @@ fun DayPlanScreen(onBack: () -> Unit, viewModel: WorkViewModel = hiltViewModel()
     }
 }
 
-private fun Modifier.horizontalScrollable(): Modifier = this.then(Modifier.fillMaxWidth())
+

@@ -15,6 +15,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -33,6 +34,7 @@ import com.itermeum.app.core.designsystem.ImPanel
 import com.itermeum.app.core.designsystem.ImSecondaryButton
 import com.itermeum.app.core.designsystem.ImSectionLabel
 import com.itermeum.app.core.designsystem.ImSpacing
+import com.itermeum.app.core.designsystem.ImStepper
 import com.itermeum.app.core.designsystem.ImTimeField
 import com.itermeum.app.feature.onboarding.HyperOsChecklist
 
@@ -62,28 +64,21 @@ fun SettingsScreen(onBack: () -> Unit, onOpenAbout: () -> Unit, viewModel: Setti
         }
         ImSecondaryButton(stringResource(R.string.settings_show_qr), { showQr = !showQr })
         if (showQr) {
-            viewModel.qrBitmap()?.let { Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { Image(it.asImageBitmap(), contentDescription = null, modifier = Modifier.size(240.dp)) } }
+            val qr by viewModel.qr.collectAsState()
+            qr?.let { Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { Image(it.asImageBitmap(), contentDescription = stringResource(R.string.settings_show_qr), modifier = Modifier.size(240.dp)) } }
         }
 
         ImSectionLabel(stringResource(R.string.settings_alarm_sound))
         Row(horizontalArrangement = Arrangement.spacedBy(ImSpacing.grid)) {
             (1..3).forEach { i ->
-                ImSecondaryButton("♩ $i", { viewModel.update { it.copy(alarmSound = i) } }, Modifier.weight(1f), enabled = p.alarmSound != i)
+                ImSecondaryButton(stringResource(R.string.settings_bell_n, i), { viewModel.update { it.copy(alarmSound = i) } }, Modifier.weight(1f), enabled = p.alarmSound != i)
             }
         }
-        OutlinedTextField(
-            value = p.alarmVolume.toString(),
-            onValueChange = { v -> v.toIntOrNull()?.coerceIn(10, 100)?.let { vol -> viewModel.update { it.copy(alarmVolume = vol) } } },
-            label = { Text(stringResource(R.string.settings_alarm_volume)) }, singleLine = true, modifier = Modifier.fillMaxWidth(),
-        )
+        ImStepper(stringResource(R.string.settings_alarm_volume), p.alarmVolume, 10..100, { v -> viewModel.update { it.copy(alarmVolume = v) } }, step = 10, suffix = " %")
         ImSecondaryButton(stringResource(R.string.settings_test_alarm), viewModel::testAlarm)
 
         ImSectionLabel(stringResource(R.string.settings_outreach_target))
-        OutlinedTextField(
-            value = p.outreachTarget.toString(),
-            onValueChange = { v -> v.toIntOrNull()?.coerceIn(1, 20)?.let { n -> viewModel.update { it.copy(outreachTarget = n) } } },
-            label = { Text(stringResource(R.string.settings_outreach_target)) }, singleLine = true, modifier = Modifier.fillMaxWidth(),
-        )
+        ImStepper(stringResource(R.string.settings_outreach_target), p.outreachTarget, 1..20, { n -> viewModel.update { it.copy(outreachTarget = n) } })
 
         ImSectionLabel(stringResource(R.string.settings_mass_time))
         Row(horizontalArrangement = Arrangement.spacedBy(ImSpacing.grid)) {
@@ -110,16 +105,12 @@ fun SettingsScreen(onBack: () -> Unit, onOpenAbout: () -> Unit, viewModel: Setti
             androidx.compose.material3.Switch(checked = p.travelAuto, onCheckedChange = { v -> viewModel.update { it.copy(travelAuto = v) } })
         }
         if (travel == null) ImSecondaryButton(stringResource(R.string.settings_travel_start), viewModel::startTravel)
-        else ImSecondaryButton(stringResource(R.string.settings_travel_end) + " (с ${travel!!.startDate})", viewModel::endTravel)
+        else ImSecondaryButton(stringResource(R.string.settings_travel_end_since, travel!!.startDate.toString()), viewModel::endTravel)
 
         ImSectionLabel(stringResource(R.string.settings_baptized))
         if (p.baptized) {
             Text(stringResource(R.string.baptized_since, p.baptismDate?.toString() ?: ""), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.primary)
-            OutlinedTextField(
-                value = p.confessionEveryDays.toString(),
-                onValueChange = { v -> v.toIntOrNull()?.coerceIn(7, 90)?.let { n -> viewModel.update { it.copy(confessionEveryDays = n) } } },
-                label = { Text(stringResource(R.string.settings_confession_every)) }, singleLine = true, modifier = Modifier.fillMaxWidth(),
-            )
+            ImStepper(stringResource(R.string.settings_confession_every), p.confessionEveryDays, 7..90, { n -> viewModel.update { it.copy(confessionEveryDays = n) } }, step = 7)
         } else {
             var bDate by remember { mutableStateOf("") }
             var bWord by remember { mutableStateOf("") }
@@ -131,6 +122,35 @@ fun SettingsScreen(onBack: () -> Unit, onOpenAbout: () -> Unit, viewModel: Setti
                 val d = runCatching { java.time.LocalDate.parse(bDate) }.getOrNull()
                 if (d == null || !viewModel.markBaptized(d, bWord)) bError = true
             })
+        }
+
+        ImSectionLabel(stringResource(R.string.settings_norms))
+        val normList by viewModel.normList.collectAsState()
+        normList.filter { !it.requiresBaptism || p.baptized }.forEach { n ->
+            ImPanel {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(n.title, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+                    // The core (wake, frog, Examen) cannot be switched off (section 4).
+                    androidx.compose.material3.Switch(checked = n.enabled, enabled = !n.isCore, onCheckedChange = { viewModel.setNormEnabled(n.id, it) })
+                }
+                if (n.enabled && n.defaultTime != null && !n.followsWakeTime) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        ImTimeField(stringResource(R.string.settings_norm_time), n.userTime ?: n.defaultTime, { t -> viewModel.setNormTime(n.id, t) }, Modifier.weight(1f))
+                        if (n.userTime != null) TextButton(onClick = { viewModel.setNormTime(n.id, null) }) { Text(stringResource(R.string.settings_norm_time_reset)) }
+                    }
+                }
+            }
+        }
+
+        ImSectionLabel(stringResource(R.string.settings_privacy))
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+            Text(stringResource(R.string.settings_examen_lock), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+            androidx.compose.material3.Switch(checked = p.examenPinEnabled, onCheckedChange = { v -> viewModel.update { it.copy(examenPinEnabled = v) } })
+        }
+        val light by viewModel.lightTheme.collectAsState()
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+            Text(stringResource(R.string.settings_light_theme), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+            androidx.compose.material3.Switch(checked = light, onCheckedChange = viewModel::setLightTheme)
         }
 
         ImSectionLabel(stringResource(R.string.settings_hyperos))

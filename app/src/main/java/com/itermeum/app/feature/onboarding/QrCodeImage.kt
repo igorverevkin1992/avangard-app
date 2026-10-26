@@ -18,9 +18,9 @@ object QrCodeImage {
     fun bitmap(payload: String, size: Int = 768): Bitmap {
         val hints = mapOf(EncodeHintType.ERROR_CORRECTION to ErrorCorrectionLevel.H, EncodeHintType.MARGIN to 2)
         val matrix = QRCodeWriter().encode(payload, BarcodeFormat.QR_CODE, size, size, hints)
-        val bmp = Bitmap.createBitmap(size, size, Bitmap.Config.RGB_565)
-        for (x in 0 until size) for (y in 0 until size) bmp.setPixel(x, y, if (matrix[x, y]) Color.BLACK else Color.WHITE)
-        return bmp
+        // One bulk write instead of ~590 000 setPixel calls.
+        val pixels = IntArray(size * size) { i -> if (matrix[i % size, i / size]) Color.BLACK else Color.WHITE }
+        return Bitmap.createBitmap(pixels, size, size, Bitmap.Config.RGB_565)
     }
 
     /** Saves to Pictures/Iter Meum via MediaStore; returns true on success. */

@@ -1,6 +1,7 @@
 package com.itermeum.app.core.data
 
 import com.itermeum.app.core.common.Clock
+import com.itermeum.app.core.engine.DayScheduleEngine
 import com.itermeum.app.core.content.NormCatalog
 import com.itermeum.app.core.crypto.FieldCipher
 import com.itermeum.app.core.database.dao.FormationDao
@@ -97,7 +98,8 @@ class PathRepository @Inject constructor(
         reviewDao.upsertWeekly(
             WeeklyReviewEntity(weekStart, cipher.encrypt(json.encodeToString(ListSerializer(String.serializer()), plan)), virtue, clock.nowEpochMillis(), calls, agreements, fidelityDays),
         )
-        norms.markDone(NormCatalog.WEEKLY_REVIEW, clock.logicalToday())
+        // The review belongs to its Sunday even when written on Monday.
+        norms.markDone(NormCatalog.WEEKLY_REVIEW, clock.logicalToday().with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY)))
     }
 
     fun decryptPlan(r: WeeklyReviewEntity): List<String> =
@@ -115,7 +117,10 @@ class PathRepository @Inject constructor(
 
     suspend fun saveQuarter(quarter: String, vanityAnswers: List<String>) {
         projectDao.upsertVanity(VanityCheckEntity(quarter, cipher.encrypt(json.encodeToString(ListSerializer(String.serializer()), vanityAnswers)), clock.nowEpochMillis()))
-        norms.markDone(NormCatalog.QUARTER_CHECK)
+        // Marked on the quarter's last Sunday if it was within the last week, else today.
+        val today = clock.logicalToday()
+        val due = (0L..6L).map { today.minusDays(it) }.firstOrNull { DayScheduleEngine.isLastSundayOfQuarter(it) } ?: today
+        norms.markDone(NormCatalog.QUARTER_CHECK, due)
     }
 
     // ---- Friday mortification

@@ -14,6 +14,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,10 +43,32 @@ import com.itermeum.app.core.engine.ExamenValidator
 @Composable
 fun ExamenScreen(onBack: () -> Unit, viewModel: ExamenViewModel = hiltViewModel()) {
     val ui by viewModel.ui.collectAsState()
+    val context = LocalContext.current
+    val keyguard = remember { context.getSystemService(android.content.Context.KEYGUARD_SERVICE) as android.app.KeyguardManager }
+    var unlocked by rememberSaveable { mutableStateOf(false) }
+    val unlock = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { if (it.resultCode == android.app.Activity.RESULT_OK) unlocked = true }
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(ImSpacing.screen), verticalArrangement = Arrangement.spacedBy(ImSpacing.grid)) {
         ImHeader(stringResource(R.string.hub_examen), onBack = onBack)
+        // Section 5.17: optional PIN/biometrics via the phone's own lock screen.
+        if (ui.pinRequired && !unlocked && keyguard.isDeviceSecure) {
+            ImPanel { Text(stringResource(R.string.examen_locked), style = MaterialTheme.typography.bodyLarge) }
+            ImPrimaryButton(stringResource(R.string.examen_unlock), onClick = {
+                @Suppress("DEPRECATION")
+                keyguard.createConfirmDeviceCredentialIntent(context.getString(R.string.hub_examen), null)?.let(unlock::launch) ?: run { unlocked = true }
+            })
+            return@Column
+        }
         when (ui.step) {
             ExamenStep.CLOSED -> Text(stringResource(R.string.examen_closed), style = MaterialTheme.typography.bodyLarge)
+            ExamenStep.FOLLOW_UP -> ui.previous?.let { (d, text) ->
+                ImSectionLabel(stringResource(R.string.examen_previous, d.toString()))
+                ImPanel { Text(text, style = MaterialTheme.typography.bodyLarge) }
+                Row(horizontalArrangement = Arrangement.spacedBy(ImSpacing.grid)) {
+                    FilterChip(selected = ui.previousAnswer == FollowUpAnswer.KEPT, onClick = { viewModel.setPreviousAnswer(FollowUpAnswer.KEPT) }, label = { Text(stringResource(R.string.examen_kept)) })
+                    FilterChip(selected = ui.previousAnswer == FollowUpAnswer.NOT_KEPT, onClick = { viewModel.setPreviousAnswer(FollowUpAnswer.NOT_KEPT) }, label = { Text(stringResource(R.string.examen_not_kept)) })
+                }
+                ImPrimaryButton(stringResource(R.string.next), enabled = ui.previousAnswer != null, onClick = viewModel::next)
+            }
             ExamenStep.PRESENCE -> {
                 ImSectionLabel(stringResource(R.string.examen_presence))
                 ImPanel { Text(ui.presenceText, style = MaterialTheme.typography.headlineMedium, textAlign = TextAlign.Center) }
@@ -81,14 +107,6 @@ fun ExamenScreen(onBack: () -> Unit, viewModel: ExamenViewModel = hiltViewModel(
                 ImPrimaryButton(stringResource(R.string.examen_said), onClick = viewModel::next)
             }
             ExamenStep.PROPOSITO -> {
-                ui.previous?.let { (d, text) ->
-                    ImSectionLabel(stringResource(R.string.examen_previous, d.toString()))
-                    ImPanel { Text(text, style = MaterialTheme.typography.bodyLarge) }
-                    Row(horizontalArrangement = Arrangement.spacedBy(ImSpacing.grid)) {
-                        FilterChip(selected = ui.previousAnswer == FollowUpAnswer.KEPT, onClick = { viewModel.setPreviousAnswer(FollowUpAnswer.KEPT) }, label = { Text(stringResource(R.string.examen_kept)) })
-                        FilterChip(selected = ui.previousAnswer == FollowUpAnswer.NOT_KEPT, onClick = { viewModel.setPreviousAnswer(FollowUpAnswer.NOT_KEPT) }, label = { Text(stringResource(R.string.examen_not_kept)) })
-                    }
-                }
                 ImSectionLabel(stringResource(R.string.examen_proposito))
                 Text(stringResource(R.string.examen_proposito_hint, ExamenValidator.TEMPLATE), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 OutlinedTextField(value = ui.proposito, onValueChange = viewModel::setProposito, modifier = Modifier.fillMaxWidth(), isError = ui.propositoError != null,

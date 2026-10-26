@@ -10,6 +10,7 @@ import com.itermeum.app.core.data.DayFlags
 import com.itermeum.app.core.data.ExamenRepository
 import com.itermeum.app.core.data.NormRepository
 import com.itermeum.app.core.data.PrayerRepository
+import com.itermeum.app.core.data.ProfileRepository
 import com.itermeum.app.core.data.WorkRepository
 import com.itermeum.app.core.database.dao.OutreachDao
 import com.itermeum.app.core.database.dao.StreakDao
@@ -28,7 +29,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-enum class ExamenStep { CLOSED, PRESENCE, GRATITUDE, AUDIT, CONTRITION, PROPOSITO, AVE, WHAT_BROKE, DONE }
+enum class ExamenStep { CLOSED, FOLLOW_UP, PRESENCE, GRATITUDE, AUDIT, CONTRITION, PROPOSITO, AVE, WHAT_BROKE, DONE }
 
 data class ExamenUi(
     val date: LocalDate? = null,
@@ -51,9 +52,11 @@ data class ExamenUi(
     val needsWhatBroke: Boolean = false,
     val whatBroke: String = "",
     val alreadyDone: Boolean = false,
+    /** Settings: the Examen opens only after the phone's PIN / biometrics. */
+    val pinRequired: Boolean = false,
 )
 
-/** Section 5.12 wizard: PRESENCE → GRATITUDE → AUDIT(1..5) → CONTRITION → PROPOSITO → AVE(3) → [WHAT_BROKE] → DONE. */
+/** Section 5.12 wizard: [FOLLOW_UP of yesterday's resolution] → PRESENCE → GRATITUDE → AUDIT(1..5) → CONTRITION → PROPOSITO → AVE(3) → [WHAT_BROKE] → DONE. */
 @HiltViewModel
 class ExamenViewModel @Inject constructor(
     private val examen: ExamenRepository,
@@ -65,6 +68,7 @@ class ExamenViewModel @Inject constructor(
     private val streakDao: StreakDao,
     private val work: WorkRepository,
     private val flags: DayFlags,
+    private val profiles: ProfileRepository,
     private val clock: Clock,
 ) : ViewModel() {
 
@@ -88,10 +92,16 @@ class ExamenViewModel @Inject constructor(
                     date = date, questions = questions, presenceText = presence, contritionText = contrition, aveText = ave, previous = previous,
                     hints = hintsFor(date), needsWhatBroke = needsWhatBroke, alreadyDone = existing?.completedAt != null,
                     audit = questions.map { ExamenRepository.Audit(ExamenRepository.Answer.PARTLY, "") },
-                    step = if (existing?.completedAt != null) ExamenStep.DONE else ExamenStep.PRESENCE,
+                    // Yesterday's resolution is asked first (section 5.12: «Исполнил? Да/Нет»).
+                    step = when {
+                        existing?.completedAt != null -> ExamenStep.DONE
+                        previous != null -> ExamenStep.FOLLOW_UP
+                        else -> ExamenStep.PRESENCE
+                    },
+                    pinRequired = profiles.get().examenPinEnabled,
                 )
             }
-            startPresenceCountdown()
+            if (_ui.value.step == ExamenStep.PRESENCE) startPresenceCountdown()
         }
     }
 
@@ -131,6 +141,7 @@ class ExamenViewModel @Inject constructor(
 
     fun next() = _ui.update { s ->
         when (s.step) {
+            ExamenStep.FOLLOW_UP -> if (s.previousAnswer != null) s.copy(step = ExamenStep.PRESENCE) else s
             ExamenStep.PRESENCE -> s.copy(step = ExamenStep.GRATITUDE)
             ExamenStep.GRATITUDE -> s.copy(step = ExamenStep.AUDIT, auditIndex = 0)
             ExamenStep.AUDIT -> if (s.auditIndex + 1 < s.questions.size) s.copy(auditIndex = s.auditIndex + 1) else s.copy(step = ExamenStep.CONTRITION)
@@ -140,7 +151,10 @@ class ExamenViewModel @Inject constructor(
             ExamenStep.WHAT_BROKE -> s
             else -> s
         }
-    }.also { persistDraft() }
+    }.also {
+        persistDraft()
+        if (_ui.value.step == ExamenStep.PRESENCE && _ui.value.presenceSecondsLeft == 30) startPresenceCountdown()
+    }
 
     fun setGratitude(i: Int, v: String) = _ui.update { it.copy(gratitude = it.gratitude.toMutableList().also { l -> l[i] = v }) }
     fun setAudit(answer: ExamenRepository.Answer, note: String) = _ui.update { s ->

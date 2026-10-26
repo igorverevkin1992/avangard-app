@@ -153,7 +153,17 @@ private fun StepTestAlarm(ui: OnboardingUi, vm: OnboardingViewModel) {
     Text(stringResource(R.string.onboarding_test_title), style = MaterialTheme.typography.headlineMedium)
     Text(stringResource(R.string.onboarding_test_hint), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     ImSecondaryButton(if (ui.testAlarmArmed) stringResource(R.string.onboarding_test_armed) else stringResource(R.string.onboarding_test_arm), onClick = vm::armTestAlarm, enabled = !ui.testAlarmArmed)
-    if (!ui.hyperOsCore) {
+    // Re-read when returning from the ring screen.
+    val lifecycle = androidx.compose.ui.platform.LocalLifecycleOwner.current
+    androidx.compose.runtime.DisposableEffect(lifecycle) {
+        val o = androidx.lifecycle.LifecycleEventObserver { _, e -> if (e == androidx.lifecycle.Lifecycle.Event.ON_RESUME) vm.refreshHyperOs() }
+        lifecycle.lifecycle.addObserver(o)
+        onDispose { lifecycle.lifecycle.removeObserver(o) }
+    }
+    if (ui.testAlarmHeard) {
+        Text(stringResource(R.string.onboarding_test_heard), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodyMedium)
+    } else if (ui.testAlarmArmed || !ui.hyperOsCore) {
+        // Section 10, step 8: without a successful test — a warning (not a block).
         Text(stringResource(R.string.onboarding_test_warning), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
     }
 }
@@ -161,5 +171,6 @@ private fun StepTestAlarm(ui: OnboardingUi, vm: OnboardingViewModel) {
 @Composable
 private fun StepFinal(ui: OnboardingUi) {
     Text(stringResource(R.string.onboarding_final_title, ui.wakeTime.toString()), style = MaterialTheme.typography.headlineLarge)
+    if (!ui.testAlarmHeard) Text(stringResource(R.string.onboarding_test_warning), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
     ImPanel { Text(stringResource(R.string.onboarding_final_hint), style = MaterialTheme.typography.bodyLarge) }
 }

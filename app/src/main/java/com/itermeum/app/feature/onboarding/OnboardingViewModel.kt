@@ -35,6 +35,7 @@ data class OnboardingUi(
     val qrTestPassed: Boolean = false,
     val outreachTarget: Int = 5,
     val testAlarmArmed: Boolean = false,
+    val testAlarmHeard: Boolean = false,
     val hyperOsCore: Boolean = false,
 ) {
     val qrPayload: String get() = QrCodeImage.payload(qrUuid)
@@ -46,6 +47,7 @@ class OnboardingViewModel @Inject constructor(
     private val profiles: ProfileRepository,
     private val wake: WakeAlarmScheduler,
     private val reminders: ReminderScheduler,
+    private val flags: com.itermeum.app.core.data.DayFlags,
 ) : ViewModel() {
 
     private val _ui = MutableStateFlow(OnboardingUi())
@@ -72,7 +74,7 @@ class OnboardingViewModel @Inject constructor(
     fun setMassTimeSunday(v: LocalTime) = _ui.update { it.copy(massTimeSunday = v) }
     fun setMassDay(v: Int) = _ui.update { it.copy(massDay = v) }
     fun setOutreachTarget(v: Int) = _ui.update { it.copy(outreachTarget = v.coerceIn(1, 20)) }
-    fun refreshHyperOs() = _ui.update { it.copy(hyperOsCore = HyperOsChecks.coreHealthy(context)) }
+    fun refreshHyperOs() = _ui.update { it.copy(hyperOsCore = HyperOsChecks.coreHealthy(context), testAlarmHeard = flags.testAlarmHeard()) }
 
     fun qrBitmap(): Bitmap = QrCodeImage.bitmap(_ui.value.qrPayload)
 

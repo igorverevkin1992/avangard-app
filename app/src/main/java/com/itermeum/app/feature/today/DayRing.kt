@@ -65,7 +65,7 @@ fun DayRing(total: Int, done: List<Boolean>, accent: Color, calls: Int, agreemen
                 Text("${done.count { it }}/$total", style = MaterialTheme.typography.headlineLarge.copy(fontFamily = ImMonoFamily))
             }
         }
-        Text("Звонки: $calls · Договорённости: $agreements", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(androidx.compose.ui.res.stringResource(com.itermeum.app.R.string.today_calls_agreements, calls, agreements), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -82,6 +82,6 @@ fun StreakStrip(label: String, current: Int, best: Int, accent: Color, modifier:
                 drawRect(if (i < current.coerceAtMost(30)) accent else outline, Offset(i * w, 0f), Size(w - 1.5f, size.height))
             }
         }
-        Text("лучший $best", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(androidx.compose.ui.res.stringResource(com.itermeum.app.R.string.streak_best, best), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

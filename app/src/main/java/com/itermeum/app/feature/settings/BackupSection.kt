@@ -31,6 +31,7 @@ fun BackupSection(viewModel: BackupViewModel = hiltViewModel()) {
     val ui by viewModel.ui.collectAsState()
     var password by remember { mutableStateOf("") }
     var confirmWipe by remember { mutableStateOf(false) }
+    var confirmRestore by remember { mutableStateOf(false) }
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { viewModel.onSignInResult(it.data) }
     Column(verticalArrangement = Arrangement.spacedBy(ImSpacing.grid)) {
         ImSectionLabel(stringResource(R.string.backup_title))
@@ -49,7 +50,14 @@ fun BackupSection(viewModel: BackupViewModel = hiltViewModel()) {
                 ImSecondaryButton(stringResource(R.string.backup_now), onClick = viewModel::uploadNow)
                 ImSecondaryButton(stringResource(R.string.backup_disable), onClick = viewModel::disable)
             }
-            ImSecondaryButton(stringResource(R.string.backup_restore), enabled = password.isNotBlank() && !ui.busy, onClick = { viewModel.restore(password) })
+            // Restore replaces everything on the phone: one confirmation, like «стереть всё».
+            if (!confirmRestore) {
+                ImSecondaryButton(stringResource(R.string.backup_restore), enabled = password.isNotBlank() && !ui.busy, onClick = { confirmRestore = true })
+            } else {
+                Text(stringResource(R.string.backup_restore_confirm), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
+                ImSecondaryButton(stringResource(R.string.backup_restore_yes), onClick = { viewModel.restore(password); confirmRestore = false })
+                ImSecondaryButton(stringResource(R.string.cancel), onClick = { confirmRestore = false })
+            }
             ImSecondaryButton(stringResource(R.string.backup_sign_out), onClick = viewModel::signOut)
         }
         ui.message?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary) }

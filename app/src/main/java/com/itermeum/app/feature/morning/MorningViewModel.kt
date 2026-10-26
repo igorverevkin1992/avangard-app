@@ -43,6 +43,7 @@ class MorningViewModel @Inject constructor(
     private val morning: MorningRepository,
     private val profiles: ProfileRepository,
     private val wakeScheduler: WakeAlarmScheduler,
+    private val flags: com.itermeum.app.core.data.DayFlags,
     private val clock: Clock,
 ) : ViewModel() {
 
@@ -129,7 +130,7 @@ class MorningViewModel @Inject constructor(
         }
     }
 
-    fun stopTest() = AlarmService.stop(context)
+    fun stopTest() { flags.markTestAlarmHeard(); AlarmService.stop(context) }
 
     companion object {
         const val QR_PREFIX = "itermeum://wake/"
