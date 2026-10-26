@@ -169,7 +169,6 @@
     <string name="streak_fidelity">Верность</string>
     <string name="streak_wake">Подъём</string>
     <string name="streak_frog">Лягушка</string>
-    <string name="streak_best">лучший %1$d</string>
     <string name="today_calls_agreements">Звонки: %1$d · Договорённости: %2$d</string>
     <string name="today_core">ядро</string>
     <string name="today_quiet">тишина</string>
