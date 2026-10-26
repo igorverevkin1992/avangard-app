@@ -4,6 +4,7 @@ import androidx.room.Entity
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import androidx.room.PrimaryKey
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalTime
 
@@ -21,7 +22,9 @@ data class ProfileEntity(
     val timezoneHome: String = "Europe/Moscow",
     val baptized: Boolean = false,
     @Contextual val baptismDate: LocalDate? = null,
-    @Contextual val massTime: LocalTime? = null,
+    /** Mass times per day (D-22): the Saturday evening Mass and the Sunday morning one. */
+    @Contextual val massTimeSaturday: LocalTime = LocalTime.of(18, 0),
+    @Contextual val massTimeSunday: LocalTime = LocalTime.of(10, 0),
     /** Day of week for the usual Mass: 6 = Saturday evening, 7 = Sunday morning. */
     val massDay: Int = 6,
     val contentPackVersion: Int = 0,
@@ -36,4 +39,6 @@ data class ProfileEntity(
     val travelAuto: Boolean = true,
     val confessionEveryDays: Int = 30,
     val examenPinEnabled: Boolean = false,
-)
+) {
+    fun massTimeFor(day: DayOfWeek): LocalTime = if (day == DayOfWeek.SATURDAY) massTimeSaturday else massTimeSunday
+}

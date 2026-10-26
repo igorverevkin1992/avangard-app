@@ -3,6 +3,7 @@ package com.itermeum.app.core.database.di
 import android.content.Context
 import androidx.room.Room
 import com.itermeum.app.core.database.AppDatabase
+import com.itermeum.app.core.database.Migrations
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -17,7 +18,7 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): AppDatabase =
-        Room.databaseBuilder(context, AppDatabase::class.java, AppDatabase.DB_NAME).build()
+        Room.databaseBuilder(context, AppDatabase::class.java, AppDatabase.DB_NAME).addMigrations(*Migrations.ALL).build()
 
     @Provides fun profileDao(db: AppDatabase) = db.profileDao()
     @Provides fun normDao(db: AppDatabase) = db.normDao()

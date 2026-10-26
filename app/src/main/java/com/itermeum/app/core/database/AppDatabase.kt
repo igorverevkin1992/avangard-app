@@ -55,8 +55,8 @@ import com.itermeum.app.core.database.entity.WeeklyReviewEntity
 import com.itermeum.app.core.database.entity.WorkTaskEntity
 
 /**
- * Section 8: schema version 1, exported. `fallbackToDestructiveMigration`
- * is forbidden after the v1 release — every later version ships a Migration.
+ * Section 8: schema version 2, exported. `fallbackToDestructiveMigration`
+ * is forbidden — every later version ships a Migration (see [Migrations]).
  */
 @Database(
     entities = [
@@ -74,7 +74,7 @@ import com.itermeum.app.core.database.entity.WorkTaskEntity
         WeeklyReviewEntity::class, MortificationLogEntity::class, TravelPeriodEntity::class,
         MorningStateEntity::class, MonthlySummaryViewEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)

@@ -27,7 +27,8 @@ data class OnboardingUi(
     val bedTime: LocalTime = LocalTime.of(23, 0),
     val workStart: LocalTime = LocalTime.of(12, 0),
     val workEnd: LocalTime = LocalTime.of(20, 0),
-    val massTime: LocalTime = LocalTime.of(19, 0),
+    val massTimeSaturday: LocalTime = LocalTime.of(18, 0),
+    val massTimeSunday: LocalTime = LocalTime.of(10, 0),
     val massDay: Int = 6,
     val qrUuid: String = UUID.randomUUID().toString(),
     val qrSaved: Boolean = false,
@@ -55,7 +56,7 @@ class OnboardingViewModel @Inject constructor(
             val p = profiles.get()
             _ui.update {
                 it.copy(name = p.name, wakeTime = p.wakeTime, wakeTimeWeekend = p.wakeTimeWeekend, bedTime = p.bedTime,
-                    workStart = p.workStart, workEnd = p.workEnd, massTime = p.massTime ?: it.massTime, massDay = p.massDay,
+                    workStart = p.workStart, workEnd = p.workEnd, massTimeSaturday = p.massTimeSaturday, massTimeSunday = p.massTimeSunday, massDay = p.massDay,
                     qrUuid = p.wakeQrUuid ?: it.qrUuid, outreachTarget = p.outreachTarget, hyperOsCore = HyperOsChecks.coreHealthy(context))
             }
         }
@@ -67,7 +68,8 @@ class OnboardingViewModel @Inject constructor(
     fun setBed(v: LocalTime) = _ui.update { it.copy(bedTime = v) }
     fun setWorkStart(v: LocalTime) = _ui.update { it.copy(workStart = v) }
     fun setWorkEnd(v: LocalTime) = _ui.update { it.copy(workEnd = v) }
-    fun setMassTime(v: LocalTime) = _ui.update { it.copy(massTime = v) }
+    fun setMassTimeSaturday(v: LocalTime) = _ui.update { it.copy(massTimeSaturday = v) }
+    fun setMassTimeSunday(v: LocalTime) = _ui.update { it.copy(massTimeSunday = v) }
     fun setMassDay(v: Int) = _ui.update { it.copy(massDay = v) }
     fun setOutreachTarget(v: Int) = _ui.update { it.copy(outreachTarget = v.coerceIn(1, 20)) }
     fun refreshHyperOs() = _ui.update { it.copy(hyperOsCore = HyperOsChecks.coreHealthy(context)) }
@@ -110,7 +112,7 @@ class OnboardingViewModel @Inject constructor(
         profiles.update { p: ProfileEntity ->
             p.copy(
                 name = s.name.trim(), wakeTime = s.wakeTime, wakeTimeWeekend = s.wakeTimeWeekend, bedTime = s.bedTime,
-                workStart = s.workStart, workEnd = s.workEnd, massTime = s.massTime, massDay = s.massDay,
+                workStart = s.workStart, workEnd = s.workEnd, massTimeSaturday = s.massTimeSaturday, massTimeSunday = s.massTimeSunday, massDay = s.massDay,
                 wakeQrUuid = s.qrUuid, outreachTarget = s.outreachTarget, onboardingDone = p.onboardingDone || done,
             )
         }

@@ -55,7 +55,7 @@ class PathRepository @Inject constructor(
 
     suspend fun ensureMassEvent(date: LocalDate) {
         val p = profiles.get()
-        val time = p.massTime ?: return
+        val time = p.massTimeFor(date.dayOfWeek)
         val isMassDay = (p.massDay == 6 && date.dayOfWeek == DayOfWeek.SATURDAY) || (p.massDay == 7 && date.dayOfWeek == DayOfWeek.SUNDAY)
         if (!isMassDay || formationDao.eventFor(date, FormationType.MASS) != null) return
         val zone = clock.zone()

@@ -88,7 +88,7 @@ object DayScheduleEngine {
         return input.norms.filter { isActive(it, input) }.map { norm ->
             val base = norm.userTime ?: norm.defaultTime?.let { if (norm.followsWakeTime && norm.userTime == null) it.plus(shift) else it }
             val time: LocalTime? = when (norm.id) {
-                NormCatalog.MASS -> p.massTime
+                NormCatalog.MASS -> p.massTimeFor(date.dayOfWeek)
                 else -> base
             }
             val at = time?.let { date.atTime(it) }

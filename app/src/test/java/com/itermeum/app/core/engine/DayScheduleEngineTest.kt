@@ -20,7 +20,7 @@ class DayScheduleEngineTest {
 
     private fun input(
         date: LocalDate = monday,
-        profile: ProfileEntity = ProfileEntity(massTime = LocalTime.of(19, 0)),
+        profile: ProfileEntity = ProfileEntity(massTimeSaturday = LocalTime.of(19, 0), massTimeSunday = LocalTime.of(10, 0)),
         travel: Boolean = false,
         sick: Boolean = false,
         events: List<Pair<LocalDateTime, LocalDateTime>> = emptyList(),
@@ -91,7 +91,7 @@ class DayScheduleEngineTest {
     @Test
     fun `confession appears only after baptism`() {
         assertNull(DayScheduleEngine.schedule(input()).firstOrNull { it.normId == NormCatalog.CONFESSION })
-        val baptized = ProfileEntity(baptized = true, massTime = LocalTime.of(19, 0))
+        val baptized = ProfileEntity(baptized = true, massTimeSaturday = LocalTime.of(19, 0))
         assertTrue(DayScheduleEngine.schedule(input(profile = baptized)).any { it.normId == NormCatalog.CONFESSION })
     }
 

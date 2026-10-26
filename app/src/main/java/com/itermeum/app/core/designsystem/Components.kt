@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -23,6 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -58,11 +60,17 @@ fun ImTimeField(label: String, value: LocalTime, onChange: (LocalTime) -> Unit, 
     OutlinedTextField(
         value = text,
         onValueChange = { t ->
-            text = t.filter { it.isDigit() || it == ':' }.take(5)
-            runCatching { LocalTime.parse(text, DateTimeFormatter.ofPattern("H:mm")) }.getOrNull()?.let(onChange)
+            // Digits only; the colon is inserted after the hour so «1800» reads as 18:00.
+            val digits = t.filter { it.isDigit() }.take(4)
+            text = if (digits.length <= 2) digits else digits.substring(0, 2) + ":" + digits.substring(2)
+            if (digits.length == 4) {
+                val h = digits.substring(0, 2).toInt(); val m = digits.substring(2).toInt()
+                if (h in 0..23 && m in 0..59) onChange(LocalTime.of(h, m))
+            }
         },
         label = { Text(label) },
         singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         modifier = modifier,
         textStyle = MaterialTheme.typography.bodyLarge.copy(fontFamily = ImMonoFamily),
     )

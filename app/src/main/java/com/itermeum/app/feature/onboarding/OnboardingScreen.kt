@@ -103,10 +103,14 @@ private fun StepFormation(ui: OnboardingUi, vm: OnboardingViewModel) {
     ImPanel { Text(stringResource(R.string.onboarding_catechesis_fixed), style = MaterialTheme.typography.bodyLarge) }
     Text(stringResource(R.string.settings_mass_time_hint), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     Row(horizontalArrangement = Arrangement.spacedBy(ImSpacing.grid), verticalAlignment = Alignment.CenterVertically) {
+        ImTimeField(stringResource(R.string.mass_time_saturday), ui.massTimeSaturday, vm::setMassTimeSaturday, Modifier.weight(1f))
+        ImTimeField(stringResource(R.string.mass_time_sunday), ui.massTimeSunday, vm::setMassTimeSunday, Modifier.weight(1f))
+    }
+    Text(stringResource(R.string.mass_usual_day), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Row(horizontalArrangement = Arrangement.spacedBy(ImSpacing.grid), verticalAlignment = Alignment.CenterVertically) {
         ImSecondaryButton(stringResource(R.string.mass_saturday), onClick = { vm.setMassDay(6) }, Modifier.weight(1f), enabled = ui.massDay != 6)
         ImSecondaryButton(stringResource(R.string.mass_sunday), onClick = { vm.setMassDay(7) }, Modifier.weight(1f), enabled = ui.massDay != 7)
     }
-    ImTimeField(stringResource(R.string.settings_mass_time), ui.massTime, vm::setMassTime, Modifier.fillMaxWidth())
 }
 
 @Composable
