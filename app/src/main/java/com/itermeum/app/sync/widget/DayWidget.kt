@@ -31,6 +31,7 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import com.itermeum.app.MainActivity
+import com.itermeum.app.R
 import com.itermeum.app.core.common.Clock
 import com.itermeum.app.core.data.NormRepository
 import com.itermeum.app.core.data.WorkRepository
@@ -80,8 +81,8 @@ class DayWidget : GlanceAppWidget() {
                 Text("$done/$total", style = TextStyle(color = fg, fontSize = 28.sp, fontWeight = FontWeight.Bold))
                 Spacer(GlanceModifier.width(12.dp))
                 Column(GlanceModifier.defaultWeight()) {
-                    Text(nextTitle ?: "Все нормы дня выполнены", style = TextStyle(color = fg, fontSize = 14.sp))
-                    Text(listOfNotNull(nextTime, "Звонки: $calls").joinToString(" · "), style = TextStyle(color = dim, fontSize = 12.sp))
+                    Text(nextTitle ?: ctx.getString(R.string.widget_all_done), style = TextStyle(color = fg, fontSize = 14.sp))
+                    Text(listOfNotNull(nextTime, ctx.getString(R.string.widget_calls, calls)).joinToString(" · "), style = TextStyle(color = dim, fontSize = 12.sp))
                 }
             }
             Spacer(GlanceModifier.height(8.dp))
@@ -93,7 +94,7 @@ class DayWidget : GlanceAppWidget() {
             }
             Spacer(GlanceModifier.height(10.dp))
             Text(
-                "РИТУАЛ ПЕРЕХОДА · 15 с",
+                ctx.getString(R.string.widget_ritual),
                 style = TextStyle(color = fg, fontSize = 12.sp, fontWeight = FontWeight.Bold),
                 modifier = GlanceModifier.fillMaxWidth().background(ColorProvider(Color(0xFF231F1B))).padding(8.dp)
                     .clickable(actionStartActivity(Intent(Intent.ACTION_VIEW, Uri.parse("itermeum://ritual")).setClass(ctx, MainActivity::class.java))),

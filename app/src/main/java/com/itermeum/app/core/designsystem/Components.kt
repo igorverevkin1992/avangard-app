@@ -93,6 +93,8 @@ fun ImTimeField(label: String, value: LocalTime, onChange: (LocalTime) -> Unit, 
         },
         label = { Text(label) },
         singleLine = true,
+        // «07» or «7:3» is not a time yet: mark it until four digits are typed.
+        isError = text.count(Char::isDigit) in 1..3,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         modifier = modifier,
         textStyle = MaterialTheme.typography.bodyLarge.copy(fontFamily = ImMonoFamily),

@@ -26,6 +26,15 @@
 
 ## Сборка
 
+Ключ подписи в репозиторий не кладётся. Локально: файл `app/keystore/itermeum.jks`
+и в корне репозитория `keystore.properties` со строкой `storePassword=…`. В CI —
+секреты `ITERMEUM_KEYSTORE_B64` и `ITERMEUM_KEYSTORE_PASSWORD`.
+
+При изменении схемы БД: поднять версию в `AppDatabase`, написать миграцию в
+`Migrations.kt`, собрать и закоммитить новый `app/schemas/.../N.json`; CI
+проверяет, что схема закоммичена, а `MigrationsTest` прогоняет миграции по
+настоящим схемам.
+
 ```
 ./gradlew :app:testDebugUnitTest
 ./gradlew :app:assembleDebug
@@ -33,8 +42,9 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
 Нужен Android SDK 35 (`platforms;android-35`, `build-tools;35.0.0`) и `local.properties`
-с `sdk.dir`. CI (`.github/workflows/build.yml`) собирает debug-APK и прогоняет
-юнит-тесты на каждый push; артефакт `itermeum-debug-apk`.
+с `sdk.dir`. CI (`.github/workflows/build.yml`) на каждый push: юнит-тесты, debug- и
+release-сборка (R8, mapping в артефакте), lint (отчёт в артефакте).
+Артефакты: `itermeum-debug-apk`, `itermeum-release`.
 
 ## Что нужно сделать вручную
 

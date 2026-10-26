@@ -1,11 +1,8 @@
-# Hilt / Dagger
--keep class dagger.hilt.** { *; }
--keep class * extends dagger.hilt.android.lifecycle.HiltViewModel
+# Hilt, Room, WorkManager, Glance, ML Kit and OkHttp ship their own consumer
+# rules; only project-specific keeps live here.
 
-# Room
--keep class androidx.room.** { *; }
--keep @androidx.room.Entity class *
--keep class * extends androidx.room.RoomDatabase
+# Room entities are also @Serializable (backup): keep their names stable.
+-keep @androidx.room.Entity class com.itermeum.app.** { *; }
 
 # Coroutines
 -keepnames class kotlinx.coroutines.internal.MainDispatcherFactory {}

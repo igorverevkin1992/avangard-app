@@ -28,10 +28,17 @@ import com.itermeum.app.core.designsystem.ImSecondaryButton
 import com.itermeum.app.core.designsystem.ImSpacing
 import com.itermeum.app.core.engine.SrsEngine
 
-fun SrsStage.label(): String = when (this) {
-    SrsStage.READ -> "чтение"; SrsStage.CLOZE_25 -> "пропуски 25 %"; SrsStage.CLOZE_50 -> "пропуски 50 %"
-    SrsStage.CLOZE_100 -> "пропуски 100 %"; SrsStage.RECALL -> "по памяти"; SrsStage.KNOWN -> "наизусть"
-}
+@Composable
+fun SrsStage.label(): String = stringResource(
+    when (this) {
+    SrsStage.READ -> R.string.srs_stage_read
+    SrsStage.CLOZE_25 -> R.string.srs_stage_cloze_25
+    SrsStage.CLOZE_50 -> R.string.srs_stage_cloze_50
+    SrsStage.CLOZE_100 -> R.string.srs_stage_cloze_100
+    SrsStage.RECALL -> R.string.srs_stage_recall
+    SrsStage.KNOWN -> R.string.srs_stage_known
+    },
+)
 
 /** Section 5.13: READ → CLOZE_25 → CLOZE_50 → CLOZE_100 → RECALL → KNOWN; session ≤5 min. */
 @Composable

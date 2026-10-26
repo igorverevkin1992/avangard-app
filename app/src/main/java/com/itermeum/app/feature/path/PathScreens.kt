@@ -80,7 +80,7 @@ fun CatechesisScreen(noteId: Long?, onBack: () -> Unit, viewModel: PathViewModel
                 Text("${n.logicalDate} · ${n.topic}", style = MaterialTheme.typography.titleMedium)
                 if (n.theses.isNotBlank()) Text(n.theses, style = MaterialTheme.typography.bodyMedium)
                 if (n.question.isNotBlank()) Text("? ${n.question}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                if (n.homework.isNotBlank()) Text("ДЗ: ${n.homework}" + if (n.homeworkDone) " ✓" else " · до ${n.homeworkDue}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (n.homework.isNotBlank()) Text(stringResource(R.string.catechesis_homework_label, n.homework) + if (n.homeworkDone) " ✓" else stringResource(R.string.catechesis_due, n.homeworkDue.toString()), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 TextButton(onClick = { existingId = n.id; topic = n.topic; theses = n.theses; question = n.question; homework = n.homework; date = n.logicalDate }) { Text(stringResource(R.string.prayer_edit)) }
             }
         }

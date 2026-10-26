@@ -85,7 +85,8 @@ class LiturgicalCalendar @Inject constructor(private val tables: LectionaryTable
                 easter.minusDays(2) -> Triple("GOOD_FRIDAY", "Страстная Пятница", LiturgicalColor.RED)
                 else -> Triple("EASTER_VIGIL", "Великая Суббота. Навечерие Пасхи", LiturgicalColor.WHITE)
             }
-            return build(date, season, Rank.SOLEMNITY, color, slot, title, cycle, wcycle, tables.sunday(cycle, slot), reginaCaeli, lentFriday, weekOfSeason)
+            // Abstinence does not apply on a solemnity.
+            return build(date, season, Rank.SOLEMNITY, color, slot, title, cycle, wcycle, tables.sunday(cycle, slot), reginaCaeli, false, weekOfSeason)
         }
         if (date == easter) {
             return build(date, season, Rank.SOLEMNITY, LiturgicalColor.WHITE, "EASTER", "Воскресение Христово. Пасха", cycle, wcycle, tables.sunday(cycle, "EASTER"), reginaCaeli, false, 1)
@@ -98,7 +99,7 @@ class LiturgicalCalendar @Inject constructor(private val tables: LectionaryTable
         // 2. Celebrations (solemnities, feasts, proper memorials) incl. transfers.
         y.celebrations[date]?.let { c ->
             val ref = c.sundaySlot?.let { tables.sunday(cycle, it) } ?: c.monthDay?.let { tables.solemnity(it, cycle) }
-            return build(date, season, c.rank, c.color, c.id, c.title, cycle, wcycle, ref, reginaCaeli, lentFriday, weekOfSeason)
+            return build(date, season, c.rank, c.color, c.id, c.title, cycle, wcycle, ref, reginaCaeli, lentFriday && c.rank != Rank.SOLEMNITY, weekOfSeason)
         }
 
         // 3. Sundays.
@@ -203,7 +204,7 @@ class LiturgicalCalendar @Inject constructor(private val tables: LectionaryTable
             var date = listOf(litYear - 1, litYear).map { LocalDate.of(it, m, d) }
                 .firstOrNull { it >= advent1 && it < nextAdvent1 } ?: continue
             if (c.rank == Rank.SOLEMNITY) {
-                date = transferSolemnity(date, advent1, christmas, ash, easter, pentecost, cel.keys)
+                date = transferSolemnity(date, advent1, christmas, ash, easter, pentecost, cel.keys, c.id)
             } else {
                 // Feasts yield to Sundays except feasts of the Lord in Ordinary Time;
                 // all celebrations yield to privileged days already placed.
@@ -223,8 +224,12 @@ class LiturgicalCalendar @Inject constructor(private val tables: LectionaryTable
 
     private fun transferSolemnity(
         date: LocalDate, advent1: LocalDate, christmas: LocalDate, ash: LocalDate, easter: LocalDate, pentecost: LocalDate, taken: Set<LocalDate>,
+        id: String = "",
     ): LocalDate {
         var d = date
+        // St Joseph in Holy Week is anticipated to the Saturday before Palm Sunday;
+        // other solemnities move after the Easter octave.
+        if (id == "ST_JOSEPH" && d >= easter.minusDays(7) && d < easter) return easter.minusDays(8)
         if (inHolyWeekOrOctave(d, easter)) d = easter.plusDays(8)
         while (true) {
             val privilegedSunday = d.dayOfWeek == DayOfWeek.SUNDAY &&

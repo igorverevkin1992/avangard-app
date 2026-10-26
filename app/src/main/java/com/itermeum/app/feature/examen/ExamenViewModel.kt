@@ -3,6 +3,7 @@ package com.itermeum.app.feature.examen
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.itermeum.app.core.common.Clock
+import com.itermeum.app.R
 import com.itermeum.app.core.content.ContentAssets
 import com.itermeum.app.core.content.ExamenQuestionJson
 import com.itermeum.app.core.content.NormCatalog
@@ -59,6 +60,7 @@ data class ExamenUi(
 /** Section 5.12 wizard: [FOLLOW_UP of yesterday's resolution] → PRESENCE → GRATITUDE → AUDIT(1..5) → CONTRITION → PROPOSITO → AVE(3) → [WHAT_BROKE] → DONE. */
 @HiltViewModel
 class ExamenViewModel @Inject constructor(
+    @dagger.hilt.android.qualifiers.ApplicationContext private val context: android.content.Context,
     private val examen: ExamenRepository,
     private val prayers: PrayerRepository,
     private val assets: ContentAssets,
@@ -116,17 +118,17 @@ class ExamenViewModel @Inject constructor(
         val done = norms.observeDoneIds(date).first()
         val m = mutableMapOf<Int, String>()
         val work1 = buildList {
-            if (tasks.isEmpty()) add("план дня не сохранён")
-            if (open > 0) add("открытых задач: $open")
-            if (debt > 0) add("закрыто с долгом: $debt")
-            if (moved > 0) add("перенесено: $moved")
-            if (attempts < target) add("звонков $attempts из $target")
+            if (tasks.isEmpty()) add(context.getString(R.string.examen_hint_no_plan))
+            if (open > 0) add(context.getString(R.string.examen_hint_open, open))
+            if (debt > 0) add(context.getString(R.string.examen_hint_debt, debt))
+            if (moved > 0) add(context.getString(R.string.examen_hint_moved, moved))
+            if (attempts < target) add(context.getString(R.string.examen_hint_calls, attempts, target))
         }
         if (work1.isNotEmpty()) m[1] = work1.joinToString("; ")
         val unity = buildList {
-            if (NormCatalog.ANGELUS !in done) add("Ангел Господень не отмечен")
+            if (NormCatalog.ANGELUS !in done) add(context.getString(R.string.examen_hint_angelus))
             if (NormCatalog.JACULATORIA !in done) add("молитв-стрел меньше трёх")
-            if (NormCatalog.MENTAL_PRAYER !in done) add("ментальной молитвы не было")
+            if (NormCatalog.MENTAL_PRAYER !in done) add(context.getString(R.string.examen_hint_mental))
         }
         if (unity.isNotEmpty()) m[5] = unity.joinToString("; ")
         return m

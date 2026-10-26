@@ -95,8 +95,12 @@ object SrsEngine {
         if (fraction == 0.0) return words.map { Token(it, false) }
         val wordIdx = words.indices.filter { words[it].isNotBlank() && words[it].any(Char::isLetter) }
         val hideCount = (wordIdx.size * fraction).roundToInt()
-        val seed = (prayerId + stage.name).hashCode()
-        val shuffled = wordIdx.shuffled(kotlin.random.Random(seed))
+        val seed = (prayerId + stage.name).hashCode().toLong()
+        // Own LCG: kotlin.random's sequence is not guaranteed across Kotlin versions,
+        // and the hidden words must stay the same for a given prayer and stage.
+        var state = seed xor 0x5DEECE66DL
+        fun next(bound: Int): Int { state = (state * 6364136223846793005L + 1442695040888963407L); return ((state ushr 33) % bound).toInt().let { if (it < 0) -it else it } }
+        val shuffled = wordIdx.toMutableList().also { l -> for (i in l.lastIndex downTo 1) { val j = next(i + 1); val t = l[i]; l[i] = l[j]; l[j] = t } }
         val hidden = shuffled.take(hideCount).toSet()
         return words.mapIndexed { i, w -> Token(w, i in hidden) }
     }

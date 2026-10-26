@@ -79,6 +79,12 @@ class WakeAlarmScheduler @Inject constructor(
     }
 
     /** Trigger of the system-wide next alarm clock, only if it is ours. */
+    /** Section 10: if Serviam has not been pressed 3 minutes after the proof, one reminder (fire-time checked). */
+    fun scheduleServiamNudge(provenAt: Long) {
+        val intent = com.itermeum.app.sync.scheduler.NormReminderReceiver.intent(context, com.itermeum.app.core.content.NormCatalog.SERVIAM, 1, slot = 0)
+        alarms.setExact(provenAt + 3 * 60_000L, alarms.broadcast(ExactAlarms.RC_SERVIAM_NUDGE, intent))
+    }
+
     fun ourNextAlarmClock(): Long? = alarms.nextAlarmClockTriggerOf(context.packageName)
     fun canScheduleExact(): Boolean = alarms.canScheduleExact()
 }

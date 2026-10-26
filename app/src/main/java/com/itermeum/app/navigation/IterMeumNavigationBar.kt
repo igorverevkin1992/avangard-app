@@ -63,7 +63,7 @@ fun IterMeumNavigationBar(navController: NavHostController, modifier: Modifier =
                         contentDescription = stringResource(tab.labelRes),
                     )
                 },
-                label = { Text(stringResource(tab.labelRes).uppercase(), style = MaterialTheme.typography.labelLarge.copy(fontSize = 11.sp)) },
+                label = { Text(stringResource(tab.labelRes).uppercase(), style = MaterialTheme.typography.labelLarge.copy(fontSize = 12.sp)) },
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = scheme.tertiary,
                     selectedTextColor = scheme.onSurface,

@@ -19,6 +19,7 @@ class AlarmHealthReceiver : BroadcastReceiver() {
     @Inject lateinit var wake: WakeAlarmScheduler
     @Inject lateinit var morning: MorningRepository
     @Inject lateinit var presenter: NotificationPresenter
+    @Inject lateinit var budget: com.itermeum.app.sync.notifications.NotificationBudget
 
     override fun onReceive(context: Context, intent: Intent) {
         runAsync(TAG) {
@@ -32,6 +33,7 @@ class AlarmHealthReceiver : BroadcastReceiver() {
                     context.getString(R.string.alarm_health_title), context.getString(R.string.alarm_health_text),
                     "itermeum://settings", NotificationCompat.PRIORITY_HIGH,
                 )
+                budget.record(1)
             }
         }
     }

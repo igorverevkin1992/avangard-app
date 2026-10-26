@@ -51,6 +51,10 @@ object EscalationEngine {
     fun prioritize(candidates: List<Candidate>, budget: Budget): List<Candidate> {
         val room = (MAX_PER_DAY - budget.sentToday).coerceAtLeast(0)
         val (alarms, rest) = candidates.partition { it.priority == Priority.ALARM }
-        return alarms + rest.filter { allow(it, budget) }.sortedBy { it.priority.ordinal }.take(room)
+        val allowed = rest.filter { allow(it, budget) }.sortedWith(compareBy({ it.priority.ordinal }, { it.at }))
+        // Never more than the remaining level-3 slots.
+        val l3Room = (MAX_LEVEL3_PER_DAY - budget.level3SentToday).coerceAtLeast(0)
+        val (l3, other) = allowed.partition { it.level == 3 }
+        return alarms + (l3.take(l3Room) + other).sortedWith(compareBy({ it.priority.ordinal }, { it.at })).take(room)
     }
 }

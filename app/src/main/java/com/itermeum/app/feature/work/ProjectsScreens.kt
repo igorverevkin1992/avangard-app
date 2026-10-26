@@ -44,10 +44,18 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-fun ProjectStage.label(): String = when (this) {
-    ProjectStage.CONCEPT -> "концепт"; ProjectStage.SCRIPT -> "сценарий"; ProjectStage.PREPRODUCTION -> "подготовка"
-    ProjectStage.SHOOTING -> "съёмки"; ProjectStage.POST -> "пост"; ProjectStage.RELEASED -> "выпущен"; ProjectStage.ARCHIVED -> "архив"
-}
+@Composable
+fun ProjectStage.label(): String = stringResource(
+    when (this) {
+    ProjectStage.CONCEPT -> R.string.stage_concept
+    ProjectStage.SCRIPT -> R.string.stage_script
+    ProjectStage.PREPRODUCTION -> R.string.stage_preproduction
+    ProjectStage.SHOOTING -> R.string.stage_shooting
+    ProjectStage.POST -> R.string.stage_post
+    ProjectStage.RELEASED -> R.string.stage_released
+    ProjectStage.ARCHIVED -> R.string.stage_archived
+    },
+)
 
 @HiltViewModel
 class ProjectsViewModel @Inject constructor(private val repo: ProjectRepository) : ViewModel() {
@@ -73,7 +81,8 @@ fun ProjectsScreen(onBack: () -> Unit, onOpen: (Long) -> Unit, viewModel: Projec
         ImHeader(stringResource(R.string.work_projects), onBack = onBack)
         if (creating) {
             var title by remember { mutableStateOf("") }
-            var format by remember { mutableStateOf("вертикальный сериал") }
+            val defaultFormat = stringResource(R.string.project_format_default)
+            var format by remember { mutableStateOf(defaultFormat) }
             var dedication by remember { mutableStateOf("") }
             var market by remember { mutableStateOf(Market.RU) }
             ImPanel {

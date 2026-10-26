@@ -55,6 +55,7 @@ class ExactAlarms(private val context: Context) {
         const val RC_TEST_ALARM = 1007
         const val RC_QUARANTINE_YES = 1008
         const val RC_QUARANTINE_NO = 1009
+        const val RC_SERVIAM_NUDGE = 1010
         const val RC_NORM_BASE = 2000
     }
 }

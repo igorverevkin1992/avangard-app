@@ -71,12 +71,14 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
-        freeCompilerArgs += listOf(
-            "-opt-in=kotlin.RequiresOptIn",
-            "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
-        )
+    // Sideloaded onto one known arm64 phone (Xiaomi 13T Pro): no other native ABIs (ML Kit, CameraX).
+    defaultConfig { ndk { abiFilters += "arm64-v8a" } }
+
+    lint {
+        // Reported in CI as an artifact; not yet a gate (no local SDK to fix a backlog against).
+        abortOnError = false
+        checkReleaseBuilds = false
+        htmlReport = true
     }
 
     buildFeatures {
@@ -91,8 +93,9 @@ android {
     }
 
     // Robolectric reads merged res + assets (strings, assets/*.json) in unit tests.
-    // Committed Room schemas feed MigrationTestHelper in unit tests.
-    sourceSets { getByName("test").assets.srcDir("$projectDir/schemas") }
+    // Committed Room schemas feed MigrationTestHelper: Robolectric reads the variant's
+    // merged assets, so they go into the debug variant (not into release).
+    sourceSets { getByName("debug").assets.srcDir("$projectDir/schemas") }
 
     testOptions {
         unitTests.isIncludeAndroidResources = true
@@ -177,3 +180,28 @@ dependencies {
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
 }
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+        freeCompilerArgs.addAll("-opt-in=kotlin.RequiresOptIn", "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi")
+    }
+}
+
+// Robolectric's android-all jar comes through Gradle (retries, cache) instead of
+// Robolectric's own Maven Central download, which hit HTTP 429 in CI.
+val robolectricJars: Configuration by configurations.creating
+dependencies { robolectricJars("org.robolectric:android-all-instrumented:14-robolectric-10818077-i7") }
+
+abstract class RobolectricOfflineArgs : CommandLineArgumentProvider {
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.NONE)
+    abstract val jars: ConfigurableFileCollection
+    override fun asArguments(): Iterable<String> =
+        listOf("-Drobolectric.offline=true", "-Drobolectric.dependency.dir=" + jars.singleFile.parentFile.absolutePath)
+}
+
+tasks.withType<Test>().configureEach {
+    jvmArgumentProviders.add(objects.newInstance<RobolectricOfflineArgs>().apply { jars.from(robolectricJars) })
+}
+

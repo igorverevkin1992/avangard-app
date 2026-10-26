@@ -2,6 +2,7 @@ package com.itermeum.app.feature.work
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.itermeum.app.R
 import com.itermeum.app.core.common.Clock
 import com.itermeum.app.core.content.NormCatalog
 import com.itermeum.app.core.data.NormRepository
@@ -40,9 +41,11 @@ data class WorkUi(
 
 @HiltViewModel
 class WorkViewModel @Inject constructor(
+    @dagger.hilt.android.qualifiers.ApplicationContext private val context: android.content.Context,
     private val work: WorkRepository,
     private val norms: NormRepository,
     private val prayers: PrayerRepository,
+    private val widget: com.itermeum.app.sync.widget.WidgetUpdater,
     private val clock: Clock,
 ) : ViewModel() {
 
@@ -72,13 +75,14 @@ class WorkViewModel @Inject constructor(
     }
 
     fun logOutreach(person: String, role: String?, kind: OutreachKind, outcome: OutreachOutcome, agreementDate: LocalDate?) {
-        viewModelScope.launch { work.logOutreach(date, person, role, null, kind, outcome, agreementDate) }
+        viewModelScope.launch { work.logOutreach(date, person, role, null, kind, outcome, agreementDate); widget.requestUpdate() }
     }
 
     suspend fun recentPeople() = work.recentPeople()
-    suspend fun beforeCallPrayer(): String = prayers.pickJaculatoria("BEFORE_CALL")?.text ?: "Господи, дай мне смелости и любви к этому человеку"
+    suspend fun beforeCallPrayer(): String = prayers.pickJaculatoria("BEFORE_CALL")?.text ?: context.getString(R.string.jaculatoria_fallback_call)
+    /** Section 5.4 ritual prayer, kept in resources (content texts carry their own sources). */
+    fun ritualPrayer(): String = context.getString(R.string.ritual_prayer)
     suspend fun afterRejectionPrayer(): String = prayers.pickJaculatoria("AFTER_REJECTION")?.text ?: "Omnia in bonum"
-    suspend fun ritualPrayer(): String = "Господи, благодарю за прошедшую встречу; благослови людей, к которым я сейчас иду"
 
     fun closeTask(task: WorkTaskEntity, checklist: List<Boolean>) = viewModelScope.launch { work.closeTask(task, checklist) }
     fun moveTask(task: WorkTaskEntity) = viewModelScope.launch { work.moveTask(task) }

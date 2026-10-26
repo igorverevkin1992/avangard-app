@@ -34,10 +34,17 @@ import com.itermeum.app.core.designsystem.ImPrimaryButton
 import com.itermeum.app.core.designsystem.ImSectionLabel
 import com.itermeum.app.core.designsystem.ImSpacing
 
-fun TaskType.label(): String = when (this) {
-    TaskType.OUTREACH -> "Звонки"; TaskType.SHOOT -> "Съёмка"; TaskType.OPS -> "Координация"
-    TaskType.DOCS -> "Документы"; TaskType.AI_GEN -> "ИИ-генерация"; TaskType.SCRIPT -> "Сценарий"
-}
+@Composable
+fun TaskType.label(): String = stringResource(
+    when (this) {
+    TaskType.OUTREACH -> R.string.task_type_outreach
+    TaskType.SHOOT -> R.string.task_type_shoot
+    TaskType.OPS -> R.string.task_type_ops
+    TaskType.DOCS -> R.string.task_type_docs
+    TaskType.AI_GEN -> R.string.task_type_ai_gen
+    TaskType.SCRIPT -> R.string.task_type_script
+    },
+)
 
 /** Section 5.2: three slots, slot 1 = OUTREACH (or SHOOT with «кому позвонить после»). */
 @Composable

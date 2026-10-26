@@ -51,7 +51,7 @@ private fun TaskCard(task: WorkTaskEntity, viewModel: WorkViewModel) {
         stringResource(R.string.checklist_verified), stringResource(R.string.checklist_saved),
         stringResource(R.string.checklist_informed), stringResource(R.string.checklist_next_step),
     )
-    val checks = remember(task.id) { mutableStateListOf(false, false, false, false) }
+    val checks = remember(task.id, task.status) { mutableStateListOf(false, false, false, false) }
     ImPanel {
         Text("${task.slot}. ${task.title}", style = MaterialTheme.typography.titleMedium)
         Text(task.type.label(), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)

@@ -71,6 +71,7 @@ class TodayViewModel @Inject constructor(
     private val reading: ReadingRepository,
     private val assets: ContentAssets,
     private val reminders: ReminderScheduler,
+    private val widget: com.itermeum.app.sync.widget.WidgetUpdater,
     private val clock: Clock,
 ) : ViewModel() {
 
@@ -166,6 +167,7 @@ class TodayViewModel @Inject constructor(
     fun toggle(normId: String) {
         viewModelScope.launch {
             if (norms.isDone(normId, date)) norms.unmark(normId, date) else norms.markDone(normId, date)
+            widget.requestUpdate()
         }
     }
 

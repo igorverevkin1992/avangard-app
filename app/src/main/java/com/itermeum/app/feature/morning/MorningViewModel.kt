@@ -117,6 +117,7 @@ class MorningViewModel @Inject constructor(
             }
             AlarmService.stop(context)
             wakeScheduler.cancelMissed()
+            wakeScheduler.scheduleServiamNudge(clock.nowEpochMillis())
             _ui.update { it.copy(stage = MorningStage.PROVEN, verdict = verdict, qrError = false, tooEarly = false) }
         }
     }

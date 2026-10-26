@@ -124,16 +124,21 @@ fun OutreachScreen(onBack: () -> Unit, viewModel: WorkViewModel = hiltViewModel(
         ui.outreach.asReversed().forEach { o ->
             ImPanel {
                 Text("${o.personLabel}${o.role?.let { " · $it" } ?: ""}", style = MaterialTheme.typography.bodyLarge)
-                Text("${o.outcome.label()}${if (!o.beforeCutoff) " · после 14:00" else ""}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(o.outcome.label() + if (!o.beforeCutoff) stringResource(R.string.outreach_after_cutoff_short) else "", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
 }
 
-fun OutreachOutcome.label(): String = when (this) {
-    OutreachOutcome.REACHED -> "дозвонился"; OutreachOutcome.NO_ANSWER -> "не дозвонился"
-    OutreachOutcome.AGREEMENT -> "договорились"; OutreachOutcome.REJECTION -> "отказ"
-}
+@Composable
+fun OutreachOutcome.label(): String = stringResource(
+    when (this) {
+    OutreachOutcome.REACHED -> R.string.outcome_short_reached
+    OutreachOutcome.NO_ANSWER -> R.string.outcome_short_no_answer
+    OutreachOutcome.AGREEMENT -> R.string.outcome_short_agreement
+    OutreachOutcome.REJECTION -> R.string.outcome_short_rejection
+    },
+)
 
 @Composable
 fun BeforeCallOverlay(text: String, onDone: () -> Unit) {

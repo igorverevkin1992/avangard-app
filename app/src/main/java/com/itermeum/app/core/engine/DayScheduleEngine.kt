@@ -76,6 +76,8 @@ object DayScheduleEngine {
         if (norm.requiresBaptism && !input.profile.baptized) return false
         if (!norm.daysOfWeek.includes(input.date.dayOfWeek)) return false
         if (input.sick && norm.id != NormCatalog.EXAMEN) return false
+        // Section 3.5: a business trip excuses the catechesis class.
+        if (input.travel && norm.id == NormCatalog.CATECHESIS) return false
         return when (norm.id) {
             // Mass counts once a week (section 4): on the usual day, unless already
             // heard on the other day of the weekend; the other day only if heard there.
@@ -123,7 +125,14 @@ object DayScheduleEngine {
         return input.norms.filter { isActive(it, input) }.map { norm ->
             val base = norm.userTime ?: norm.defaultTime?.let {
                 when {
-                    norm.followsWakeTime -> it.plus(shift)
+                    // A very late or early wake must not wrap a morning norm past midnight.
+                    norm.followsWakeTime -> it.plus(shift).let { s ->
+                        when {
+                            !shift.isNegative && s.isBefore(it) -> LocalTime.of(23, 59)
+                            shift.isNegative && s.isAfter(it) -> LocalTime.of(3, 0)
+                            else -> s
+                        }
+                    }
                     norm.category == NormCategory.WORK -> workAnchored(it, p)
                     else -> it
                 }
@@ -134,9 +143,9 @@ object DayScheduleEngine {
             }
             val at = time?.let { date.atTime(it) }
             val (ws, we) = when (norm.id) {
-                NormCatalog.WAKE -> at!! to at.plusMinutes(StreakEngine.WAKE_WINDOW_MIN)
-                NormCatalog.SERVIAM -> at!! to at.plusMinutes(5)
-                NormCatalog.QUARANTINE -> at!! to at.plusMinutes(35)
+                NormCatalog.WAKE -> (at ?: dayStart).let { it to it.plusMinutes(StreakEngine.WAKE_WINDOW_MIN) }
+                NormCatalog.SERVIAM -> (at ?: dayStart).let { it to it.plusMinutes(5) }
+                NormCatalog.QUARANTINE -> (at ?: dayStart).let { it to it.plusMinutes(35) }
                 NormCatalog.ANGELUS -> date.atTime(11, 30) to date.atTime(14, 0)
                 NormCatalog.DAY_PLAN -> dayStart to date.atTime(p.workStart).plusMinutes(30)
                 NormCatalog.FROG -> date.atTime(p.workStart) to date.atTime(frogCutoff(p))

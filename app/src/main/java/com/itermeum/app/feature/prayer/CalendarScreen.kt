@@ -60,14 +60,14 @@ fun CalendarScreen(yearMonth: String?, onBack: () -> Unit, viewModel: CalendarVi
     var selected by remember { mutableStateOf(viewModel.today) }
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(ImSpacing.screen), verticalArrangement = Arrangement.spacedBy(ImSpacing.grid)) {
         ImHeader(month.month.getDisplayName(TextStyle.FULL_STANDALONE, Locale("ru")).replaceFirstChar { it.uppercase() } + " ${month.year}", onBack = onBack) {
-            TextButton(onClick = { month = month.minusMonths(1) }) { Text("‹") }
-            TextButton(onClick = { month = month.plusMonths(1) }) { Text("›") }
+            TextButton(onClick = { month = month.minusMonths(1) }, modifier = Modifier.semantics { contentDescription = "Предыдущий месяц" }) { Text("‹") }
+            TextButton(onClick = { month = month.plusMonths(1) }, modifier = Modifier.semantics { contentDescription = "Следующий месяц" }) { Text("›") }
         }
         val first = month.atDay(1)
         val offset = first.dayOfWeek.value - 1
         val cells = offset + month.lengthOfMonth()
         val rows = (cells + 6) / 7
-        Row(Modifier.fillMaxWidth()) { listOf("Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс").forEach { Text(it, Modifier.weight(1f), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant) } }
+        Row(Modifier.fillMaxWidth()) { stringArrayResource(R.array.weekdays_short).forEach { Text(it, Modifier.weight(1f), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant) } }
         repeat(rows) { r ->
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                 repeat(7) { c ->
@@ -92,8 +92,8 @@ fun CalendarScreen(yearMonth: String?, onBack: () -> Unit, viewModel: CalendarVi
         ImPanel {
             Text(selected.toString(), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(d.title, style = MaterialTheme.typography.titleMedium)
-            Text("Евангелие: ${d.gospelRef ?: "—"}", style = MaterialTheme.typography.bodyMedium)
-            Text("Год ${d.sundayCycle.name}, будни ${d.weekdayCycle.name}" + if (d.reginaCaeli) " · Царица Небесная" else "", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(stringResource(R.string.calendar_gospel, d.gospelRef ?: "—"), style = MaterialTheme.typography.bodyMedium)
+            Text(stringResource(R.string.calendar_cycles, d.sundayCycle.name, d.weekdayCycle.name) + if (d.reginaCaeli) stringResource(R.string.calendar_regina) else "", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }

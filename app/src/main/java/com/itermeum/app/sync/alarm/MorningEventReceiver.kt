@@ -17,6 +17,7 @@ class MorningEventReceiver : BroadcastReceiver() {
 
     @Inject lateinit var morning: MorningRepository
     @Inject lateinit var presenter: NotificationPresenter
+    @Inject lateinit var budget: com.itermeum.app.sync.notifications.NotificationBudget
 
     override fun onReceive(context: Context, intent: Intent) {
         val date = intent.getStringExtra(EXTRA_DATE)?.let(LocalDate::parse) ?: return
@@ -33,6 +34,7 @@ class MorningEventReceiver : BroadcastReceiver() {
                         val state = morning.get(date)
                         if (state != null && state.quarantineAnswer == null && state.stage == MorningStage.QUARANTINE) {
                             presenter.quarantineQuestion(date)
+                            budget.record(1)
                         }
                     }
                     ACTION_QUARANTINE_YES -> { morning.answerQuarantine(date, true); presenter.cancel(NotificationPresenter.ID_QUARANTINE) }

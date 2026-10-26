@@ -44,7 +44,7 @@ fun JaculatoriaScreen(initialSituation: String?, onBack: () -> Unit, viewModel: 
         items.forEach { j ->
             ImPanel(Modifier.fillMaxWidth().combinedClickable(onClick = {}, onLongClick = { viewModel.said(j); toast = "✓ ${j.text}" })) {
                 Text(j.text, style = MaterialTheme.typography.titleMedium)
-                Text(j.source + if (j.verify) " · ссылка не сверена" else "", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(j.source + if (j.verify) stringResource(R.string.jaculatoria_unverified) else "", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }

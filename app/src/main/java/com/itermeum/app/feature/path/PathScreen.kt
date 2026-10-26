@@ -49,7 +49,7 @@ fun PathScreen(
                 StreakType.entries.forEach { t ->
                     val s = streaks.firstOrNull { it.type == t }
                     Column {
-                        Text(when (t) { StreakType.FIDELITY -> "Верность"; StreakType.WAKE -> "Подъём"; StreakType.FROG -> "Лягушка" }, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(stringResource(when (t) { StreakType.FIDELITY -> R.string.streak_fidelity; StreakType.WAKE -> R.string.streak_wake; StreakType.FROG -> R.string.streak_frog }), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Text((s?.current ?: 0).toString(), style = MaterialTheme.typography.headlineLarge.copy(fontFamily = ImMonoFamily))
                         Text(stringResource(R.string.streak_best, s?.best ?: 0), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }

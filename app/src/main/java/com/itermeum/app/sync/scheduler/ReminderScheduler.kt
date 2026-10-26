@@ -75,6 +75,8 @@ class ReminderScheduler @Inject constructor(
         val planned = mutableListOf<Triple<LocalDateTime, String, Int>>()
         for (item in items) {
             if (item.normId in done || item.normId == NormCatalog.JACULATORIA) continue
+            // Section 10: Friday 08:00 — choose today's small mortification.
+            if (item.normId == NormCatalog.MORTIFICATION) { planned += Triple(date.atTime(8, 0), item.normId, 1); continue }
             val time = item.time ?: continue
             val at = date.atTime(time)
             planned += Triple(at, item.normId, 1)

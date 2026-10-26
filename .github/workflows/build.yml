@@ -6,6 +6,11 @@ on:
   pull_request:
   workflow_dispatch:
 
+# A newer push to the same branch cancels the run in progress.
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test-and-build:
     runs-on: ubuntu-latest
@@ -64,6 +69,13 @@ jobs:
       - name: Assemble debug APK
         run: ./gradlew :app:assembleDebug --stacktrace
 
+      - name: Assemble release APK (R8)
+        # Proves the minified build starts from correct keep rules; the mapping file is kept for crash traces.
+        run: ./gradlew :app:assembleRelease --stacktrace
+
+      - name: Lint
+        run: ./gradlew :app:lintDebug
+
       - name: Print APK signing fingerprint
         run: |
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --print-certs app/build/outputs/apk/debug/app-debug.apk | grep -iE "SHA-1|SHA-256"
@@ -75,6 +87,25 @@ jobs:
           path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 14
+
+      - name: Upload release APK and R8 mapping
+        uses: actions/upload-artifact@v4
+        with:
+          name: itermeum-release
+          path: |
+            app/build/outputs/apk/release/*.apk
+            app/build/outputs/mapping/release/mapping.txt
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload lint report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-report
+          path: app/build/reports/lint-results-debug.html
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Upload test results
         if: always()
