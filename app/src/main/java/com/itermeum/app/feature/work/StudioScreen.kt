@@ -60,9 +60,69 @@ class StudioViewModel @Inject constructor(private val repo: ProjectRepository, c
 @Composable
 fun GoalStatus.label(): String = stringResource(
     when (this) {
-    GoalStatus.DONE -> R.string.goal_done
-    GoalStatus.PARTIAL -> R.string.goal_partial
-    GoalStatus.NOT_DONE -> R.string.goal_not_done
-    GoalStatus.OPEN -> R.string.goal_open
+        GoalStatus.DONE -> R.string.goal_done
+        GoalStatus.PARTIAL -> R.string.goal_partial
+        GoalStatus.NOT_DONE -> R.string.goal_not_done
+        GoalStatus.OPEN -> R.string.goal_open
     },
 )
+
+/** Section 5.15/5.16 «карта к студии»: quarter milestones and the line towards 50 M₽ a year. */
+@Composable
+fun StudioScreen(onBack: () -> Unit, viewModel: StudioViewModel = hiltViewModel()) {
+    val goals by viewModel.goals.collectAsState()
+    val income by viewModel.income.collectAsState()
+    var newGoal by remember { mutableStateOf("") }
+    var incomeText by remember { mutableStateOf("") }
+    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(ImSpacing.screen), verticalArrangement = Arrangement.spacedBy(ImSpacing.grid)) {
+        ImHeader(stringResource(R.string.studio_title), onBack = onBack)
+        Text(stringResource(R.string.studio_goal), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+        ImSectionLabel(stringResource(R.string.studio_income_line))
+        ImPanel {
+            val quarterGoal = ProjectRepository.YEARLY_GOAL_RUB / 4.0
+            val line = MaterialTheme.colorScheme.primary
+            val grid = MaterialTheme.colorScheme.outline
+            Canvas(Modifier.fillMaxWidth().height(120.dp)) {
+                val w = size.width; val h = size.height
+                drawLine(grid, Offset(0f, h - 1f), Offset(w, h - 1f), 1f)
+                drawLine(grid, Offset(0f, 1f), Offset(w, 1f), 1f)
+                val pts = income.takeLast(8)
+                if (pts.isNotEmpty()) {
+                    val step = if (pts.size > 1) w / (pts.size - 1) else 0f
+                    var prev: Offset? = null
+                    pts.forEachIndexed { i, q ->
+                        val y = h - (q.amountRub / quarterGoal).coerceIn(0.0, 1.0).toFloat() * h
+                        val o = Offset(i * step, y)
+                        prev?.let { drawLine(line, it, o, 3f) }
+                        drawCircle(line, 5f, o)
+                        prev = o
+                    }
+                }
+            }
+            Text(stringResource(R.string.studio_income_hint), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            income.lastOrNull()?.let { Text("${it.quarter}: ${"%,d".format(it.amountRub)} ₽", style = MaterialTheme.typography.bodyLarge) }
+            Row(horizontalArrangement = Arrangement.spacedBy(ImSpacing.grid)) {
+                OutlinedTextField(value = incomeText, onValueChange = { incomeText = it.filter(Char::isDigit) }, label = { Text(stringResource(R.string.studio_income_quarter, viewModel.quarter)) }, singleLine = true, modifier = Modifier.weight(1f))
+                TextButton(onClick = { incomeText.toLongOrNull()?.let(viewModel::setIncome); incomeText = "" }) { Text(stringResource(R.string.save)) }
+            }
+        }
+
+        ImSectionLabel(stringResource(R.string.studio_goals, viewModel.quarter))
+        goals.forEach { g ->
+            ImPanel {
+                Text(g.text, style = MaterialTheme.typography.bodyLarge)
+                Row(horizontalArrangement = Arrangement.spacedBy(ImSpacing.tight)) {
+                    listOf(GoalStatus.DONE, GoalStatus.PARTIAL, GoalStatus.NOT_DONE).forEach { s ->
+                        FilterChip(selected = g.status == s, onClick = { viewModel.setStatus(g, s) }, label = { Text(s.label()) })
+                    }
+                    TextButton(onClick = { viewModel.delete(g) }) { Text("×") }
+                }
+            }
+        }
+        if (goals.size < 4) {
+            OutlinedTextField(value = newGoal, onValueChange = { newGoal = it }, label = { Text(stringResource(R.string.studio_goal_new)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+            ImSecondaryButton(stringResource(R.string.studio_goal_add), enabled = newGoal.isNotBlank(), onClick = { viewModel.addGoal(newGoal); newGoal = "" })
+        }
+    }
+}
