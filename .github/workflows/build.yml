@@ -40,6 +40,16 @@ jobs:
           path: ~/.m2/repository/org/robolectric
           key: ${{ runner.os }}-robolectric-${{ hashFiles('**/libs.versions.toml', '**/robolectric.properties') }}
 
+      - name: Decode signing key
+        if: ${{ env.KEYSTORE_B64 != '' }}
+        env:
+          KEYSTORE_B64: ${{ secrets.ITERMEUM_KEYSTORE_B64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ITERMEUM_KEYSTORE_PASSWORD }}
+        run: |
+          echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/itermeum.jks"
+          echo "ITERMEUM_KEYSTORE=$RUNNER_TEMP/itermeum.jks" >> "$GITHUB_ENV"
+          echo "ITERMEUM_KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD" >> "$GITHUB_ENV"
+
       - name: Run unit tests
         run: ./gradlew :app:testDebugUnitTest --stacktrace
 

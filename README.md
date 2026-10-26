@@ -39,8 +39,12 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 ## Что нужно сделать вручную
 
 - Google Sign-In требует OAuth-клиента Android в Google Cloud для пакета
-  `com.itermeum.app` с SHA-1 вашего ключа подписи; без него бэкап в Drive
-  выключен (локально всё работает).
+  `com.itermeum.app` с SHA-1 ключа подписи
+  `EE:B5:F0:60:1A:53:98:B1:B5:82:AC:6F:1D:C9:D8:51:30:1D:6D:18` (D-21).
+  Ключ хранится вне репозитория: в GitHub Actions как секреты
+  `ITERMEUM_KEYSTORE_B64` (base64 файла .jks) и `ITERMEUM_KEYSTORE_PASSWORD`,
+  локально как `app/keystore/itermeum.jks` + `keystore.properties` со строкой
+  `storePassword=…`. Без ключа бэкап в Drive выключен (локально всё работает).
 - Тексты молитв (`assets/content/prayers.json`) и таблицы лекционария
   (`assets/lectionary/*.json`) помечены `verify: true` — сверить с
   официальными изданиями перед снятием пометки «редакция не подтверждена».

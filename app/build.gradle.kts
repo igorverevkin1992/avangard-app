@@ -22,6 +22,28 @@ android {
         vectorDrawables { useSupportLibrary = true }
     }
 
+    // One permanent key for every build (D-21): the Google OAuth client is
+    // bound to this key's SHA-1. The keystore is never committed: CI decodes
+    // it from a secret, a local build reads keystore.properties. Without
+    // either, the default debug key is used and Google Sign-In stays off.
+    val keystoreFile = file(System.getenv("ITERMEUM_KEYSTORE") ?: "keystore/itermeum.jks")
+    val keystoreProps = java.util.Properties().apply {
+        val f = rootProject.file("keystore.properties")
+        if (f.exists()) f.inputStream().use { load(it) }
+    }
+    val keystorePassword = System.getenv("ITERMEUM_KEYSTORE_PASSWORD") ?: keystoreProps.getProperty("storePassword")
+    val hasItermeumKey = keystoreFile.exists() && keystorePassword != null
+    signingConfigs {
+        if (hasItermeumKey) {
+            create("itermeum") {
+                storeFile = keystoreFile
+                storePassword = keystorePassword
+                keyAlias = "itermeum"
+                keyPassword = keystorePassword
+            }
+        }
+    }
+
     buildTypes {
         // No applicationIdSuffix on debug: the Google OAuth client is bound to
         // the package name and the app ships as a sideloaded debug APK
@@ -29,8 +51,10 @@ android {
         debug {
             isMinifyEnabled = false
             versionNameSuffix = "-debug"
+            if (hasItermeumKey) signingConfig = signingConfigs.getByName("itermeum")
         }
         release {
+            if (hasItermeumKey) signingConfig = signingConfigs.getByName("itermeum")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
