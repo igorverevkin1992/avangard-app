@@ -45,7 +45,8 @@ data class WorkTaskEntity(
 
 enum class OutreachKind { CALL, MESSAGE }
 
-enum class OutreachOutcome { REACHED, NO_ANSWER, AGREEMENT, REJECTION }
+/** CALLBACK — «вернуться»: the hero asked to call back later (D-36). Appended last: stored by name. */
+enum class OutreachOutcome { REACHED, NO_ANSWER, AGREEMENT, REJECTION, CALLBACK }
 
 @Serializable
 @Entity(tableName = "outreach_log", indices = [Index("logicalDate")])

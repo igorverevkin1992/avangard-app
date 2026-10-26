@@ -213,6 +213,7 @@
     <string name="outcome_short_no_answer">не дозвонился</string>
     <string name="outcome_short_agreement">договорились</string>
     <string name="outcome_short_rejection">отказ</string>
+    <string name="outcome_short_callback">вернуться</string>
     <string name="stage_concept">концепт</string>
     <string name="stage_script">сценарий</string>
     <string name="stage_preproduction">подготовка</string>
@@ -294,8 +295,11 @@
     <string name="work_card_stone_title">Последний камень</string>
     <string name="work_card_stone_text">Закройте день: задачи, долги, завтрашний первый шаг.</string>
     <string name="work_card_open_plan">Составить план</string>
-    <string name="work_card_hero">+1 герой</string>
     <string name="work_card_agreement">Договорился</string>
+    <string name="work_card_callback">Вернуться</string>
+    <string name="work_card_rejection">Отказ</string>
+    <string name="work_card_tally">Договорились %1$d · вернуться %2$d · отказ %3$d</string>
+    <string name="work_card_hero_task_close">Цель по попыткам выполнена. Закрыть задачу — нажмите на карточку.</string>
     <string name="work_card_task_done">Задача ✓</string>
     <string name="work_card_open_stone">Открыть</string>
     <string name="examen_catchup_title">Что было сегодня</string>
@@ -360,6 +364,7 @@
     <string name="outcome_no_answer">Не дозвонился</string>
     <string name="outcome_agreement">Договорились</string>
     <string name="outcome_rejection">Отказ</string>
+    <string name="outcome_callback">Вернуться</string>
     <string name="outreach_today">Сегодня</string>
     <string name="last_stone_hint">Закрыть каждую задачу по чеклисту 4/4 или честно перенести. Без 4/4 — «закрыто с долгом», попадёт в испытание совести.</string>
     <string name="last_stone_open">Открытых задач: %1$d</string>

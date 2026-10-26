@@ -26,9 +26,10 @@ class WorkCardReceiver : BroadcastReceiver() {
         runAsync("WorkCard") {
             val date = clock.logicalToday()
             when {
-                // A quick hero attempt: the name can be added later in «Обзвон».
-                action == ACTION_HERO -> work.logOutreach(date, HERO_LABEL, null, null, OutreachKind.CALL, OutreachOutcome.REACHED, null)
-                action == ACTION_AGREEMENT -> work.logOutreach(date, HERO_LABEL, null, null, OutreachKind.CALL, OutreachOutcome.AGREEMENT, null)
+                // A quick hero attempt with its outcome: the name can be added later in «Обзвон».
+                action == ACTION_AGREEMENT -> hero(date, OutreachOutcome.AGREEMENT)
+                action == ACTION_CALLBACK -> hero(date, OutreachOutcome.CALLBACK)
+                action == ACTION_REJECTION -> hero(date, OutreachOutcome.REJECTION)
                 action == ACTION_TASK_DONE -> work.tasksFor(date).filter { it.status == TaskStatus.OPEN }.minByOrNull { it.slot }
                     ?.let { work.closeTask(it, listOf(true, true, true, true)) }
                 action.startsWith(ACTION_TICK) -> Unit
@@ -38,9 +39,13 @@ class WorkCardReceiver : BroadcastReceiver() {
         }
     }
 
+    private suspend fun hero(date: java.time.LocalDate, outcome: OutreachOutcome) =
+        work.logOutreach(date, HERO_LABEL, null, null, OutreachKind.CALL, outcome, null)
+
     companion object {
-        const val ACTION_HERO = "com.itermeum.app.work.HERO"
         const val ACTION_AGREEMENT = "com.itermeum.app.work.AGREEMENT"
+        const val ACTION_CALLBACK = "com.itermeum.app.work.CALLBACK"
+        const val ACTION_REJECTION = "com.itermeum.app.work.REJECTION"
         const val ACTION_TASK_DONE = "com.itermeum.app.work.TASK_DONE"
         const val ACTION_TICK = "com.itermeum.app.work.TICK"
         const val HERO_LABEL = "герой (из шторки)"

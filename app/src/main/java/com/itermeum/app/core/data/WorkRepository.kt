@@ -42,7 +42,6 @@ class WorkRepository @Inject constructor(
     fun observeTasks(date: LocalDate): Flow<List<WorkTaskEntity>> = taskDao.observeForDate(date)
     suspend fun tasksFor(date: LocalDate): List<WorkTaskEntity> = taskDao.forDate(date)
     suspend fun attemptsBeforeCutoff(date: LocalDate): Int = outreachDao.countBeforeCutoff(date)
-    suspend fun attemptsTotal(date: LocalDate): Int = outreachDao.countFor(date)
 
     /**
      * Evening catch-up (D-34): tasks done during a chaotic day are recorded as

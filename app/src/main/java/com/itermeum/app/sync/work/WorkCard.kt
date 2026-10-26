@@ -12,6 +12,7 @@ import com.itermeum.app.core.common.Clock
 import com.itermeum.app.core.content.NormCatalog
 import com.itermeum.app.core.data.NormRepository
 import com.itermeum.app.core.data.WorkRepository
+import com.itermeum.app.core.database.entity.OutreachOutcome
 import com.itermeum.app.core.database.entity.TaskStatus
 import com.itermeum.app.core.database.entity.TaskType
 import com.itermeum.app.core.engine.DayScheduleEngine
@@ -73,19 +74,25 @@ class WorkCard @Inject constructor(
         val target = work.targetFor(date)
         val attempts = work.attemptsBeforeCutoff(date)
         val open = tasks.filter { it.status == TaskStatus.OPEN }.sortedBy { it.slot }
+        val outreach = work.observeOutreach(date).first()
+        fun count(o: OutreachOutcome) = outreach.count { it.outcome == o }
+        val tally = s(R.string.work_card_tally, count(OutreachOutcome.AGREEMENT), count(OutreachOutcome.CALLBACK), count(OutreachOutcome.REJECTION))
         return when {
             tasks.isEmpty() -> State(Step.PLAN, s(R.string.work_card_plan_title), s(R.string.work_card_plan_text), "itermeum://work")
             // Only when the optional hero-calls norm is on (D-35).
             NormCatalog.FROG in items && NormCatalog.FROG !in done && now.isBefore(cutoff) -> State(
                 Step.HEROES, s(R.string.work_card_heroes_title, attempts, target),
-                s(R.string.work_card_heroes_text, cutoff.toLocalTime().toString()), "itermeum://outreach", attempts to target,
+                s(R.string.work_card_heroes_text, cutoff.toLocalTime().toString()) + "\n" + tally, "itermeum://outreach", attempts to target,
             )
             open.isEmpty() || !now.isBefore(date.atTime(LAST_STONE_AT)) -> State(Step.LAST_STONE, s(R.string.work_card_stone_title), s(R.string.work_card_stone_text), "itermeum://laststone")
+            open.first().type == TaskType.OUTREACH -> State(
+                Step.TASKS, s(R.string.work_card_task_title, open.first().slot, tasks.size),
+                open.first().title + "\n" + tally + if (outreach.size >= target) "\n" + s(R.string.work_card_hero_task_close) else "",
+                "itermeum://work", outreach.size to target, open.first().id, heroTask = true,
+            )
             else -> State(
                 Step.TASKS, s(R.string.work_card_task_title, open.first().slot, tasks.size),
                 open.first().title, "itermeum://work", openTaskId = open.first().id,
-                heroTask = open.first().type == TaskType.OUTREACH,
-                progress = if (open.first().type == TaskType.OUTREACH) work.attemptsTotal(date) to target else null,
             )
         }
     }
@@ -115,17 +122,9 @@ class WorkCard @Inject constructor(
         st.progress?.let { (done, target) -> b.setProgress(target.coerceAtLeast(1), done.coerceAtMost(target), false) }
         when (st.step) {
             Step.PLAN -> b.addAction(0, s(R.string.work_card_open_plan), open("itermeum://work"))
-            Step.HEROES -> {
-                b.addAction(0, s(R.string.work_card_hero), action(WorkCardReceiver.ACTION_HERO))
-                b.addAction(0, s(R.string.work_card_agreement), action(WorkCardReceiver.ACTION_AGREEMENT))
-            }
-            Step.TASKS -> {
-                if (st.heroTask) {
-                    b.addAction(0, s(R.string.work_card_hero), action(WorkCardReceiver.ACTION_HERO))
-                    b.addAction(0, s(R.string.work_card_agreement), action(WorkCardReceiver.ACTION_AGREEMENT))
-                }
-                b.addAction(0, s(R.string.work_card_task_done), action(WorkCardReceiver.ACTION_TASK_DONE))
-            }
+            Step.HEROES -> heroActions(b)
+            // Android shows at most three buttons: the hero task closes from «Труд» (tap on the card).
+            Step.TASKS -> if (st.heroTask) heroActions(b) else b.addAction(0, s(R.string.work_card_task_done), action(WorkCardReceiver.ACTION_TASK_DONE))
             Step.LAST_STONE -> b.addAction(0, s(R.string.work_card_open_stone), open("itermeum://laststone"))
         }
         try {
@@ -153,6 +152,13 @@ class WorkCard @Inject constructor(
         Intent(Intent.ACTION_VIEW, Uri.parse(deepLink)).setClass(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP),
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
     )
+
+    /** Each tap is one hero attempt with its outcome (D-36). */
+    private fun heroActions(b: NotificationCompat.Builder) {
+        b.addAction(0, s(R.string.work_card_agreement), action(WorkCardReceiver.ACTION_AGREEMENT))
+        b.addAction(0, s(R.string.work_card_callback), action(WorkCardReceiver.ACTION_CALLBACK))
+        b.addAction(0, s(R.string.work_card_rejection), action(WorkCardReceiver.ACTION_REJECTION))
+    }
 
     private fun action(action: String): PendingIntent = PendingIntent.getBroadcast(
         context, action.hashCode(), Intent(context, WorkCardReceiver::class.java).setAction(action),

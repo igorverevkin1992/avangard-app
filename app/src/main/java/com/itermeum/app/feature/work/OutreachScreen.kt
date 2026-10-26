@@ -112,6 +112,7 @@ fun OutreachScreen(onBack: () -> Unit, viewModel: WorkViewModel = hiltViewModel(
         }
         Row(horizontalArrangement = Arrangement.spacedBy(ImSpacing.grid)) {
             ImSecondaryButton(stringResource(R.string.outcome_agreement), { log(OutreachOutcome.AGREEMENT) }, Modifier.weight(1f), enabled = ready)
+            ImSecondaryButton(stringResource(R.string.outcome_callback), { log(OutreachOutcome.CALLBACK) }, Modifier.weight(1f), enabled = ready)
             ImSecondaryButton(stringResource(R.string.outcome_rejection), {
                 log(OutreachOutcome.REJECTION)
             }, Modifier.weight(1f), enabled = ready)
@@ -137,6 +138,7 @@ fun OutreachOutcome.label(): String = stringResource(
     OutreachOutcome.NO_ANSWER -> R.string.outcome_short_no_answer
     OutreachOutcome.AGREEMENT -> R.string.outcome_short_agreement
     OutreachOutcome.REJECTION -> R.string.outcome_short_rejection
+    OutreachOutcome.CALLBACK -> R.string.outcome_short_callback
     },
 )
 
