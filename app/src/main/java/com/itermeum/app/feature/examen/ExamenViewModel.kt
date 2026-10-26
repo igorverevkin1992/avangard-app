@@ -6,6 +6,7 @@ import com.itermeum.app.core.common.Clock
 import com.itermeum.app.core.content.ContentAssets
 import com.itermeum.app.core.content.ExamenQuestionJson
 import com.itermeum.app.core.content.NormCatalog
+import com.itermeum.app.core.data.DayFlags
 import com.itermeum.app.core.data.ExamenRepository
 import com.itermeum.app.core.data.NormRepository
 import com.itermeum.app.core.data.PrayerRepository
@@ -63,6 +64,7 @@ class ExamenViewModel @Inject constructor(
     private val outreachDao: OutreachDao,
     private val streakDao: StreakDao,
     private val work: WorkRepository,
+    private val flags: DayFlags,
     private val clock: Clock,
 ) : ViewModel() {
 
@@ -79,8 +81,8 @@ class ExamenViewModel @Inject constructor(
             val contrition = prayers.get("contrition_short")?.let { prayers.displayText(it) } ?: ""
             val ave = prayers.get("hail_mary")?.let { prayers.displayText(it) } ?: ""
             val previous = examen.previousProposito(date)
-            val fidelity = streakDao.get(StreakType.FIDELITY)
-            val needsWhatBroke = fidelity != null && fidelity.lastCountedDate != null && fidelity.lastCountedDate < date.minusDays(1) && fidelity.totalDays > 0
+            // Set by the day close when yesterday's fidelity was frozen or broken.
+            val needsWhatBroke = flags.whatBroke(date.minusDays(1))
             _ui.update {
                 it.copy(
                     date = date, questions = questions, presenceText = presence, contritionText = contrition, aveText = ave, previous = previous,
@@ -173,6 +175,7 @@ class ExamenViewModel @Inject constructor(
         val date = s.date ?: return@launch
         examen.saveDraft(date, s.gratitude.filter { it.isNotBlank() }, s.audit, true, s.proposito.trim(), s.previousAnswer, 3, s.whatBroke)
         examen.complete(date)
+        if (s.needsWhatBroke) flags.clearWhatBroke()
         _ui.update { it.copy(step = ExamenStep.DONE, alreadyDone = true) }
     }
 

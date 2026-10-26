@@ -13,6 +13,7 @@ import com.itermeum.app.core.database.entity.OutreachLogEntity
 import com.itermeum.app.core.database.entity.OutreachOutcome
 import com.itermeum.app.core.database.entity.TaskType
 import com.itermeum.app.core.database.entity.WorkTaskEntity
+import com.itermeum.app.core.engine.DayScheduleEngine
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.LocalDate
 import javax.inject.Inject
@@ -48,7 +49,9 @@ class WorkViewModel @Inject constructor(
     val date: LocalDate = clock.logicalToday()
     private val target = MutableStateFlow(5)
 
-    init { viewModelScope.launch { target.value = work.targetFor(date) } }
+    private val cutoff = MutableStateFlow(DayScheduleEngine.FROG_CUTOFF)
+
+    init { viewModelScope.launch { target.value = work.targetFor(date); cutoff.value = work.cutoffFor() } }
 
     val ui: StateFlow<WorkUi> = combine(
         work.observePlan(date), work.observeTasks(date), work.observeOutreach(date), work.observeRitualCount(date), norms.observeDoneIds(date),
@@ -57,7 +60,7 @@ class WorkViewModel @Inject constructor(
             date = date, plan = plan, tasks = tasks, outreach = outreach,
             attempts = outreach.size, agreements = outreach.count { it.outcome == OutreachOutcome.AGREEMENT },
             target = target.value, rituals = rituals, done = done,
-            beforeCutoff = clock.localTime().isBefore(WorkRepository.CUTOFF),
+            beforeCutoff = clock.now().isBefore(date.atTime(cutoff.value)),
             workStarted = !clock.localTime().isBefore(java.time.LocalTime.of(12, 0)),
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), WorkUi(date))

@@ -59,13 +59,16 @@ class NormReminderReceiver : BroadcastReceiver() {
         if (normId != THREAT && (item == null || normId in doneIds)) return
         val quiet = DayScheduleEngine.quietWindows(input.events)
         val now = clock.now()
-        val muted = DayScheduleEngine.isQuiet(now, quiet)
+        val muted = !DayScheduleEngine.selfQuieted(normId) && DayScheduleEngine.isQuiet(now, quiet)
         val priority = when {
             normId == THREAT -> EscalationEngine.Priority.CORE
             item?.isCore == true -> EscalationEngine.Priority.CORE
             else -> EscalationEngine.Priority.OTHER
         }
-        val candidate = EscalationEngine.Candidate(normId, level, now, priority, muted)
+        // Only the streak threat spends the single level-3 slot of the day (section 6.5);
+        // the 13:40 frog reminder uses level-3 wording but counts as level 2.
+        val budgetLevel = if (normId == THREAT) level else minOf(level, 2)
+        val candidate = EscalationEngine.Candidate(normId, budgetLevel, now, priority, muted)
         if (!EscalationEngine.allow(candidate, budget.current())) return
 
         val profile = profiles.get()
@@ -93,7 +96,7 @@ class NormReminderReceiver : BroadcastReceiver() {
             if (normId == THREAT) "Iter Meum" else (norms.norm(normId)?.title ?: "Iter Meum"), text, deepLink,
             if (level >= 2) NotificationCompat.PRIORITY_HIGH else NotificationCompat.PRIORITY_DEFAULT,
         )
-        budget.record(level)
+        budget.record(budgetLevel)
         budget.markSent(normId, level)
     }
 

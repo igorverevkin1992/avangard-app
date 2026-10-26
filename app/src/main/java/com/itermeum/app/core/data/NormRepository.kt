@@ -55,7 +55,19 @@ class NormRepository @Inject constructor(
             sick = plan?.sick == true,
             shootDay = plan?.shootDay == true,
             events = events,
+            massDoneThisWeekend = massDoneThisWeekend(date),
+            lastConfession = completionDao.latestFor(NormCatalog.CONFESSION)?.logicalDate,
         )
+    }
+
+    /** The Saturday/Sunday pair is one Mass week (section 4). */
+    private suspend fun massDoneThisWeekend(date: LocalDate): LocalDate? {
+        val saturday = when (date.dayOfWeek) {
+            java.time.DayOfWeek.SATURDAY -> date
+            java.time.DayOfWeek.SUNDAY -> date.minusDays(1)
+            else -> return null
+        }
+        return listOf(saturday, saturday.plusDays(1)).firstOrNull { completionDao.find(NormCatalog.MASS, it) != null }
     }
 
     /** Observe-friendly: list of norm ids done on [date]. */

@@ -2,6 +2,7 @@ package com.itermeum.app.core.data
 
 import androidx.room.withTransaction
 import com.itermeum.app.core.common.Clock
+import com.itermeum.app.core.engine.DayScheduleEngine
 import com.itermeum.app.core.content.NormCatalog
 import com.itermeum.app.core.database.AppDatabase
 import com.itermeum.app.core.database.dao.DayPlanDao
@@ -60,7 +61,7 @@ class WorkRepository @Inject constructor(
     suspend fun savePlan(date: LocalDate, drafts: List<TaskDraft>, intention: String?, shootDay: Boolean) {
         require(planIsValid(drafts, shootDay))
         val now = clock.nowEpochMillis()
-        val afterCutoff = clock.now().toLocalDate() == date && !clock.localTime().isBefore(CUTOFF)
+        val afterCutoff = !clock.now().isBefore(date.atTime(cutoffFor()))
         db.withTransaction {
             val existing = taskDao.forDate(date).associateBy { it.slot }
             val plan = dayPlanDao.get(date) ?: DayPlanEntity(logicalDate = date)
@@ -80,12 +81,13 @@ class WorkRepository @Inject constructor(
         }
         // Counted when saved before 12:30 (section 4).
         val plannedBy = profiles.get().workStart.plusMinutes(30)
-        if (clock.now().toLocalDate() == date && clock.localTime().isBefore(plannedBy)) norms.markDone(NormCatalog.DAY_PLAN, date)
+        if (clock.logicalToday() == date && clock.now().isBefore(date.atTime(plannedBy))) norms.markDone(NormCatalog.DAY_PLAN, date)
     }
 
     /** Section 5.3: an attempt = call or message with a concrete request; rejection counts too. */
     suspend fun logOutreach(date: LocalDate, person: String, role: String?, projectId: Long?, kind: OutreachKind, outcome: OutreachOutcome, agreementDate: LocalDate?) {
-        val before = clock.now().toLocalDate() == date && clock.localTime().isBefore(CUTOFF)
+        // Measured on the logical day: at 00:30 the calendar date is already tomorrow.
+        val before = clock.logicalToday() == date && clock.now().isBefore(date.atTime(cutoffFor()))
         outreachDao.insert(
             OutreachLogEntity(logicalDate = date, at = clock.nowEpochMillis(), personLabel = person.trim(), role = role?.trim(),
                 projectId = projectId, kind = kind, outcome = outcome, agreementDate = agreementDate, beforeCutoff = before),
@@ -93,6 +95,9 @@ class WorkRepository @Inject constructor(
         val target = targetFor(date)
         if (outreachDao.countBeforeCutoff(date) >= target && !norms.isDone(NormCatalog.FROG, date)) norms.markDone(NormCatalog.FROG, date)
     }
+
+    /** Outreach cutoff for the current profile (14:00, later for a late `workStart`). */
+    suspend fun cutoffFor(): LocalTime = DayScheduleEngine.frogCutoff(profiles.get())
 
     suspend fun targetFor(date: LocalDate): Int {
         val input = norms.inputFor(date)

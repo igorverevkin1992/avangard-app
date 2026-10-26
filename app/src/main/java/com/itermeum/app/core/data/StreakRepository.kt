@@ -63,6 +63,7 @@ class StreakRepository @Inject constructor(
         val done = completions.map { it.normId }.toSet()
         val wakeCompletion = completions.firstOrNull { it.normId == NormCatalog.WAKE }
         val wakeMet = wakeCompletion != null && wakeCompletion.quality == CompletionQuality.FULL
+        val wakeLate = wakeCompletion != null && wakeCompletion.quality == CompletionQuality.LATE
         val weekday = date.dayOfWeek != DayOfWeek.SATURDAY && date.dayOfWeek != DayOfWeek.SUNDAY
         val target = schedule.firstOrNull { it.normId == NormCatalog.FROG }?.target ?: input.profile.outreachTarget
         return StreakEngine.DayFacts(
@@ -71,6 +72,7 @@ class StreakRepository @Inject constructor(
             activeNorms = active.size,
             completedNorms = (done intersect active).size,
             wakeMet = wakeMet,
+            wakeLate = wakeLate,
             examenDone = NormCatalog.EXAMEN in done,
             weekday = weekday,
             outreachBeforeCutoff = outreachDao.countBeforeCutoff(date),

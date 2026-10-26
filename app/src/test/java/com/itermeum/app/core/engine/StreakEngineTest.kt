@@ -48,6 +48,19 @@ class StreakEngineTest {
     }
 
     @Test
+    fun `late wake neither grows nor burns the wake streak`() {
+        val late = facts(wake = false).copy(wakeLate = true)
+        assertEquals(Verdict.SKIP, StreakEngine.verdict(StreakType.WAKE, late))
+        assertEquals(Verdict.NOT_MET, StreakEngine.verdict(StreakType.WAKE, facts(wake = false)))
+    }
+
+    @Test
+    fun `a day with nothing active is skipped and a zero streak spends no freeze`() {
+        assertEquals(Verdict.SKIP, StreakEngine.verdict(StreakType.FIDELITY, facts(active = 0, done = 0)))
+        assertTrue(StreakEngine.apply(State(0, 5, 9), Verdict.NOT_MET, freezesLeft = 2) is Outcome.Skipped)
+    }
+
+    @Test
     fun `first and second miss freeze, third breaks`() {
         var s = State(10, 10, 10)
         val o1 = StreakEngine.apply(s, Verdict.NOT_MET, freezesLeft = 2)

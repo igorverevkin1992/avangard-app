@@ -81,7 +81,10 @@ class ReminderScheduler @Inject constructor(
             // Level 2 per the section 10 table.
             when (item.normId) {
                 NormCatalog.DAY_PLAN -> planned += Triple(date.atTime(input.profile.workStart).plusMinutes(25), item.normId, 2)
-                NormCatalog.FROG -> { planned += Triple(date.atTime(13, 0), item.normId, 2); planned += Triple(date.atTime(13, 40), item.normId, 3) }
+                NormCatalog.FROG -> {
+                    val cutoff = date.atTime(DayScheduleEngine.frogCutoff(input.profile))
+                    planned += Triple(cutoff.minusMinutes(60), item.normId, 2); planned += Triple(cutoff.minusMinutes(20), item.normId, 3)
+                }
                 NormCatalog.LAST_STONE -> planned += Triple(date.atTime(20, 30), item.normId, 2)
                 NormCatalog.EXAMEN -> planned += Triple(date.atTime(23, 10), item.normId, 2)
                 NormCatalog.CATECHESIS -> { planned += Triple(date.atTime(15, 30), item.normId, 1); planned += Triple(date.atTime(17, 45), item.normId, 2) }
@@ -90,7 +93,9 @@ class ReminderScheduler @Inject constructor(
             }
         }
         // Streak threat: bedTime − 30 min (section 10), evaluated at fire time.
-        planned += Triple(date.atTime(input.profile.bedTime).minusMinutes(30), NormReminderReceiver.THREAT, 3)
+        // A bedtime after midnight belongs to the same logical day, on the next calendar date.
+        val bed = input.profile.bedTime.let { if (it.isBefore(LocalTime.of(3, 0))) date.plusDays(1).atTime(it) else date.atTime(it) }
+        planned += Triple(bed.minusMinutes(30), NormReminderReceiver.THREAT, 3)
         // Slot = position of the reminder within its norm, in time order.
         val slotted = planned.groupBy { it.second }.flatMap { (_, list) ->
             list.sortedBy { it.first }.mapIndexed { slot, t -> Planned(t.first, t.second, t.third, slot) }
@@ -125,7 +130,8 @@ class ReminderScheduler @Inject constructor(
 
     companion object {
         val HEALTH_CHECK: LocalTime = LocalTime.of(23, 15)
-        val DAY_CLOSE: LocalTime = LocalTime.of(3, 0)
+        /** 04:00, not 03:00: Examen «за вчера» is accepted until 03:59 (section 5.12). */
+        val DAY_CLOSE: LocalTime = LocalTime.of(4, 0)
         /** Wake + health + day close + ≤17 norm reminders ≈ 20 exact alarms (section 13). */
         const val MAX_NORM_ALARMS = 17
         /** Max reminders per norm in a day (catechesis has three). */

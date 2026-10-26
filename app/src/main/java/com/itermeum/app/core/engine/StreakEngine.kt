@@ -24,6 +24,8 @@ object StreakEngine {
         val weekday: Boolean,
         val outreachBeforeCutoff: Int,
         val outreachTarget: Int,
+        /** Proof in (+20, +60] min: «поздний» — the wake streak neither grows nor burns (5.1). */
+        val wakeLate: Boolean = false,
     )
 
     enum class Verdict { MET, NOT_MET, SKIP }
@@ -48,8 +50,13 @@ object StreakEngine {
     fun verdict(type: StreakType, f: DayFacts): Verdict {
         if (f.sick) return Verdict.SKIP
         return when (type) {
-            StreakType.FIDELITY -> if (fidelityMet(f)) Verdict.MET else Verdict.NOT_MET
-            StreakType.WAKE -> if (f.wakeMet) Verdict.MET else Verdict.NOT_MET
+            // A day with no active norm at all (everything disabled/paused) is not a failure.
+            StreakType.FIDELITY -> if (f.activeNorms == 0) Verdict.SKIP else if (fidelityMet(f)) Verdict.MET else Verdict.NOT_MET
+            StreakType.WAKE -> when {
+                f.wakeMet -> Verdict.MET
+                f.wakeLate -> Verdict.SKIP
+                else -> Verdict.NOT_MET
+            }
             StreakType.FROG -> if (!f.weekday) Verdict.SKIP else if (f.outreachBeforeCutoff >= f.outreachTarget) Verdict.MET else Verdict.NOT_MET
         }
     }
@@ -61,7 +68,12 @@ object StreakEngine {
             val current = state.current + 1
             Outcome.Advanced(State(current, maxOf(current, state.best), state.totalDays + 1))
         }
-        Verdict.NOT_MET -> if (freezesLeft > 0) Outcome.Frozen(state) else Outcome.Broken(state.copy(current = 0))
+        // Nothing to protect at zero: a miss neither spends «Милосердие» nor counts as a break.
+        Verdict.NOT_MET -> when {
+            state.current == 0 -> Outcome.Skipped(state)
+            freezesLeft > 0 -> Outcome.Frozen(state)
+            else -> Outcome.Broken(state.copy(current = 0))
+        }
     }
 
     /** Section 5.1: proof within [alarm, alarm+20m] counts; up to +60m is «late»; after that MISSED. */

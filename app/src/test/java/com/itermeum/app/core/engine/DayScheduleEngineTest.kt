@@ -69,7 +69,8 @@ class DayScheduleEngineTest {
     fun `mass quiet window mutes reminders inside plus-minus 90 minutes only`() {
         val mass = saturday.atTime(19, 0) to saturday.atTime(20, 0)
         val items = DayScheduleEngine.schedule(input(date = saturday, events = listOf(mass)))
-        assertTrue(items.of(NormCatalog.MASS).muted)
+        // The Mass's own reminder is never silenced by the Mass's window.
+        assertFalse(items.of(NormCatalog.MASS).muted)
         assertTrue(items.of(NormCatalog.ROSARY).muted) // 20:15 is inside 17:30–21:30
         assertFalse(items.of(NormCatalog.EXAMEN).muted) // 22:40 is outside
         assertFalse(items.of(NormCatalog.ANGELUS).muted)
@@ -135,5 +136,45 @@ class DayScheduleEngineTest {
         assertEquals(NormCatalog.EXAMEN, lateEvening!!.normId)
         val morning = DayScheduleEngine.nextItem(items, monday.atTime(6, 0), done = emptySet())
         assertEquals(NormCatalog.WAKE, morning!!.normId)
+        val night = DayScheduleEngine.nextItem(items, monday.atTime(23, 30), done = emptySet())
+        assertEquals(NormCatalog.EXAMEN, night!!.normId)
+    }
+
+    @Test
+    fun `mass counts once per weekend`() {
+        val sunday = saturday.plusDays(1)
+        val profile = ProfileEntity(massDay = 6, massTimeSaturday = LocalTime.of(18, 0), massTimeSunday = LocalTime.of(10, 0))
+        // Usual day Saturday: active Saturday, not Sunday.
+        assertTrue(DayScheduleEngine.schedule(input(date = saturday, profile = profile)).any { it.normId == NormCatalog.MASS })
+        assertNull(DayScheduleEngine.schedule(input(date = sunday, profile = profile)).firstOrNull { it.normId == NormCatalog.MASS })
+        // Heard on Sunday instead: Saturday's norm drops, Sunday's counts.
+        val sundayHeard = DayScheduleEngine.Input(sunday, profile, NormCatalog.all, false, false, false, false, emptyList(), massDoneThisWeekend = sunday)
+        assertEquals(LocalTime.of(10, 0), DayScheduleEngine.schedule(sundayHeard).of(NormCatalog.MASS).time)
+        val saturdayAfter = DayScheduleEngine.Input(saturday, profile, NormCatalog.all, false, false, false, false, emptyList(), massDoneThisWeekend = sunday)
+        assertNull(DayScheduleEngine.schedule(saturdayAfter).firstOrNull { it.normId == NormCatalog.MASS })
+    }
+
+    @Test
+    fun `confession is active only when due`() {
+        val baptized = ProfileEntity(baptized = true, confessionEveryDays = 30)
+        fun on(last: java.time.LocalDate?) = DayScheduleEngine.schedule(
+            DayScheduleEngine.Input(monday, baptized, NormCatalog.all, false, false, false, false, emptyList(), lastConfession = last),
+        ).any { it.normId == NormCatalog.CONFESSION }
+        assertTrue(on(null))
+        assertFalse(on(monday.minusDays(10)))
+        assertTrue(on(monday.minusDays(30)))
+        assertTrue(on(monday))
+    }
+
+    @Test
+    fun `work norms follow workStart and the frog stays reachable`() {
+        val late = ProfileEntity(workStart = LocalTime.of(14, 0), workEnd = LocalTime.of(22, 0))
+        val items = DayScheduleEngine.schedule(input(profile = late))
+        assertEquals(LocalTime.of(14, 0), items.of(NormCatalog.DAY_PLAN).time)
+        assertEquals(LocalTime.of(14, 5), items.of(NormCatalog.FROG).time)
+        val frog = items.of(NormCatalog.FROG)
+        assertTrue(frog.windowEnd.isAfter(frog.windowStart))
+        assertEquals(LocalTime.of(16, 0), DayScheduleEngine.frogCutoff(late))
+        assertEquals(LocalTime.of(14, 0), DayScheduleEngine.frogCutoff(ProfileEntity()))
     }
 }
