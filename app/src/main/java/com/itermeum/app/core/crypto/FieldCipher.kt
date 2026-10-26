@@ -28,7 +28,14 @@ class KeystoreFieldCipher @Inject constructor() : FieldCipher {
 
     private val key: SecretKey by lazy { loadOrCreate() }
 
-    override fun encrypt(plain: String): String {
+    /** HyperOS Keystore occasionally throws under load; one retry before giving up. */
+    private inline fun <T> retryOnce(block: () -> T): T = try { block() } catch (e: java.security.GeneralSecurityException) { block() } catch (e: java.security.ProviderException) { block() }
+
+    override fun encrypt(plain: String): String = retryOnce { encryptOnce(plain) }
+
+    override fun decrypt(cipherText: String): String = retryOnce { decryptOnce(cipherText) }
+
+    private fun encryptOnce(plain: String): String {
         val cipher = Cipher.getInstance(TRANSFORMATION)
         cipher.init(Cipher.ENCRYPT_MODE, key)
         val iv = cipher.iv
@@ -36,7 +43,7 @@ class KeystoreFieldCipher @Inject constructor() : FieldCipher {
         return Base64.encodeToString(iv + out, Base64.NO_WRAP)
     }
 
-    override fun decrypt(cipherText: String): String {
+    private fun decryptOnce(cipherText: String): String {
         val all = Base64.decode(cipherText, Base64.NO_WRAP)
         val iv = all.copyOfRange(0, IV_BYTES)
         val body = all.copyOfRange(IV_BYTES, all.size)

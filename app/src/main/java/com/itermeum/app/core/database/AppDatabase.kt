@@ -100,5 +100,7 @@ abstract class AppDatabase : RoomDatabase() {
 
     companion object {
         const val DB_NAME = "itermeum.db"
+        /** Keep equal to `@Database(version)`; written into backups. */
+        const val SCHEMA_VERSION = 2
     }
 }

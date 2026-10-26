@@ -10,6 +10,8 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.Scope
+import com.itermeum.app.core.data.cloud.AuthRequiredException
+import com.itermeum.app.core.data.cloud.TokenProvider
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -22,7 +24,7 @@ import kotlinx.coroutines.withContext
 
 /** Google Sign-In for the Drive AppData scope only (the single third-party SDK, section 13). */
 @Singleton
-class AuthRepository @Inject constructor(@ApplicationContext private val context: Context) {
+class AuthRepository @Inject constructor(@ApplicationContext private val context: Context) : TokenProvider {
 
     private val signInClient: GoogleSignInClient by lazy {
         GoogleSignIn.getClient(
@@ -48,9 +50,14 @@ class AuthRepository @Inject constructor(@ApplicationContext private val context
 
     suspend fun signOut() { runCatching { signInClient.signOut().await() }; _account.value = null }
 
-    suspend fun accessToken(): String {
-        val acc = _account.value?.account ?: throw IllegalStateException("signed out")
+    override suspend fun accessToken(): String {
+        val acc = _account.value?.account ?: throw AuthRequiredException()
         return withContext(Dispatchers.IO) { GoogleAuthUtil.getToken(context, acc, OAUTH_SCOPE) }
+    }
+
+    /** GoogleAuthUtil caches tokens; a token Drive rejected must be cleared before asking again. */
+    override suspend fun invalidate(token: String) {
+        withContext(Dispatchers.IO) { runCatching { GoogleAuthUtil.clearToken(context, token) } }
     }
 
     companion object {

@@ -70,6 +70,7 @@ interface BackupDao {
     @Query("DELETE FROM script_session") suspend fun wipeScripts()
     @Query("DELETE FROM transition_ritual") suspend fun wipeRituals()
     @Query("DELETE FROM examen") suspend fun wipeExamens()
+    @Query("DELETE FROM norm") suspend fun wipeNorms()
     @Query("UPDATE prayer SET userEditedText = NULL") suspend fun wipePrayerEdits()
     @Query("DELETE FROM memorization_item") suspend fun wipeMemorization()
     @Query("DELETE FROM jaculatoria_log") suspend fun wipeJaculatoriaLogs()

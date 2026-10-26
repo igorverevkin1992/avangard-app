@@ -13,6 +13,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import com.itermeum.app.R
 import com.itermeum.app.core.backup.BackupRepository
 import com.itermeum.app.core.common.Clock
 import com.itermeum.app.core.data.auth.AuthRepository
@@ -43,6 +44,16 @@ class BackupUploadWorker @AssistedInject constructor(
             settings.lastUploadAt = clock.nowEpochMillis()
             settings.lastError = null
             Result.success()
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: AuthRequiredException) {
+            // Retrying with the same account cannot help: surface it in Settings.
+            settings.lastError = applicationContext.getString(R.string.backup_error_sign_in)
+            Result.failure()
+        } catch (e: BackupRepository.UndecryptableException) {
+            // Never upload a copy that silently lost Examen texts (section 5.17).
+            settings.lastError = applicationContext.getString(R.string.backup_error_keystore)
+            Result.failure()
         } catch (e: java.io.IOException) {
             Log.w(TAG, "transient upload failure", e)
             settings.lastError = e.message

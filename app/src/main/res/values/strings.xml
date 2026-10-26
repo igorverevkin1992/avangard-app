@@ -164,6 +164,8 @@
     <string name="a11y_done">выполнено</string>
     <string name="a11y_not_done">не выполнено</string>
     <string name="a11y_manual">проверьте вручную</string>
+    <string name="backup_error_sign_in">Google отклонил вход — войдите заново в разделе «Резервная копия».</string>
+    <string name="backup_error_keystore">Часть зашифрованных записей не читается — копия не загружена, чтобы не затереть прежнюю.</string>
     <string name="motto_serviam">Serviam · Ora et labora</string>
     <string name="mass_time_saturday">Суббота</string>
     <string name="mass_time_sunday">Воскресенье</string>

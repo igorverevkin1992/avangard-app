@@ -88,4 +88,24 @@ class BackupRepositoryTest {
         assertEquals(BackupRepository.ImportError.WrongPassword, repo.import(file, "nope-nope".toCharArray()))
         assertEquals(BackupRepository.ImportError.WrongFormat, repo.import("{\"schemaVersion\":9}".toByteArray(), "x".toCharArray()))
     }
+
+    @Test
+    fun `an unreadable encrypted field aborts the export instead of uploading an emptied copy`() = runBlocking {
+        db.examenDao().upsert(ExamenEntity(logicalDate = LocalDate.of(2026, 11, 6), propositoEnc = "not-a-ciphertext"))
+        try {
+            repo.export("pw-12345678".toCharArray())
+            org.junit.Assert.fail("expected UndecryptableException")
+        } catch (e: BackupRepository.UndecryptableException) {
+            // expected
+        }
+    }
+
+    @Test
+    fun `restore drops norms the copy does not have and re-seeds the catalog`() = runBlocking {
+        val file = repo.export("pw-12345678".toCharArray())
+        db.normDao().setEnabled("gym", false)
+        assertNull(repo.import(file, "pw-12345678".toCharArray()))
+        assertEquals(true, db.normDao().get("gym")!!.enabled)
+        assertEquals(com.itermeum.app.core.content.NormCatalog.all.size, db.backupDao().norms().size)
+    }
 }

@@ -8,7 +8,13 @@ import com.itermeum.app.core.crypto.FieldCipher
 import com.itermeum.app.core.database.AppDatabase
 import javax.inject.Inject
 import javax.inject.Singleton
+import com.itermeum.app.core.database.entity.ProfileEntity
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 /**
  * Section 5.17 / 8: export decrypts `*Enc` columns in memory, serialises
@@ -32,7 +38,10 @@ class BackupRepository @Inject constructor(
         data class Unsupported(val version: Int) : ImportError
     }
 
-    private fun dec(v: String?): String? = v?.let { runCatching { fieldCipher.decrypt(it) }.getOrNull() }
+    /** A row the Keystore can no longer read: the export is aborted rather than silently emptied. */
+    class UndecryptableException(cause: Throwable) : Exception("encrypted field could not be decrypted", cause)
+
+    private fun dec(v: String?): String? = v?.let { runCatching { fieldCipher.decrypt(it) }.getOrElse { e -> throw UndecryptableException(e) } }
     private fun enc(v: String?): String? = v?.let { fieldCipher.encrypt(it) }
 
     suspend fun snapshot(): BackupBundle {
@@ -42,6 +51,7 @@ class BackupRepository @Inject constructor(
             createdAt = clock.nowEpochMillis(),
             appVersion = BuildConfig.VERSION_NAME,
             contentPackVersion = profile?.contentPackVersion ?: 0,
+            schemaVersion = AppDatabase.SCHEMA_VERSION,
             tables = BackupBundle.Tables(
                 profile = profile,
                 norm = b.norms(),
@@ -77,18 +87,24 @@ class BackupRepository @Inject constructor(
 
     fun encode(bundle: BackupBundle): ByteArray = json.encodeToString(BackupBundle.serializer(), bundle).toByteArray(Charsets.UTF_8)
 
-    suspend fun export(password: CharArray): ByteArray = BackupCipher.encrypt(encode(snapshot()), password)
+    /** PBKDF2 (210 000 rounds) and Keystore work never run on the main thread. */
+    suspend fun export(password: CharArray): ByteArray = withContext(Dispatchers.Default) { BackupCipher.encrypt(encode(snapshot()), password) }
 
     fun decode(bytes: ByteArray): BackupBundle = json.decodeFromString(BackupBundle.serializer(), String(bytes, Charsets.UTF_8))
 
-    suspend fun import(file: ByteArray, password: CharArray): ImportError? {
-        if (!BackupCipher.isBackup(file)) return ImportError.WrongFormat
-        val plain = try { BackupCipher.decrypt(file, password) } catch (e: Exception) { return ImportError.WrongPassword }
-        val bundle = try { decode(plain) } catch (e: Exception) { return ImportError.WrongFormat }
-        if (bundle.format != BackupBundle.FORMAT) return ImportError.WrongFormat
-        if (bundle.version != 1) return ImportError.Unsupported(bundle.version)
+    suspend fun import(file: ByteArray, password: CharArray): ImportError? = withContext(Dispatchers.Default) {
+        if (!BackupCipher.isBackup(file)) return@withContext ImportError.WrongFormat
+        val plain = try { BackupCipher.decrypt(file, password) } catch (e: Exception) { return@withContext ImportError.WrongPassword }
+        // Read the header first: a copy from a newer app is «unsupported», not «not a copy».
+        val header = try { json.parseToJsonElement(String(plain, Charsets.UTF_8)).jsonObject } catch (e: Exception) { return@withContext ImportError.WrongFormat }
+        if (header["format"]?.jsonPrimitive?.content != BackupBundle.FORMAT) return@withContext ImportError.WrongFormat
+        val version = header["version"]?.jsonPrimitive?.intOrNull ?: return@withContext ImportError.WrongFormat
+        if (version != 1) return@withContext ImportError.Unsupported(version)
+        val schema = header["schemaVersion"]?.jsonPrimitive?.intOrNull ?: 1
+        if (schema > AppDatabase.SCHEMA_VERSION) return@withContext ImportError.Unsupported(schema)
+        val bundle = try { decode(plain) } catch (e: Exception) { return@withContext ImportError.WrongFormat }
         restore(bundle)
-        return null
+        null
     }
 
     suspend fun restore(bundle: BackupBundle) {
@@ -99,8 +115,10 @@ class BackupRepository @Inject constructor(
             b.wipePrayerEdits(); b.wipeMemorization(); b.wipeJaculatoriaLogs(); b.wipeReadingLogs(); b.wipeRosary(); b.wipeFormation()
             b.wipeNotes(); b.wipeStreaks(); b.wipeFreezes(); b.wipeMilestones(); b.wipeProjects(); b.wipeGoals(); b.wipeIncome()
             b.wipeVanity(); b.wipeReviews(); b.wipeMortifications(); b.wipeTravel(); b.wipeMornings(); b.wipeMonthViews()
+            // Norms come back from the copy; catalog norms it lacks are re-seeded below.
+            b.wipeNorms()
 
-            t.profile?.let { db.profileDao().upsert(it) }
+            db.profileDao().upsert(t.profile ?: ProfileEntity())
             b.insertNorms(t.norm)
             b.insertCompletions(t.normCompletion)
             b.insertDayPlans(t.dayPlan)
@@ -128,15 +146,15 @@ class BackupRepository @Inject constructor(
             b.insertTravel(t.travelPeriod)
             b.insertMornings(t.morningState)
             b.insertMonthViews(t.monthlySummaryView)
+            // Same transaction: a process death can never leave a half-restored database.
+            seeder.seedIfNeeded(force = true)
         }
-        // Content rows that a newer pack added since the backup are re-seeded; user columns stay.
-        seeder.seedIfNeeded(force = true)
     }
 
     /** Settings → «стереть всё»: wipes user data, keeps the content pack. */
     suspend fun wipeAll() {
+        // Empty bundle: profile reset and re-seed happen inside restore's transaction.
         restore(BackupBundle(createdAt = 0, appVersion = BuildConfig.VERSION_NAME, contentPackVersion = 0, tables = emptyTables()))
-        db.profileDao().upsert(com.itermeum.app.core.database.entity.ProfileEntity())
     }
 
     private fun emptyTables() = BackupBundle.Tables(

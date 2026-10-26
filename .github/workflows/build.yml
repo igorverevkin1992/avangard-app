@@ -53,6 +53,16 @@ jobs:
       - name: Run unit tests
         run: ./gradlew :app:testDebugUnitTest --stacktrace
 
+      - name: Print Room schemas (temporary, to commit them)
+        run: |
+          set -e
+          git fetch --no-tags --depth=50 origin "$GITHUB_REF"
+          git worktree add ../v1 dcc998f~1
+          (cd ../v1 && ./gradlew :app:kspDebugKotlin --no-configuration-cache -q)
+          for f in ../v1/app/schemas/com.itermeum.app.core.database.AppDatabase/1.json app/schemas/com.itermeum.app.core.database.AppDatabase/2.json; do
+            echo "=====SCHEMA $(basename $f)"; base64 -w0 "$f"; echo; echo "=====END"
+          done
+
       - name: Assemble debug APK
         run: ./gradlew :app:assembleDebug --stacktrace
 

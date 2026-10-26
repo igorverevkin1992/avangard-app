@@ -17,4 +17,10 @@ interface ProfileDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(profile: ProfileEntity)
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertIgnore(profile: ProfileEntity)
+
+    @Query("UPDATE profile SET contentPackVersion = :version WHERE id = 1")
+    suspend fun setContentPackVersion(version: Int)
 }

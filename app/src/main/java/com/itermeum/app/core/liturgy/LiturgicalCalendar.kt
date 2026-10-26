@@ -17,7 +17,9 @@ import javax.inject.Singleton
 @Singleton
 class LiturgicalCalendar @Inject constructor(private val tables: LectionaryTables) {
 
+    /** Changing the transfer rule invalidates the cached years (Ascension/Corpus Christi dates). */
     @Volatile var transferToSunday: Boolean = true
+        set(value) { if (field != value) { field = value; cache.clear() } }
 
     private data class Year(
         val litYear: Int,
@@ -46,7 +48,8 @@ class LiturgicalCalendar @Inject constructor(private val tables: LectionaryTable
         val monthDay: String? = null,
     )
 
-    private val cache = HashMap<Int, Year>()
+    // Used from receivers and ViewModels at once.
+    private val cache = java.util.concurrent.ConcurrentHashMap<Int, Year>()
 
     fun day(date: LocalDate): LiturgicalDay {
         val y = yearFor(date)
@@ -195,9 +198,10 @@ class LiturgicalCalendar @Inject constructor(private val tables: LectionaryTable
         val fixed = fixedCelebrations()
         for ((mmdd, c) in fixed) {
             val (m, d) = mmdd.split("-").map { it.toInt() }
-            val calYear = if (m == 12) litYear - 1 else litYear
-            var date = LocalDate.of(calYear, m, d)
-            if (date < advent1 || date >= nextAdvent1) continue
+            // Late-November dates (St Andrew, 30.11) fall before or after Advent 1
+            // depending on the year: take whichever calendar year lies inside this liturgical year.
+            var date = listOf(litYear - 1, litYear).map { LocalDate.of(it, m, d) }
+                .firstOrNull { it >= advent1 && it < nextAdvent1 } ?: continue
             if (c.rank == Rank.SOLEMNITY) {
                 date = transferSolemnity(date, advent1, christmas, ash, easter, pentecost, cel.keys)
             } else {

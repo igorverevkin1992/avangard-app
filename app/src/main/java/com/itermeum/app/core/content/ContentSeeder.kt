@@ -30,7 +30,10 @@ class ContentSeeder @Inject constructor(
         val targetVersion = assets.prayers.contentPackVersion
         if (!force && profile != null && profile.contentPackVersion == targetVersion && db.normDao().count() > 0) return
         seed()
-        db.profileDao().upsert((profile ?: ProfileEntity()).copy(contentPackVersion = targetVersion))
+        // Only the version column: a whole-row REPLACE here could overwrite a concurrent
+        // profile edit (onboarding, settings) made while the pack was being parsed.
+        if (db.profileDao().get() == null) db.profileDao().insertIgnore(ProfileEntity())
+        db.profileDao().setContentPackVersion(targetVersion)
     }
 
     suspend fun seed() = db.withTransaction {
