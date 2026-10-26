@@ -103,7 +103,7 @@ class ExamenViewModel @Inject constructor(
             val previous = examen.previousProposito(date)
             // Set by the day close when yesterday's fidelity was frozen or broken.
             val needsWhatBroke = flags.whatBroke(date.minusDays(1))
-            val workDay = norms.scheduleFor(date).any { it.normId == NormCatalog.FROG }
+            val workDay = norms.scheduleFor(date).any { it.normId == NormCatalog.DAY_PLAN }
             val tasks = taskDao.forDate(date)
             val heroes0 = outreachDao.countFor(date)
             val agreements0 = outreachDao.observeAgreements(date).first()

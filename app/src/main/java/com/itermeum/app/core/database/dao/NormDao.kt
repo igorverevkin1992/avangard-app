@@ -37,4 +37,8 @@ interface NormDao {
 
     @Query("SELECT COUNT(*) FROM norm")
     suspend fun count(): Int
+
+    /** D-35, once per install: the former core «frog» norm becomes optional and off (later user choices stay). */
+    @Query("UPDATE norm SET enabled = 0, isCore = 0 WHERE id = 'frog' AND isCore = 1")
+    suspend fun retireFrog()
 }

@@ -46,7 +46,7 @@ fun PathScreen(
         ImSectionLabel(stringResource(R.string.path_streaks))
         ImPanel {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                StreakType.entries.forEach { t ->
+                StreakType.entries.filter { t -> t != StreakType.FROG || (streaks.firstOrNull { it.type == t }?.best ?: 0) > 0 }.forEach { t ->
                     val s = streaks.firstOrNull { it.type == t }
                     Column {
                         Text(stringResource(when (t) { StreakType.FIDELITY -> R.string.streak_fidelity; StreakType.WAKE -> R.string.streak_wake; StreakType.FROG -> R.string.streak_frog }), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)

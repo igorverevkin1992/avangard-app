@@ -13,6 +13,7 @@ import com.itermeum.app.core.content.NormCatalog
 import com.itermeum.app.core.data.NormRepository
 import com.itermeum.app.core.data.WorkRepository
 import com.itermeum.app.core.database.entity.TaskStatus
+import com.itermeum.app.core.database.entity.TaskType
 import com.itermeum.app.core.engine.DayScheduleEngine
 import com.itermeum.app.sync.alarm.ExactAlarms
 import com.itermeum.app.sync.notifications.NotificationChannels
@@ -43,7 +44,12 @@ class WorkCard @Inject constructor(
 ) {
     enum class Step { PLAN, HEROES, TASKS, LAST_STONE }
 
-    data class State(val step: Step, val title: String, val text: String, val deepLink: String, val progress: Pair<Int, Int>? = null, val openTaskId: Long? = null)
+    data class State(
+        val step: Step, val title: String, val text: String, val deepLink: String,
+        val progress: Pair<Int, Int>? = null, val openTaskId: Long? = null,
+        /** The current task is the hero calls: show «+1 герой» / «Договорился» too. */
+        val heroTask: Boolean = false,
+    )
 
     private val prefs = context.getSharedPreferences("work_card", Context.MODE_PRIVATE)
     private val mutex = Mutex()
@@ -55,7 +61,7 @@ class WorkCard @Inject constructor(
         val now = clock.now()
         val input = norms.inputFor(date)
         val items = DayScheduleEngine.schedule(input).map { it.normId }.toSet()
-        if (input.sick || NormCatalog.FROG !in items) return null
+        if (input.sick || NormCatalog.DAY_PLAN !in items) return null
         val p = input.profile
         val start = date.atTime(p.workStart)
         val end = date.atTime(p.workEnd).plusHours(1)
@@ -69,7 +75,8 @@ class WorkCard @Inject constructor(
         val open = tasks.filter { it.status == TaskStatus.OPEN }.sortedBy { it.slot }
         return when {
             tasks.isEmpty() -> State(Step.PLAN, s(R.string.work_card_plan_title), s(R.string.work_card_plan_text), "itermeum://work")
-            NormCatalog.FROG !in done && now.isBefore(cutoff) -> State(
+            // Only when the optional hero-calls norm is on (D-35).
+            NormCatalog.FROG in items && NormCatalog.FROG !in done && now.isBefore(cutoff) -> State(
                 Step.HEROES, s(R.string.work_card_heroes_title, attempts, target),
                 s(R.string.work_card_heroes_text, cutoff.toLocalTime().toString()), "itermeum://outreach", attempts to target,
             )
@@ -77,6 +84,8 @@ class WorkCard @Inject constructor(
             else -> State(
                 Step.TASKS, s(R.string.work_card_task_title, open.first().slot, tasks.size),
                 open.first().title, "itermeum://work", openTaskId = open.first().id,
+                heroTask = open.first().type == TaskType.OUTREACH,
+                progress = if (open.first().type == TaskType.OUTREACH) work.attemptsTotal(date) to target else null,
             )
         }
     }
@@ -110,7 +119,13 @@ class WorkCard @Inject constructor(
                 b.addAction(0, s(R.string.work_card_hero), action(WorkCardReceiver.ACTION_HERO))
                 b.addAction(0, s(R.string.work_card_agreement), action(WorkCardReceiver.ACTION_AGREEMENT))
             }
-            Step.TASKS -> b.addAction(0, s(R.string.work_card_task_done), action(WorkCardReceiver.ACTION_TASK_DONE))
+            Step.TASKS -> {
+                if (st.heroTask) {
+                    b.addAction(0, s(R.string.work_card_hero), action(WorkCardReceiver.ACTION_HERO))
+                    b.addAction(0, s(R.string.work_card_agreement), action(WorkCardReceiver.ACTION_AGREEMENT))
+                }
+                b.addAction(0, s(R.string.work_card_task_done), action(WorkCardReceiver.ACTION_TASK_DONE))
+            }
             Step.LAST_STONE -> b.addAction(0, s(R.string.work_card_open_stone), open("itermeum://laststone"))
         }
         try {

@@ -61,10 +61,11 @@ class ContentSeederTest {
     }
 
     @Test
-    fun `core norms are wake, frog and examen`() = runBlocking {
+    fun `core norms are wake and examen, hero calls are optional and off`() = runBlocking {
         seeder.seedIfNeeded()
         val core = db.normDao().getAll().filter { it.isCore }.map { it.id }.toSet()
-        assertEquals(setOf(NormCatalog.WAKE, NormCatalog.FROG, NormCatalog.EXAMEN), core)
+        assertEquals(setOf(NormCatalog.WAKE, NormCatalog.EXAMEN), core)
+        assertEquals(false, db.normDao().get(NormCatalog.FROG)!!.enabled)
         assertTrue(db.normDao().get(NormCatalog.CONFESSION)!!.requiresBaptism)
     }
 

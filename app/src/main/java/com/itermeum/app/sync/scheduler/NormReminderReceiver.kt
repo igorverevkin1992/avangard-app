@@ -91,7 +91,7 @@ class NormReminderReceiver : BroadcastReceiver() {
         }
         // D-34: during working hours only work norms and the streak threat may pop up;
         // the rest is shown quietly so it does not break the working order.
-        val inWork = NormCatalog.FROG in schedule.map { it.normId } &&
+        val inWork = NormCatalog.DAY_PLAN in schedule.map { it.normId } &&
             !now.toLocalTime().isBefore(profile.workStart) && now.toLocalTime().isBefore(profile.workEnd)
         val workNorm = normId in setOf(NormCatalog.DAY_PLAN, NormCatalog.FROG, NormCatalog.LAST_STONE, THREAT)
         val channel = when {

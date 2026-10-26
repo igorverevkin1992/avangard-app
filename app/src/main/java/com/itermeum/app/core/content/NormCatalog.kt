@@ -54,7 +54,8 @@ object NormCatalog {
         norm(SRS, "Повторение молитв", NormCategory.PRAYER, t(8, 45), 5, days = ALL_DAYS, follows = true, order = 8),
         norm(ANGELUS, "Ангел Господень", NormCategory.PRAYER, t(12, 0), 2, days = ALL_DAYS, follows = false, order = 9),
         norm(DAY_PLAN, "План дня: три задачи", NormCategory.WORK, t(12, 0), 5, days = WEEKDAYS, follows = false, order = 10),
-        norm(FROG, "Обзвон героев", NormCategory.WORK, t(12, 5), 30, core = true, days = WEEKDAYS, follows = false, order = 11),
+        // D-35: not an Opus Dei practice — off by default, not core; hero calls are task 1 of the day plan.
+        norm(FROG, "Обзвон героев до 14:00", NormCategory.WORK, t(12, 5), 30, days = WEEKDAYS, follows = false, order = 11, enabled = false),
         norm(JACULATORIA, "Молитвы-стрелы", NormCategory.PRAYER, null, 0, days = ALL_DAYS, follows = false, order = 12),
         norm(LAST_STONE, "Последний камень", NormCategory.WORK, t(19, 30), 15, days = WEEKDAYS, follows = false, order = 13),
         norm(ROSARY, "Розарий", NormCategory.PRAYER, t(20, 15), 20, days = ALL_DAYS, follows = false, order = 14),
@@ -72,10 +73,10 @@ object NormCatalog {
     private fun norm(
         id: String, title: String, category: NormCategory, time: LocalTime?, duration: Int,
         core: Boolean = false, days: Int, follows: Boolean, order: Int,
-        freq: NormFrequency = NormFrequency.DAILY, baptism: Boolean = false,
+        freq: NormFrequency = NormFrequency.DAILY, baptism: Boolean = false, enabled: Boolean = true,
     ) = NormEntity(
         id = id, title = title, category = category, defaultTime = time, durationMin = duration,
         requiresBaptism = baptism, isCore = core, frequency = freq, daysOfWeek = days,
-        followsWakeTime = follows, orderIndex = order,
+        followsWakeTime = follows, orderIndex = order, enabled = enabled,
     )
 }

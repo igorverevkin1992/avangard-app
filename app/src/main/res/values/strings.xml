@@ -270,8 +270,8 @@
     <string name="today_part_anytime">В течение дня</string>
     <string name="more">Ещё</string>
     <string name="work_step_plan">1. План дня — три задачи</string>
-    <string name="work_step_outreach">2. Звонки героям</string>
-    <string name="work_step_last_stone">3. Последний камень</string>
+    <string name="work_step_outreach">Журнал звонков героям</string>
+    <string name="work_step_last_stone">2. Последний камень</string>
     <string name="work_outreach_summary">До отсечки %1$d из %2$d · договорённостей %3$d</string>
     <string name="prayer_today">Сегодня</string>
     <string name="prayer_library">Библиотека</string>
@@ -312,6 +312,7 @@
     <string name="today_plan_before_work">План дня — до работы</string>
     <string name="today_plan_before_work_hint">Засчитывается до %1$s. Лучше сейчас, по дороге — на работе не будет времени.</string>
     <string name="today_plan_before_work_button">Составить план</string>
+    <string name="work_outreach_today">Сегодня попыток %1$d · договорённостей %2$d</string>
     <string name="motto_serviam">Serviam · Ora et labora</string>
     <string name="mass_time_saturday">Суббота</string>
     <string name="mass_time_sunday">Воскресенье</string>

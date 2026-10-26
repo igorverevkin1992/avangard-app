@@ -17,6 +17,8 @@ class DayScheduleEngineTest {
 
     private val monday = LocalDate.of(2026, 11, 2)
     private val saturday = LocalDate.of(2026, 11, 7)
+    /** The optional hero-calls norm switched on, as a user may do in Settings (D-35). */
+    private val withHeroes = NormCatalog.all.map { if (it.id == NormCatalog.FROG) it.copy(enabled = true) else it }
 
     private fun input(
         date: LocalDate = monday,
@@ -24,7 +26,7 @@ class DayScheduleEngineTest {
         travel: Boolean = false,
         sick: Boolean = false,
         events: List<Pair<LocalDateTime, LocalDateTime>> = emptyList(),
-    ) = DayScheduleEngine.Input(date, profile, NormCatalog.all, reginaCaeli = false, travel = travel, sick = sick, shootDay = false, events = events)
+    ) = DayScheduleEngine.Input(date, profile, withHeroes, reginaCaeli = false, travel = travel, sick = sick, shootDay = false, events = events)
 
     private fun List<DayScheduleEngine.ScheduledItem>.of(id: String) = first { it.normId == id }
 
@@ -177,4 +179,12 @@ class DayScheduleEngineTest {
         assertEquals(LocalTime.of(16, 0), DayScheduleEngine.frogCutoff(late))
         assertEquals(LocalTime.of(14, 0), DayScheduleEngine.frogCutoff(ProfileEntity()))
     }
+
+    @Test
+    fun `hero calls are off by default`() {
+        val items = DayScheduleEngine.schedule(DayScheduleEngine.Input(monday, ProfileEntity(), NormCatalog.all, false, false, false, false, emptyList()))
+        assertNull(items.firstOrNull { it.normId == NormCatalog.FROG })
+        assertTrue(items.any { it.normId == NormCatalog.DAY_PLAN })
+    }
 }
+

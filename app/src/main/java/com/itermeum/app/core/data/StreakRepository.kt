@@ -73,6 +73,7 @@ class StreakRepository @Inject constructor(
             completedNorms = (done intersect active).size,
             wakeMet = wakeMet,
             wakeLate = wakeLate,
+            heroesActive = NormCatalog.FROG in active,
             examenDone = NormCatalog.EXAMEN in done,
             weekday = weekday,
             outreachBeforeCutoff = outreachDao.countBeforeCutoff(date),

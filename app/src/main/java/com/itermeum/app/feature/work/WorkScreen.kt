@@ -61,8 +61,7 @@ fun WorkScreen(
         )
         ImNavRow(
             title = stringResource(R.string.work_step_outreach),
-            subtitle = stringResource(R.string.work_outreach_summary, ui.outreach.count { it.beforeCutoff }, ui.target, ui.agreements),
-            done = NormCatalog.FROG in ui.done,
+            subtitle = stringResource(R.string.work_outreach_today, ui.attempts, ui.agreements),
             onClick = onOutreach,
         )
         ImNavRow(

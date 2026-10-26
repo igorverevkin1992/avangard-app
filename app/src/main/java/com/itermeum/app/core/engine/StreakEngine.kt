@@ -26,6 +26,8 @@ object StreakEngine {
         val outreachTarget: Int,
         /** Proof in (+20, +60] min: «поздний» — the wake streak neither grows nor burns (5.1). */
         val wakeLate: Boolean = false,
+        /** The optional hero-calls norm is switched on for this day (D-35). */
+        val heroesActive: Boolean = true,
     )
 
     enum class Verdict { MET, NOT_MET, SKIP }
@@ -57,7 +59,7 @@ object StreakEngine {
                 f.wakeLate -> Verdict.SKIP
                 else -> Verdict.NOT_MET
             }
-            StreakType.FROG -> if (!f.weekday) Verdict.SKIP else if (f.outreachBeforeCutoff >= f.outreachTarget) Verdict.MET else Verdict.NOT_MET
+            StreakType.FROG -> if (!f.weekday || !f.heroesActive) Verdict.SKIP else if (f.outreachBeforeCutoff >= f.outreachTarget) Verdict.MET else Verdict.NOT_MET
         }
     }
 
