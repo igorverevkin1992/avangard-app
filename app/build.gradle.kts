@@ -191,15 +191,19 @@ kotlin {
 // Robolectric's android-all jars come through Gradle (retries, cache) instead of
 // Robolectric's own Maven Central download, which hit HTTP 429 in CI. Both SDK
 // levels Robolectric 4.14 may pick are copied into one offline directory.
-val robolectricJars: Configuration by configurations.creating
+// One configuration per SDK: in a single one Gradle would resolve the two
+// versions of the same module to the newest only.
+val robolectricSdk34: Configuration by configurations.creating
+val robolectricSdk35: Configuration by configurations.creating
 dependencies {
-    robolectricJars("org.robolectric:android-all-instrumented:14-robolectric-10818077-i7")
-    robolectricJars("org.robolectric:android-all-instrumented:15-robolectric-12650502-i7")
+    robolectricSdk34("org.robolectric:android-all-instrumented:14-robolectric-10818077-i7")
+    robolectricSdk35("org.robolectric:android-all-instrumented:15-robolectric-12650502-i7")
 }
 
 val robolectricOfflineDir = layout.buildDirectory.dir("robolectric-jars")
 val syncRobolectricJars by tasks.registering(Sync::class) {
-    from(robolectricJars)
+    from(robolectricSdk34)
+    from(robolectricSdk35)
     into(robolectricOfflineDir)
 }
 
