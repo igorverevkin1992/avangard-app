@@ -57,7 +57,7 @@ jobs:
         run: ./gradlew :app:assembleDebug --stacktrace
 
       - name: Print APK signing fingerprint
-        run: keytool -printcert -jarfile app/build/outputs/apk/debug/app-debug.apk | grep -E "SHA1|SHA256"
+        run: "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --print-certs app/build/outputs/apk/debug/app-debug.apk | grep -i "SHA-1\|SHA-256"
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
