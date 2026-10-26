@@ -50,6 +50,7 @@ fun IterMeumNavHost(navController: NavHostController, startDestination: String) 
             TodayScreen(
                 onOpenSettings = { navController.navigate(NavRoute.Settings.route) },
                 onMilestone = { navController.navigate(NavRoute.Milestone.of(it)) },
+                onOpenRoute = { navController.navigate(it) { launchSingleTop = true } },
             )
         }
         composable(NavRoute.Work.route) {

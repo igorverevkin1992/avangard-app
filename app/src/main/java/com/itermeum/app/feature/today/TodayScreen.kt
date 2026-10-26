@@ -48,6 +48,9 @@ import com.itermeum.app.core.designsystem.ImSecondaryButton
 import com.itermeum.app.core.designsystem.ImSectionLabel
 import com.itermeum.app.core.designsystem.ImSpacing
 import com.itermeum.app.core.engine.DayScheduleEngine
+import com.itermeum.app.navigation.NavRoute
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.unit.dp
 import com.itermeum.app.feature.onboarding.HyperOsChecks
 import java.time.DayOfWeek
 import java.time.format.DateTimeFormatter
@@ -55,7 +58,12 @@ import java.util.Locale
 import kotlinx.coroutines.delay
 
 @Composable
-fun TodayScreen(onOpenSettings: () -> Unit, onMilestone: (String) -> Unit = {}, viewModel: TodayViewModel = hiltViewModel()) {
+fun TodayScreen(
+    onOpenSettings: () -> Unit,
+    onMilestone: (String) -> Unit = {},
+    onOpenRoute: (String) -> Unit = {},
+    viewModel: TodayViewModel = hiltViewModel(),
+) {
     val ui by viewModel.ui.collectAsState()
     val streaks by viewModel.streakStates.collectAsState()
     val unseen by viewModel.unseenMilestone.collectAsState()
@@ -133,7 +141,7 @@ fun TodayScreen(onOpenSettings: () -> Unit, onMilestone: (String) -> Unit = {}, 
         if (viewModel.isFriday && ui.items.any { it.normId == NormCatalog.MORTIFICATION }) MortificationCard(mortification, viewModel)
         ui.next?.let { next ->
             ImSectionLabel(stringResource(R.string.today_next_norm))
-            ImPanel {
+            ImPanel(Modifier.clickable { normRoute(next.normId)?.let(onOpenRoute) }) {
                 Text(ui.norms[next.normId]?.title ?: next.normId, style = MaterialTheme.typography.titleLarge)
                 next.time?.let { Text(it.toString(), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
             }
@@ -142,7 +150,7 @@ fun TodayScreen(onOpenSettings: () -> Unit, onMilestone: (String) -> Unit = {}, 
         if (ui.items.isNotEmpty() && ui.items.all { it.normId in ui.done }) {
             Text(stringResource(R.string.today_all_done), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.primary)
         }
-        ui.items.forEach { item -> NormRow(item, ui, viewModel) }
+        ui.items.forEach { item -> NormRow(item, ui, viewModel, onOpenRoute) }
         Spacer(Modifier.height(ImSpacing.grid))
         Row(horizontalArrangement = Arrangement.spacedBy(ImSpacing.grid)) {
             // Section 4: sick is set before 06:00 or for tomorrow; switching off is always possible.
@@ -196,21 +204,31 @@ private fun ScriptCard(viewModel: TodayViewModel) {
     }
 }
 
+/**
+ * A tap always does something visible:
+ * - norms with their own screen open it (prayer timer, Gospel, outreach, Examen…);
+ * - simple norms toggle the check;
+ * - morning norms explain how they are counted (alarm → proof → Serviam).
+ */
 @Composable
-private fun NormRow(item: DayScheduleEngine.ScheduledItem, ui: TodayUi, viewModel: TodayViewModel) {
+private fun NormRow(item: DayScheduleEngine.ScheduledItem, ui: TodayUi, viewModel: TodayViewModel, onOpenRoute: (String) -> Unit) {
     val done = item.normId in ui.done
     val norm = ui.norms[item.normId]
+    val route = normRoute(item.normId)
+    val hint = morningHint(item.normId)
+    var showHint by remember(item.normId) { mutableStateOf(false) }
     ImPanel(
-        Modifier.fillMaxWidth().clickable(enabled = viewModel.isTapCompletable(item.normId)) { viewModel.toggle(item.normId) },
+        Modifier.fillMaxWidth().clickable {
+            when {
+                route != null -> onOpenRoute(route)
+                hint != null -> showHint = !showHint
+                viewModel.isTapCompletable(item.normId) -> viewModel.toggle(item.normId)
+            }
+        },
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             val stateLabel = stringResource(if (done) R.string.a11y_done else R.string.a11y_not_done)
-            Text(
-                if (done) "■" else "□",
-                color = if (done) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.padding(end = ImSpacing.card).semantics { stateDescription = stateLabel },
-            )
+            NormCheck(done, Modifier.padding(end = ImSpacing.card).semantics { stateDescription = stateLabel })
             Column(Modifier.weight(1f)) {
                 Text(norm?.title ?: item.normId, style = MaterialTheme.typography.bodyLarge)
                 val meta = listOfNotNull(
@@ -220,8 +238,61 @@ private fun NormRow(item: DayScheduleEngine.ScheduledItem, ui: TodayUi, viewMode
                 )
                 if (meta.isNotEmpty()) Text(meta.joinToString(" · "), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
+            if (route != null) Text("›", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.tertiary)
+        }
+        if (showHint && hint != null) {
+            Spacer(Modifier.height(ImSpacing.tight))
+            Text(stringResource(hint), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
+}
+
+/** A drawn checkbox (the ■/□ glyphs were tiny in Cormorant): gold frame, accent fill and a check when done. */
+@Composable
+private fun NormCheck(done: Boolean, modifier: Modifier = Modifier) {
+    val frame = MaterialTheme.colorScheme.outlineVariant
+    val fill = MaterialTheme.colorScheme.primary
+    val tick = MaterialTheme.colorScheme.onPrimary
+    androidx.compose.foundation.Canvas(modifier.size(26.dp)) {
+        val w = size.width
+        if (done) drawRect(fill)
+        drawRect(frame, style = androidx.compose.ui.graphics.drawscope.Stroke(1.5.dp.toPx()))
+        if (done) {
+            val path = androidx.compose.ui.graphics.Path().apply {
+                moveTo(w * 0.22f, w * 0.52f); lineTo(w * 0.42f, w * 0.72f); lineTo(w * 0.78f, w * 0.30f)
+            }
+            drawPath(path, tick, style = androidx.compose.ui.graphics.drawscope.Stroke(2.5.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Square))
+        }
+    }
+}
+
+/** Where a norm is done in the app; null → the row toggles or explains. */
+internal fun normRoute(normId: String): String? = when (normId) {
+    NormCatalog.MENTAL_PRAYER -> NavRoute.PrayerMental.route
+    NormCatalog.GOSPEL, NormCatalog.READING -> NavRoute.PrayerGospel.route
+    NormCatalog.SRS -> NavRoute.PrayerSrs.route
+    NormCatalog.ANGELUS -> NavRoute.PrayerAngelus.route
+    NormCatalog.JACULATORIA -> NavRoute.PrayerJaculatory.of(null)
+    NormCatalog.ROSARY -> NavRoute.PrayerRosary.route
+    NormCatalog.MASS -> NavRoute.PrayerMass.route
+    NormCatalog.EXAMEN -> NavRoute.Examen.route
+    NormCatalog.DAY_PLAN -> NavRoute.WorkPlan.route
+    NormCatalog.FROG -> NavRoute.WorkOutreach.route
+    NormCatalog.LAST_STONE -> NavRoute.WorkLastStone.route
+    NormCatalog.CATECHESIS -> NavRoute.PathCatechesis.of(null)
+    NormCatalog.WEEKLY_REVIEW -> NavRoute.PathReview.route
+    NormCatalog.MONTHLY_SUMMARY -> NavRoute.PathMonth.route
+    NormCatalog.QUARTER_CHECK -> NavRoute.PathQuarter.route
+    else -> null
+}
+
+/** Morning norms are counted by the alarm flow, not by a tap. */
+private fun morningHint(normId: String): Int? = when (normId) {
+    NormCatalog.WAKE -> R.string.today_hint_wake
+    NormCatalog.SERVIAM -> R.string.today_hint_serviam
+    NormCatalog.QUARANTINE -> R.string.today_hint_quarantine
+    NormCatalog.MORTIFICATION -> R.string.today_hint_mortification
+    else -> null
 }
 
 @Composable
@@ -258,7 +329,7 @@ private fun MorningCard(ui: TodayUi, viewModel: TodayViewModel) {
                         style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 val weekday = ui.date.dayOfWeek !in setOf(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY)
-                if (weekday && m.gymAt == null && m.stage == MorningStage.DONE) {
+                if (weekday && m.gymAt == null && NormCatalog.GYM !in ui.done && m.stage == MorningStage.DONE) {
                     val started = m.quarantineAnsweredAt ?: now
                     val left = (10 * 60_000L - (now - started)).coerceAtLeast(0)
                     Spacer(Modifier.height(ImSpacing.grid))

@@ -186,7 +186,8 @@ class TodayViewModel @Inject constructor(
 
     /** Simple norms that are completed by a tap on the Today list (phase 4). */
     fun isTapCompletable(id: String): Boolean =
-        id !in setOf(NormCatalog.WAKE, NormCatalog.SERVIAM, NormCatalog.QUARANTINE, NormCatalog.GYM, NormCatalog.MORTIFICATION)
+        // The gym can also be ticked here if the morning card was missed.
+        id !in setOf(NormCatalog.WAKE, NormCatalog.SERVIAM, NormCatalog.QUARANTINE, NormCatalog.MORTIFICATION)
 
     /** Non-core norms that may be paused (section 6.6). */
     fun pausable(items: List<DayScheduleEngine.ScheduledItem>): List<DayScheduleEngine.ScheduledItem> =
