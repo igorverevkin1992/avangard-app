@@ -115,6 +115,9 @@ class TodayViewModel @Inject constructor(
     }
     fun dismissLowerBar() { lowerBar.value = null }
 
+    /** «⋯ → Снизить планку»: the same pause offer as after three failures, on request. */
+    fun offerPause() { lowerBar.value = LowerBar(offerPause = true, calmRestart = false) }
+
     /** Section 9: the three tasks of the day, shown once work has started. */
     val tasks: StateFlow<List<WorkTaskEntity>> = work.observeTasks(date).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 

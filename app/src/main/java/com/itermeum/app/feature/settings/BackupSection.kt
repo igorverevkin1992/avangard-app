@@ -34,7 +34,6 @@ fun BackupSection(viewModel: BackupViewModel = hiltViewModel()) {
     var confirmRestore by remember { mutableStateOf(false) }
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { viewModel.onSignInResult(it.data) }
     Column(verticalArrangement = Arrangement.spacedBy(ImSpacing.grid)) {
-        ImSectionLabel(stringResource(R.string.backup_title))
         Text(stringResource(R.string.backup_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         if (!ui.signedIn) {
             ImSecondaryButton(stringResource(R.string.backup_sign_in), onClick = { launcher.launch(viewModel.signInIntent()) })

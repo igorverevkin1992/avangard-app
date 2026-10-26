@@ -2,6 +2,8 @@ package com.itermeum.app.core.designsystem
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -160,3 +162,75 @@ fun ImStepper(label: String, value: Int, range: IntRange, onChange: (Int) -> Uni
             modifier = Modifier.semantics { contentDescription = "$label: больше" }) { Text("+", style = MaterialTheme.typography.headlineMedium) }
     }
 }
+
+/** Drawn checkbox (glyphs like ■/□ render tiny in Cormorant): gold frame, accent fill and a tick when done. */
+@Composable
+fun ImCheck(done: Boolean, modifier: Modifier = Modifier, size: androidx.compose.ui.unit.Dp = 26.dp) {
+    val frame = MaterialTheme.colorScheme.outlineVariant
+    val fill = MaterialTheme.colorScheme.primary
+    val tick = MaterialTheme.colorScheme.onPrimary
+    androidx.compose.foundation.Canvas(modifier.size(size)) {
+        val w = this.size.width
+        if (done) drawRect(fill)
+        drawRect(frame, style = Stroke(1.5.dp.toPx()))
+        if (done) {
+            val path = androidx.compose.ui.graphics.Path().apply {
+                moveTo(w * 0.22f, w * 0.52f); lineTo(w * 0.42f, w * 0.72f); lineTo(w * 0.78f, w * 0.30f)
+            }
+            drawPath(path, tick, style = Stroke(2.5.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Square))
+        }
+    }
+}
+
+/**
+ * One tappable line: optional check on the left, title and a short subtitle,
+ * a gold › on the right. The basic building block of every hub screen.
+ */
+@Composable
+fun ImNavRow(title: String, onClick: () -> Unit, modifier: Modifier = Modifier, subtitle: String? = null, done: Boolean? = null) {
+    ImPanel(modifier.fillMaxWidth().clickable(onClick = onClick)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (done != null) ImCheck(done, Modifier.padding(end = ImSpacing.card))
+            Column(Modifier.weight(1f)) {
+                Text(title, style = MaterialTheme.typography.bodyLarge)
+                subtitle?.let { Text(it, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+            }
+            Text("›", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.tertiary)
+        }
+    }
+}
+
+/**
+ * A section that can be folded: header with a summary on the right
+ * («3 из 5»), content only when open. Keeps long screens short.
+ */
+@Composable
+fun ImCollapsible(
+    title: String,
+    modifier: Modifier = Modifier,
+    summary: String? = null,
+    initiallyExpanded: Boolean = false,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    var open by androidx.compose.runtime.saveable.rememberSaveable(title) { mutableStateOf(initiallyExpanded) }
+    Column(modifier.fillMaxWidth(), verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(ImSpacing.grid)) {
+        Row(
+            Modifier.fillMaxWidth().clickable { open = !open }.padding(vertical = ImSpacing.tight),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            ImCross(8.dp)
+            Spacer(Modifier.width(ImSpacing.grid))
+            Text(title.uppercase(), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurface)
+            Spacer(Modifier.width(ImSpacing.grid))
+            Hairline(Modifier.weight(1f))
+            summary?.let {
+                Spacer(Modifier.width(ImSpacing.grid))
+                Text(it, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Spacer(Modifier.width(ImSpacing.tight))
+            Text(if (open) "▴" else "▾", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.tertiary)
+        }
+        if (open) content()
+    }
+}
+

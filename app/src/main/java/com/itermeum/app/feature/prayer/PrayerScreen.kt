@@ -1,11 +1,8 @@
 package com.itermeum.app.feature.prayer
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -19,12 +16,17 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.itermeum.app.R
 import com.itermeum.app.core.content.NormCatalog
+import com.itermeum.app.core.designsystem.ImCollapsible
 import com.itermeum.app.core.designsystem.ImHeader
-import com.itermeum.app.core.designsystem.ImPanel
+import com.itermeum.app.core.designsystem.ImNavRow
+import com.itermeum.app.core.designsystem.ImSectionLabel
 import com.itermeum.app.core.designsystem.ImSpacing
 import java.time.DayOfWeek
 
-/** Section 9 «Молитва» hub. */
+/**
+ * «Молитва» (D-33): today's prayers in the order of the day, then a folded
+ * library (prayer book, memorisation, calendar).
+ */
 @Composable
 fun PrayerScreen(
     onBook: () -> Unit, onRosary: () -> Unit, onJaculatory: () -> Unit, onGospel: () -> Unit,
@@ -36,32 +38,30 @@ fun PrayerScreen(
     val due by viewModel.dueCards.collectAsState()
     val profile by viewModel.profile.collectAsState()
     val regina = viewModel.liturgical.reginaCaeli
+    val weekend = viewModel.date.dayOfWeek == DayOfWeek.SATURDAY || viewModel.date.dayOfWeek == DayOfWeek.SUNDAY
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(ImSpacing.screen), verticalArrangement = Arrangement.spacedBy(ImSpacing.grid)) {
         ImHeader(stringResource(R.string.nav_prayer))
         Text(viewModel.liturgical.title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
 
-        HubRow(stringResource(R.string.hub_mental), NormCatalog.MENTAL_PRAYER in done, onMental)
-        HubRow(if (regina) stringResource(R.string.hub_regina) else stringResource(R.string.hub_angelus), NormCatalog.ANGELUS in done, onAngelus)
-        HubRow(stringResource(R.string.hub_gospel), NormCatalog.GOSPEL in done && NormCatalog.READING in done, onGospel)
-        HubRow(stringResource(R.string.hub_srs) + if (due > 0) " · $due" else "", NormCatalog.SRS in done, onSrs)
-        HubRow(stringResource(R.string.hub_jaculatory) + " · $arrows/3", NormCatalog.JACULATORIA in done, onJaculatory)
-        HubRow(stringResource(R.string.hub_rosary), NormCatalog.ROSARY in done, onRosary)
-        HubRow(if (profile.baptized) stringResource(R.string.hub_mass_baptized) else stringResource(R.string.hub_mass), NormCatalog.MASS in done, onMass)
-        if (viewModel.date.dayOfWeek == DayOfWeek.SATURDAY) {
-            HubRow(stringResource(R.string.hub_marian), NormCatalog.MARIAN_SATURDAY in done) { viewModel.markMarianSaturday(); onBook() }
+        ImSectionLabel(stringResource(R.string.prayer_today))
+        ImNavRow(stringResource(R.string.hub_mental), onMental, subtitle = stringResource(R.string.prayer_mental_sub), done = NormCatalog.MENTAL_PRAYER in done)
+        ImNavRow(stringResource(R.string.hub_gospel), onGospel, subtitle = stringResource(R.string.prayer_gospel_sub), done = NormCatalog.GOSPEL in done && NormCatalog.READING in done)
+        ImNavRow(if (regina) stringResource(R.string.hub_regina) else stringResource(R.string.hub_angelus), onAngelus, subtitle = stringResource(R.string.angelus_window), done = NormCatalog.ANGELUS in done)
+        ImNavRow(stringResource(R.string.hub_jaculatory), onJaculatory, subtitle = stringResource(R.string.prayer_arrows_sub, arrows), done = NormCatalog.JACULATORIA in done)
+        ImNavRow(stringResource(R.string.hub_rosary), onRosary, done = NormCatalog.ROSARY in done)
+        if (weekend) {
+            ImNavRow(if (profile.baptized) stringResource(R.string.hub_mass_baptized) else stringResource(R.string.hub_mass), onMass, done = NormCatalog.MASS in done)
         }
-        HubRow(stringResource(R.string.hub_examen), NormCatalog.EXAMEN in done, onExamen)
-        HubRow(stringResource(R.string.hub_book), null, onBook)
-        HubRow(stringResource(R.string.hub_calendar), null, onCalendar)
-    }
-}
+        if (viewModel.date.dayOfWeek == DayOfWeek.SATURDAY) {
+            ImNavRow(stringResource(R.string.hub_marian), { viewModel.markMarianSaturday(); onBook() }, done = NormCatalog.MARIAN_SATURDAY in done)
+        }
+        ImNavRow(stringResource(R.string.hub_examen), onExamen, subtitle = stringResource(R.string.prayer_examen_sub), done = NormCatalog.EXAMEN in done)
 
-@Composable
-private fun HubRow(title: String, done: Boolean?, onClick: () -> Unit) {
-    ImPanel(Modifier.fillMaxWidth().clickable(onClick = onClick)) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(title, style = MaterialTheme.typography.bodyLarge)
-            if (done != null) Text(if (done) "■" else "□", color = if (done) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyLarge)
+        ImCollapsible(title = stringResource(R.string.prayer_library), summary = if (due > 0) stringResource(R.string.prayer_due, due) else null, initiallyExpanded = due > 0) {
+            ImNavRow(stringResource(R.string.hub_srs), onSrs, subtitle = if (due > 0) stringResource(R.string.prayer_due, due) else null, done = NormCatalog.SRS in done)
+            ImNavRow(stringResource(R.string.hub_book), onBook)
+            ImNavRow(stringResource(R.string.hub_calendar), onCalendar)
+            if (!weekend) ImNavRow(if (profile.baptized) stringResource(R.string.hub_mass_baptized) else stringResource(R.string.hub_mass), onMass)
         }
     }
 }

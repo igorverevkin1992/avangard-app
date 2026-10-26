@@ -85,3 +85,27 @@ fun StreakStrip(label: String, current: Int, best: Int, accent: Color, modifier:
         Text(androidx.compose.ui.res.stringResource(com.itermeum.app.R.string.streak_best, best), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
+
+/** Small day ring for the status line: one segment per norm, filled in the season's colour. */
+@Composable
+fun CompactDayRing(total: Int, doneCount: Int, accent: Color, modifier: Modifier = Modifier) {
+    val outline = MaterialTheme.colorScheme.outline
+    val gold = MaterialTheme.colorScheme.tertiary
+    Canvas(modifier.size(56.dp)) {
+        val stroke = 6.dp.toPx()
+        val radius = (size.minDimension - stroke) / 2f
+        val topLeft = Offset((size.width - radius * 2) / 2f, (size.height - radius * 2) / 2f)
+        val arcSize = Size(radius * 2, radius * 2)
+        val n = maxOf(total, 1)
+        val gap = if (n > 1) 4f else 0f
+        for (i in 0 until n) {
+            drawArc(
+                color = if (i < doneCount) accent else outline,
+                startAngle = -90f + i * (360f / n) + gap / 2, sweepAngle = 360f / n - gap, useCenter = false,
+                topLeft = topLeft, size = arcSize, style = Stroke(width = stroke),
+            )
+        }
+        drawCrossPattee(center, 12.dp.toPx(), gold)
+    }
+}
+

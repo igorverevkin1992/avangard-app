@@ -68,6 +68,14 @@ class WorkViewModel @Inject constructor(
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), WorkUi(date))
 
+    /** Section 5.5: «Поработал над сценарием» before work (moved here from Today, D-33). */
+    val activeScript: StateFlow<com.itermeum.app.core.database.entity.ScriptSessionEntity?> =
+        work.observeActiveScript().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+    val scriptSessionsToday: StateFlow<Int> = work.observeScriptCount(date).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
+    fun beforeWork(): Boolean = clock.localTime().isBefore(java.time.LocalTime.of(12, 0))
+    fun startScript() = viewModelScope.launch { work.startScript() }
+    fun stopScript() = viewModelScope.launch { work.stopScript(null) }
+
     fun planIsValid(drafts: List<WorkRepository.TaskDraft>, shootDay: Boolean) = work.planIsValid(drafts, shootDay)
 
     fun savePlan(drafts: List<WorkRepository.TaskDraft>, intention: String?, shootDay: Boolean, onDone: () -> Unit) {
