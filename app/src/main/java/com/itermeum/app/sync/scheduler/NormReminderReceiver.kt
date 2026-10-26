@@ -21,11 +21,8 @@ import com.itermeum.app.sync.notifications.NotificationChannels
 import com.itermeum.app.sync.notifications.NotificationPresenter
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
+import com.itermeum.app.sync.runAsync
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 
 /**
  * Fires at a planned reminder time. Everything is re-checked at fire time:
@@ -49,10 +46,7 @@ class NormReminderReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val normId = intent.getStringExtra(EXTRA_NORM) ?: return
         val level = intent.getIntExtra(EXTRA_LEVEL, 1)
-        val pending = goAsync()
-        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
-            try { fire(normId, level) } finally { pending.finish() }
-        }
+        runAsync("NormReminder") { fire(normId, level) }
     }
 
     private suspend fun fire(normId: String, level: Int) {
@@ -95,7 +89,7 @@ class NormReminderReceiver : BroadcastReceiver() {
         val channel = if (level >= 2) NotificationChannels.NORM_ESCALATION else NotificationChannels.NORM_REMINDERS
         val deepLink = DEEP_LINKS[normId] ?: "itermeum://today"
         presenter.post(
-            NotificationPresenter.ID_NORM_BASE + normId.hashCode().mod(500), channel,
+            notificationId(normId), channel,
             if (normId == THREAT) "Iter Meum" else (norms.norm(normId)?.title ?: "Iter Meum"), text, deepLink,
             if (level >= 2) NotificationCompat.PRIORITY_HIGH else NotificationCompat.PRIORITY_DEFAULT,
         )
@@ -122,7 +116,14 @@ class NormReminderReceiver : BroadcastReceiver() {
             NormCatalog.EXAMEN to "itermeum://examen", NormCatalog.CATECHESIS to "itermeum://catechesis", NormCatalog.WEEKLY_REVIEW to "itermeum://path",
             NormCatalog.MORTIFICATION to "itermeum://today", NormCatalog.MASS to "itermeum://prayer", THREAT to "itermeum://today",
         )
-        fun intent(context: Context, normId: String, level: Int) =
-            Intent(context, NormReminderReceiver::class.java).setAction("$ACTION.$normId.$level").putExtra(EXTRA_NORM, normId).putExtra(EXTRA_LEVEL, level)
+        /** The action carries (norm, slot) so the PendingIntent identity is stable across reschedules. */
+        fun intent(context: Context, normId: String, level: Int, slot: Int = 0) =
+            Intent(context, NormReminderReceiver::class.java).setAction("$ACTION.$normId.$slot").putExtra(EXTRA_NORM, normId).putExtra(EXTRA_LEVEL, level)
+
+        /** One notification per norm, collision-free (index in the catalog). */
+        fun notificationId(normId: String): Int {
+            val index = NormCatalog.all.indexOfFirst { it.id == normId }.let { if (it < 0) NormCatalog.all.size else it }
+            return NotificationPresenter.ID_NORM_BASE + index
+        }
     }
 }

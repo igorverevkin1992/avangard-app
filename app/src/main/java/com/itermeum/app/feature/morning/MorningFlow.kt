@@ -11,8 +11,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -30,6 +28,8 @@ import androidx.compose.ui.text.style.TextAlign
 import com.itermeum.app.R
 import com.itermeum.app.core.database.entity.MorningStage
 import com.itermeum.app.core.designsystem.ImPanel
+import com.itermeum.app.core.designsystem.ImPrimaryButton
+import com.itermeum.app.core.designsystem.ImSecondaryButton
 import com.itermeum.app.core.designsystem.ImSpacing
 import com.itermeum.app.core.engine.StreakEngine
 import java.time.LocalTime
@@ -45,12 +45,13 @@ fun MorningFlow(
     onReverseCode: (String) -> Boolean,
     onServiam: () -> Unit,
     onTestDismiss: () -> Unit,
+    onSwitchToSteps: () -> Unit = {},
 ) {
     Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         when {
             state.test -> TestRingScreen(onTestDismiss)
             state.stage == MorningStage.RINGING || state.stage == MorningStage.SCHEDULED -> RingScreen(onProofStart)
-            state.stage == MorningStage.PROOF_PENDING -> WakeProofScreen(state, onQrScanned, onStepsProven, onReverseCode)
+            state.stage == MorningStage.PROOF_PENDING -> WakeProofScreen(state, onQrScanned, onStepsProven, onReverseCode, onSwitchToSteps)
             else -> HeroicMinuteScreen(state.verdict, onServiam)
         }
     }
@@ -77,9 +78,7 @@ private fun RingScreen(onProofStart: () -> Unit) {
         Text(stringResource(R.string.ring_subtitle), style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
         Spacer(Modifier.height(ImSpacing.screen * 2))
-        Button(onClick = onProofStart, modifier = Modifier.fillMaxWidth().height(ImSpacing.touchPrimary)) {
-            Text(stringResource(R.string.ring_go_to_proof), style = MaterialTheme.typography.labelLarge)
-        }
+        ImPrimaryButton(stringResource(R.string.ring_go_to_proof), onClick = onProofStart)
         Spacer(Modifier.height(ImSpacing.grid))
         Text(stringResource(R.string.ring_no_snooze), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
@@ -92,7 +91,7 @@ private fun TestRingScreen(onDismiss: () -> Unit) {
         Spacer(Modifier.height(ImSpacing.screen))
         Text(stringResource(R.string.test_alarm_title), style = MaterialTheme.typography.headlineMedium, textAlign = TextAlign.Center)
         Spacer(Modifier.height(ImSpacing.screen))
-        Button(onClick = onDismiss, modifier = Modifier.fillMaxWidth().height(ImSpacing.touchPrimary)) { Text(stringResource(R.string.test_alarm_works)) }
+        ImPrimaryButton(stringResource(R.string.test_alarm_works), onClick = onDismiss)
     }
 }
 
@@ -102,14 +101,18 @@ private fun WakeProofScreen(
     onQrScanned: (String) -> Unit,
     onStepsProven: () -> Unit,
     onReverseCode: (String) -> Boolean,
+    onSwitchToSteps: () -> Unit,
 ) {
     Column(Modifier.fillMaxSize().padding(ImSpacing.screen), verticalArrangement = Arrangement.spacedBy(ImSpacing.grid)) {
         Text(stringResource(R.string.proof_title), style = MaterialTheme.typography.headlineMedium)
+        if (state.tooEarly) Text(stringResource(R.string.proof_too_early), color = MaterialTheme.colorScheme.error)
         when (state.proofMethod) {
             ProofMethod.QR -> {
                 Text(stringResource(R.string.proof_qr_hint), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 QrScannerView(modifier = Modifier.fillMaxWidth().weight(1f), onResult = onQrScanned)
                 if (state.qrError) Text(stringResource(R.string.proof_qr_wrong), color = MaterialTheme.colorScheme.error)
+                // Fallback when the QR is lost or the camera fails: 20 steps + reverse code.
+                ImSecondaryButton(stringResource(R.string.proof_use_steps), onClick = onSwitchToSteps)
             }
             ProofMethod.STEPS -> StepsProof(state, onStepsProven, onReverseCode)
         }
@@ -129,9 +132,7 @@ private fun StepsProof(state: MorningUi, onStepsProven: () -> Unit, onReverseCod
             Text(state.reverseCode ?: "", style = MaterialTheme.typography.displayLarge.copy(fontFamily = com.itermeum.app.core.designsystem.ImMonoFamily))
             OutlinedTextField(value = input, onValueChange = { input = it.filter(Char::isDigit).take(6); wrong = false },
                 label = { Text(stringResource(R.string.proof_reverse_label)) }, isError = wrong, modifier = Modifier.fillMaxWidth())
-            Button(onClick = { if (!onReverseCode(input)) wrong = true }, modifier = Modifier.fillMaxWidth().height(ImSpacing.touch)) {
-                Text(stringResource(R.string.proof_confirm))
-            }
+            ImPrimaryButton(stringResource(R.string.proof_confirm), onClick = { if (!onReverseCode(input)) wrong = true })
         }
     }
 }
@@ -154,13 +155,7 @@ private fun HeroicMinuteScreen(verdict: StreakEngine.WakeVerdict?, onServiam: ()
             Text(stringResource(R.string.heroic_offering), style = MaterialTheme.typography.bodyLarge)
         }
         Spacer(Modifier.height(ImSpacing.screen))
-        Button(
-            onClick = onServiam,
-            modifier = Modifier.fillMaxWidth().height(ImSpacing.touchPrimary * 1.5f),
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-        ) {
-            Text("SERVIAM", style = MaterialTheme.typography.headlineMedium)
-        }
+        ImPrimaryButton("SERVIAM", onClick = onServiam, modifier = Modifier.height(ImSpacing.touchPrimary * 1.5f))
         Text(stringResource(R.string.heroic_next), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
         TextButton(onClick = onServiam) { Text(stringResource(R.string.heroic_skip_text)) }
     }

@@ -158,6 +158,12 @@
     <string name="settings_outreach_target">Цель звонков</string>
     <string name="settings_mass_time">Время Мессы</string>
     <string name="settings_mass_time_hint">Месса засчитывается раз в неделю — в субботу вечером или в воскресенье утром.</string>
+    <string name="alarm_notification_locked">Разблокируйте телефон, чтобы подтвердить подъём</string>
+    <string name="proof_too_early">Ещё не время подъёма — доказательство засчитывается только после звонка.</string>
+    <string name="hyperos_popups">Всплывающие окна в фоне и экран блокировки</string>
+    <string name="a11y_done">выполнено</string>
+    <string name="a11y_not_done">не выполнено</string>
+    <string name="a11y_manual">проверьте вручную</string>
     <string name="motto_serviam">Serviam · Ora et labora</string>
     <string name="mass_time_saturday">Суббота</string>
     <string name="mass_time_sunday">Воскресенье</string>

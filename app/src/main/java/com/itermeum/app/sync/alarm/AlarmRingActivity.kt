@@ -49,8 +49,13 @@ class AlarmRingActivity : ComponentActivity() {
                     onQrScanned = viewModel::onQrScanned,
                     onStepsProven = viewModel::onStepsProven,
                     onReverseCode = viewModel::onReverseCode,
+                    onSwitchToSteps = viewModel::switchToSteps,
                     onServiam = {
                         viewModel.onServiam()
+                        // Only now ask for the PIN: Today is not shown over the lock screen.
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+                            (getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager).requestDismissKeyguard(this, null)
+                        }
                         startActivity(Intent(this, MainActivity::class.java).apply {
                             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
                             putExtra(MainActivity.EXTRA_ROUTE, "today")
@@ -67,7 +72,6 @@ class AlarmRingActivity : ComponentActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true)
             setTurnScreenOn(true)
-            (getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager).requestDismissKeyguard(this, null)
         } else {
             @Suppress("DEPRECATION")
             window.addFlags(

@@ -54,16 +54,24 @@ class MorningRepository @Inject constructor(
         return epoch
     }
 
-    suspend fun markRinging(date: LocalDate) = transition(date) { it.copy(stage = MorningStage.RINGING, rangAt = clock.nowEpochMillis()) }
+    /** Only a scheduled (or re-rung) morning starts ringing; a proven one is never reset. */
+    suspend fun markRinging(date: LocalDate) = transition(date) {
+        if (it.stage == MorningStage.SCHEDULED || it.stage == MorningStage.RINGING) it.copy(stage = MorningStage.RINGING, rangAt = it.rangAt ?: clock.nowEpochMillis()) else it
+    }
 
     suspend fun markProofPending(date: LocalDate) = transition(date) {
         if (it.stage == MorningStage.RINGING || it.stage == MorningStage.SCHEDULED) it.copy(stage = MorningStage.PROOF_PENDING) else it
     }
 
     /** Proof accepted: the «wake» norm is counted FULL inside +20 min, LATE until +60, not at all after. */
-    suspend fun markProven(date: LocalDate, method: String): StreakEngine.WakeVerdict {
+    suspend fun markProven(date: LocalDate, method: String): StreakEngine.WakeVerdict? {
         val now = clock.nowEpochMillis()
-        val state = dao.get(date) ?: MorningStateEntity(logicalDate = date, alarmAt = now)
+        // Without a row (alarm never armed, e.g. right after reboot) the verdict is
+        // still measured against the planned alarm, never against «now».
+        val state = dao.get(date) ?: MorningStateEntity(logicalDate = date, alarmAt = alarmEpoch(date))
+        // A proof before the alarm (the evening before, from the status-bar chip) does not count.
+        if (now < state.alarmAt) return null
+        if (state.stage == MorningStage.PROVEN || state.provenAt != null) return StreakEngine.wakeVerdict(state.alarmAt, state.provenAt ?: now)
         val verdict = StreakEngine.wakeVerdict(state.alarmAt, now)
         dao.upsert(state.copy(stage = MorningStage.PROVEN, provenAt = now, proofMethod = method))
         when (verdict) {
@@ -78,8 +86,8 @@ class MorningRepository @Inject constructor(
     suspend fun markHeroicDone(date: LocalDate) {
         val now = clock.nowEpochMillis()
         val state = dao.get(date) ?: return
+        val proven = state.provenAt ?: return
         dao.upsert(state.copy(stage = MorningStage.QUARANTINE, heroicDoneAt = now))
-        val proven = state.provenAt ?: now
         if (now - proven <= SERVIAM_WINDOW_MS) norms.markDone(NormCatalog.SERVIAM, date)
     }
 
@@ -114,8 +122,10 @@ class MorningRepository @Inject constructor(
         return if (todayOpen && now.isBefore(todayAlarm) && !now.isBefore(LogicalDay.startOf(today))) today else today.plusDays(1)
     }
 
+    private suspend fun alarmEpoch(date: LocalDate): Long = ZonedDateTime.of(alarmFor(date), clock.zone()).toInstant().toEpochMilli()
+
     private suspend fun transition(date: LocalDate, f: (MorningStateEntity) -> MorningStateEntity) {
-        val state = dao.get(date) ?: MorningStateEntity(logicalDate = date, alarmAt = clock.nowEpochMillis())
+        val state = dao.get(date) ?: MorningStateEntity(logicalDate = date, alarmAt = alarmEpoch(date))
         dao.upsert(f(state))
     }
 

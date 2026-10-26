@@ -3,35 +3,35 @@ package com.itermeum.app.sync.scheduler
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import com.itermeum.app.sync.alarm.WakeAlarmScheduler
+import com.itermeum.app.sync.isUserUnlocked
+import com.itermeum.app.sync.runAsync
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
 
-/** Re-arms every alarm after reboot, clock/zone changes and app updates (section 10). */
+/**
+ * Re-arms every alarm after reboot, clock/zone changes and app updates (section 10).
+ * Before the first unlock (LOCKED_BOOT_COMPLETED) only the wake alarm is
+ * re-armed, from device-protected storage; the rest waits for BOOT_COMPLETED.
+ */
 @AndroidEntryPoint
 class BootCompletedReceiver : BroadcastReceiver() {
 
     @Inject lateinit var scheduler: ReminderScheduler
+    @Inject lateinit var wake: WakeAlarmScheduler
 
     override fun onReceive(context: Context, intent: Intent) {
         when (intent.action) {
+            Intent.ACTION_LOCKED_BOOT_COMPLETED -> {
+                if (!context.isUserUnlocked()) wake.rearmFromDirectBoot()
+            }
             Intent.ACTION_BOOT_COMPLETED,
-            Intent.ACTION_LOCKED_BOOT_COMPLETED,
             Intent.ACTION_TIME_CHANGED,
             Intent.ACTION_TIMEZONE_CHANGED,
             Intent.ACTION_MY_PACKAGE_REPLACED,
             -> {
-                val pending = goAsync()
-                CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
-                    try {
-                        scheduler.rescheduleAll()
-                    } finally {
-                        pending.finish()
-                    }
-                }
+                if (!context.isUserUnlocked()) { wake.rearmFromDirectBoot(); return }
+                runAsync("BootCompleted") { scheduler.rescheduleAll() }
             }
         }
     }

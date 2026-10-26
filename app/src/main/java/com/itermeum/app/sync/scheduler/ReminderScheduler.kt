@@ -19,6 +19,8 @@ import java.time.ZonedDateTime
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 /**
  * Section 10. Called on app start, BOOT_COMPLETED, TIME_SET,
@@ -37,24 +39,39 @@ class ReminderScheduler @Inject constructor(
     private val clock: Clock,
 ) {
     private val alarms = ExactAlarms(context)
+    /** App start, boot, day close and settings may all reschedule at once; one at a time. */
+    private val mutex = Mutex()
 
-    suspend fun rescheduleAll() {
+    suspend fun rescheduleAll() = mutex.withLock {
         seeder.seedIfNeeded()
         val profile = profiles.get()
-        if (!profile.onboardingDone) return
+        if (!profile.onboardingDone) return@withLock
         wake.scheduleNext()
         scheduleAt(nextDaily(HEALTH_CHECK), ExactAlarms.RC_HEALTH, Intent(context, AlarmHealthReceiver::class.java).setAction(AlarmHealthReceiver.ACTION))
         scheduleAt(nextDaily(DAY_CLOSE), ExactAlarms.RC_DAY_CLOSE, Intent(context, DayCloseReceiver::class.java).setAction(DayCloseReceiver.ACTION))
         scheduleNormReminders()
     }
 
+    /**
+     * Every reminder has a stable identity (norm, slot) → request code, so a
+     * reschedule replaces instead of piling up; the whole set is cancelled first.
+     */
+    private fun cancelNormReminders() {
+        (NormCatalog.all.map { it.id } + NormReminderReceiver.THREAT).forEach { normId ->
+            for (slot in 0 until SLOTS_PER_NORM) {
+                alarms.cancel(alarms.broadcast(requestCode(normId, slot), NormReminderReceiver.intent(context, normId, 1, slot)))
+            }
+        }
+    }
+
     private suspend fun scheduleNormReminders() {
+        cancelNormReminders()
         val date = clock.logicalToday()
         val input = norms.inputFor(date)
         val items = DayScheduleEngine.schedule(input)
         val done = norms.observeDoneIds(date).first()
         val now = clock.now()
-        var rc = ExactAlarms.RC_NORM_BASE
+        val coreIds = items.filter { it.isCore }.map { it.normId }.toSet()
         val planned = mutableListOf<Triple<LocalDateTime, String, Int>>()
         for (item in items) {
             if (item.normId in done || item.normId == NormCatalog.JACULATORIA) continue
@@ -74,12 +91,24 @@ class ReminderScheduler @Inject constructor(
         }
         // Streak threat: bedTime − 30 min (section 10), evaluated at fire time.
         planned += Triple(date.atTime(input.profile.bedTime).minusMinutes(30), NormReminderReceiver.THREAT, 3)
-        planned.filter { it.first.isAfter(now) && it.second != NormCatalog.WAKE && it.second != NormCatalog.SERVIAM && it.second != NormCatalog.QUARANTINE }
-            .sortedBy { it.first }
+        // Slot = position of the reminder within its norm, in time order.
+        val slotted = planned.groupBy { it.second }.flatMap { (_, list) ->
+            list.sortedBy { it.first }.mapIndexed { slot, t -> Planned(t.first, t.second, t.third, slot) }
+        }
+        slotted.filter { it.at.isAfter(now) && it.normId != NormCatalog.WAKE && it.normId != NormCatalog.SERVIAM && it.normId != NormCatalog.QUARANTINE && it.slot < SLOTS_PER_NORM }
+            // Over the cap the streak threat and core norms survive; the rest by time.
+            .sortedWith(compareBy<Planned>({ !(it.normId == NormReminderReceiver.THREAT || it.normId in coreIds) }, { it.at }))
             .take(MAX_NORM_ALARMS)
-            .forEach { (at, normId, level) ->
-                scheduleAt(at, rc++, NormReminderReceiver.intent(context, normId, level))
+            .forEach { p ->
+                scheduleAt(p.at, requestCode(p.normId, p.slot), NormReminderReceiver.intent(context, p.normId, p.level, p.slot))
             }
+    }
+
+    private data class Planned(val at: LocalDateTime, val normId: String, val level: Int, val slot: Int)
+
+    private fun requestCode(normId: String, slot: Int): Int {
+        val index = if (normId == NormReminderReceiver.THREAT) NormCatalog.all.size else NormCatalog.all.indexOfFirst { it.id == normId }
+        return ExactAlarms.RC_NORM_BASE + index * SLOTS_PER_NORM + slot
     }
 
     private fun nextDaily(time: LocalTime): LocalDateTime {
@@ -99,5 +128,7 @@ class ReminderScheduler @Inject constructor(
         val DAY_CLOSE: LocalTime = LocalTime.of(3, 0)
         /** Wake + health + day close + ≤17 norm reminders ≈ 20 exact alarms (section 13). */
         const val MAX_NORM_ALARMS = 17
+        /** Max reminders per norm in a day (catechesis has three). */
+        const val SLOTS_PER_NORM = 4
     }
 }

@@ -32,6 +32,13 @@ class ExactAlarms(private val context: Context) {
     /** Section 13: `nextAlarmClock` check used by the health worker. */
     fun nextAlarmClockTrigger(): Long? = am.nextAlarmClock?.triggerTime
 
+    /**
+     * `nextAlarmClock` is the earliest alarm of any app (e.g. a backup Clock
+     * alarm), so the health check only trusts it when it was set by us.
+     */
+    fun nextAlarmClockTriggerOf(packageName: String): Long? =
+        am.nextAlarmClock?.takeIf { it.showIntent?.creatorPackage == packageName }?.triggerTime
+
     fun broadcast(requestCode: Int, intent: Intent): PendingIntent =
         PendingIntent.getBroadcast(context, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
@@ -46,6 +53,8 @@ class ExactAlarms(private val context: Context) {
         const val RC_HEALTH = 1005
         const val RC_DAY_CLOSE = 1006
         const val RC_TEST_ALARM = 1007
+        const val RC_QUARANTINE_YES = 1008
+        const val RC_QUARANTINE_NO = 1009
         const val RC_NORM_BASE = 2000
     }
 }

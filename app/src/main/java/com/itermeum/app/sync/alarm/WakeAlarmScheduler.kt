@@ -3,7 +3,9 @@ package com.itermeum.app.sync.alarm
 import android.content.Context
 import android.content.Intent
 import com.itermeum.app.core.common.Clock
+import com.itermeum.app.MainActivity
 import com.itermeum.app.core.data.MorningRepository
+import com.itermeum.app.core.data.ProfileRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.time.LocalDate
 import javax.inject.Inject
@@ -19,18 +21,43 @@ import javax.inject.Singleton
 class WakeAlarmScheduler @Inject constructor(
     @ApplicationContext private val context: Context,
     private val morning: MorningRepository,
+    private val profiles: ProfileRepository,
     private val clock: Clock,
 ) {
     private val alarms = ExactAlarms(context)
+    private val directBoot = DirectBootStore(context)
 
     /** Returns the epoch millis of the armed alarm. */
     suspend fun scheduleNext(): Long {
         val date = morning.nextAlarmDate()
         val at = morning.schedule(date)
-        val fire = alarms.broadcast(ExactAlarms.RC_WAKE, AlarmReceiver.intent(context, date, test = false))
-        val show = alarms.activity(ExactAlarms.RC_WAKE_SHOW, AlarmRingActivity.intent(context, date))
-        alarms.setAlarmClock(at, fire, show)
+        arm(at, date)
+        val profile = profiles.get()
+        directBoot.save(at, date, profile.alarmSound, profile.alarmVolume)
         return at
+    }
+
+    /**
+     * LOCKED_BOOT_COMPLETED: Room is still locked, so the alarm is re-armed
+     * from the device-protected copy written by [scheduleNext].
+     */
+    fun rearmFromDirectBoot(): Boolean {
+        val at = directBoot.nextAt()
+        val date = directBoot.nextDate() ?: return false
+        if (at <= clock.nowEpochMillis()) return false
+        arm(at, date)
+        return true
+    }
+
+    private fun arm(at: Long, date: LocalDate) {
+        val fire = alarms.broadcast(ExactAlarms.RC_WAKE, AlarmReceiver.intent(context, date, test = false))
+        // The status-bar chip opens Today, never the ring screen: tapping it the
+        // evening before must not let the wake be «proven» in advance.
+        val show = alarms.activity(
+            ExactAlarms.RC_WAKE_SHOW,
+            Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP),
+        )
+        alarms.setAlarmClock(at, fire, show)
     }
 
     fun scheduleTest(inMinutes: Long = 2) {
@@ -51,6 +78,7 @@ class WakeAlarmScheduler @Inject constructor(
         alarms.setExact(at, alarms.broadcast(ExactAlarms.RC_QUARANTINE, MorningEventReceiver.intent(context, MorningEventReceiver.ACTION_QUARANTINE_CHECK, date)))
     }
 
-    fun nextAlarmClock(): Long? = alarms.nextAlarmClockTrigger()
+    /** Trigger of the system-wide next alarm clock, only if it is ours. */
+    fun ourNextAlarmClock(): Long? = alarms.nextAlarmClockTriggerOf(context.packageName)
     fun canScheduleExact(): Boolean = alarms.canScheduleExact()
 }

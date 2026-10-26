@@ -14,7 +14,6 @@ import androidx.camera.view.PreviewView
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -35,6 +34,7 @@ import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import com.itermeum.app.R
+import com.itermeum.app.core.designsystem.ImSecondaryButton
 import java.util.concurrent.Executors
 
 /** CameraX preview + ML Kit QR analyzer (offline). Calls [onResult] for every decoded payload. */
@@ -51,7 +51,7 @@ fun QrScannerView(modifier: Modifier = Modifier, onResult: (String) -> Unit) {
     if (!granted) {
         Column(modifier) {
             Text(stringResource(R.string.proof_camera_needed))
-            Button(onClick = { launcher.launch(Manifest.permission.CAMERA) }) { Text(stringResource(R.string.grant)) }
+            ImSecondaryButton(stringResource(R.string.grant), onClick = { launcher.launch(Manifest.permission.CAMERA) })
         }
         return
     }

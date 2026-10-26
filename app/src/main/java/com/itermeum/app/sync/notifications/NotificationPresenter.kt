@@ -59,9 +59,9 @@ class NotificationPresenter @Inject constructor(
     fun quarantineQuestion(date: LocalDate) {
         val alarms = ExactAlarms(context)
         val yes = NotificationCompat.Action(0, context.getString(R.string.yes),
-            alarms.broadcast(ExactAlarms.RC_QUARANTINE + 1, MorningEventReceiver.intent(context, MorningEventReceiver.ACTION_QUARANTINE_YES, date)))
+            alarms.broadcast(ExactAlarms.RC_QUARANTINE_YES, MorningEventReceiver.intent(context, MorningEventReceiver.ACTION_QUARANTINE_YES, date)))
         val no = NotificationCompat.Action(0, context.getString(R.string.no),
-            alarms.broadcast(ExactAlarms.RC_QUARANTINE + 2, MorningEventReceiver.intent(context, MorningEventReceiver.ACTION_QUARANTINE_NO, date)))
+            alarms.broadcast(ExactAlarms.RC_QUARANTINE_NO, MorningEventReceiver.intent(context, MorningEventReceiver.ACTION_QUARANTINE_NO, date)))
         post(ID_QUARANTINE, NotificationChannels.NORM_REMINDERS, context.getString(R.string.quarantine_question_title),
             context.getString(R.string.quarantine_question_text), "itermeum://today", actions = listOf(yes, no))
     }

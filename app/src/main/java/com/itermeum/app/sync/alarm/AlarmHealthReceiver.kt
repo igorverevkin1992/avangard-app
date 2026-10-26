@@ -10,10 +10,7 @@ import com.itermeum.app.sync.notifications.NotificationChannels
 import com.itermeum.app.sync.notifications.NotificationPresenter
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
+import com.itermeum.app.sync.runAsync
 
 /** Section 13: 23:15 daily — `nextAlarmClock` must be our wake alarm, else re-arm and warn. */
 @AndroidEntryPoint
@@ -24,26 +21,23 @@ class AlarmHealthReceiver : BroadcastReceiver() {
     @Inject lateinit var presenter: NotificationPresenter
 
     override fun onReceive(context: Context, intent: Intent) {
-        val pending = goAsync()
-        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
-            try {
-                val expected = wake.scheduleNext()
-                val actual = wake.nextAlarmClock()
-                val healthy = actual != null && kotlin.math.abs(actual - expected) < 60_000L
-                if (!healthy || !wake.canScheduleExact()) {
-                    presenter.post(
-                        NotificationPresenter.ID_HEALTH, NotificationChannels.SYSTEM_HEALTH,
-                        context.getString(R.string.alarm_health_title), context.getString(R.string.alarm_health_text),
-                        "itermeum://settings", NotificationCompat.PRIORITY_HIGH,
-                    )
-                }
-            } finally {
-                pending.finish()
+        runAsync(TAG) {
+            val expected = wake.scheduleNext()
+            // Another app's earlier alarm hides ours from nextAlarmClock; then only exactness matters.
+            val ours = wake.ourNextAlarmClock()
+            val healthy = (ours == null || kotlin.math.abs(ours - expected) < 60_000L) && wake.canScheduleExact()
+            if (!healthy) {
+                presenter.post(
+                    NotificationPresenter.ID_HEALTH, NotificationChannels.SYSTEM_HEALTH,
+                    context.getString(R.string.alarm_health_title), context.getString(R.string.alarm_health_text),
+                    "itermeum://settings", NotificationCompat.PRIORITY_HIGH,
+                )
             }
         }
     }
 
     companion object {
         const val ACTION = "com.itermeum.app.alarm.HEALTH"
+        private const val TAG = "AlarmHealth"
     }
 }

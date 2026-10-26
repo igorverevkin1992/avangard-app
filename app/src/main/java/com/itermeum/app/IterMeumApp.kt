@@ -3,6 +3,7 @@ package com.itermeum.app
 import android.app.Application
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
+import com.itermeum.app.sync.isUserUnlocked
 import com.itermeum.app.sync.notifications.NotificationChannels
 import com.itermeum.app.sync.scheduler.ReminderScheduler
 import dagger.hilt.android.HiltAndroidApp
@@ -29,7 +30,10 @@ class IterMeumApp : Application(), Configuration.Provider {
     override fun onCreate() {
         super.onCreate()
         channels.ensureCreated()
-        // Section 10: rescheduleAll() on every app start.
-        applicationScope.launch { reminderScheduler.rescheduleAll() }
+        // Section 10: rescheduleAll() on every app start — but never before the
+        // first unlock, when Room's credential-encrypted storage is unreadable.
+        if (isUserUnlocked()) {
+            applicationScope.launch { runCatching { reminderScheduler.rescheduleAll() } }
+        }
     }
 }

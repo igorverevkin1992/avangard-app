@@ -9,10 +9,7 @@ import com.itermeum.app.sync.notifications.NotificationPresenter
 import dagger.hilt.android.AndroidEntryPoint
 import java.time.LocalDate
 import javax.inject.Inject
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
+import com.itermeum.app.sync.runAsync
 
 /** MISSED at +60 min, the quarantine question at +35 min, and its Да/Нет answers. */
 @AndroidEntryPoint
@@ -23,9 +20,7 @@ class MorningEventReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         val date = intent.getStringExtra(EXTRA_DATE)?.let(LocalDate::parse) ?: return
-        val pending = goAsync()
-        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
-            try {
+        runAsync("MorningEvent") {
                 when (intent.action) {
                     ACTION_MISSED -> {
                         val state = morning.get(date)
@@ -43,9 +38,6 @@ class MorningEventReceiver : BroadcastReceiver() {
                     ACTION_QUARANTINE_YES -> { morning.answerQuarantine(date, true); presenter.cancel(NotificationPresenter.ID_QUARANTINE) }
                     ACTION_QUARANTINE_NO -> { morning.answerQuarantine(date, false); presenter.cancel(NotificationPresenter.ID_QUARANTINE) }
                 }
-            } finally {
-                pending.finish()
-            }
         }
     }
 

@@ -13,7 +13,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
-import androidx.compose.material3.Button
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -31,6 +30,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat
 import com.itermeum.app.R
+import com.itermeum.app.core.designsystem.ImSecondaryButton
 import com.itermeum.app.core.designsystem.ImPanel
 import com.itermeum.app.core.designsystem.ImSpacing
 import kotlinx.coroutines.delay
@@ -63,6 +63,7 @@ fun StepCounterView(target: Int, windowSeconds: Int, onReached: () -> Unit) {
         val sm = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
         val sensor = sm.getDefaultSensor(Sensor.TYPE_STEP_COUNTER) ?: sm.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR)
         var baseline = -1f
+        var reached = false
         val listener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent) {
                 if (expired) return
@@ -72,7 +73,7 @@ fun StepCounterView(target: Int, windowSeconds: Int, onReached: () -> Unit) {
                 } else {
                     steps += 1
                 }
-                if (steps >= target) latestOnReached()
+                if (steps >= target && !reached) { reached = true; latestOnReached() }
             }
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
         }
@@ -86,11 +87,11 @@ fun StepCounterView(target: Int, windowSeconds: Int, onReached: () -> Unit) {
         Text(stringResource(R.string.proof_steps_progress, steps.coerceAtMost(target), target, secondsLeft), style = MaterialTheme.typography.bodyLarge)
         LinearProgressIndicator(progress = { (steps.toFloat() / target).coerceIn(0f, 1f) })
         if (!granted) {
-            Button(onClick = { launcher.launch(Manifest.permission.ACTIVITY_RECOGNITION) }) { Text(stringResource(R.string.grant)) }
+            ImSecondaryButton(stringResource(R.string.grant), onClick = { launcher.launch(Manifest.permission.ACTIVITY_RECOGNITION) })
         }
         if (expired) {
             Text(stringResource(R.string.proof_steps_expired), color = MaterialTheme.colorScheme.error)
-            Button(onClick = { restartKey++ }) { Text(stringResource(R.string.retry)) }
+            ImSecondaryButton(stringResource(R.string.retry), onClick = { restartKey++ })
         }
     }
 }

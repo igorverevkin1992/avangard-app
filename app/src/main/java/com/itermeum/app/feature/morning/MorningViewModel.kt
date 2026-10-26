@@ -31,6 +31,8 @@ data class MorningUi(
     val stepsDone: Boolean = false,
     val verdict: StreakEngine.WakeVerdict? = null,
     val morningOffering: String = "",
+    /** Proof attempted before the alarm time (does not count). */
+    val tooEarly: Boolean = false,
 )
 
 enum class ProofMethod { QR, STEPS }
@@ -46,6 +48,9 @@ class MorningViewModel @Inject constructor(
 
     private val _ui = MutableStateFlow(MorningUi())
     val ui: StateFlow<MorningUi> = _ui.asStateFlow()
+
+    /** Set synchronously on the first valid proof: the scanner and step sensor fire per frame/event. */
+    private var proving = false
 
     fun bind(date: LocalDate, test: Boolean) {
         viewModelScope.launch {
@@ -86,6 +91,7 @@ class MorningViewModel @Inject constructor(
 
     /** Steps done (≥20 within 2 min) → show the reverse code challenge. */
     fun onStepsProven() {
+        if (_ui.value.stepsDone) return
         val code = (100_000 + kotlin.random.Random(clock.nowEpochMillis()).nextInt(900_000)).toString()
         _ui.update { it.copy(stepsDone = true, reverseCode = code) }
     }
@@ -98,12 +104,19 @@ class MorningViewModel @Inject constructor(
     }
 
     private fun proven(method: String) {
+        if (proving) return
+        proving = true
         val s = _ui.value
-        AlarmService.stop(context)
-        wakeScheduler.cancelMissed()
         viewModelScope.launch {
             val verdict = morning.markProven(s.date, method)
-            _ui.update { it.copy(stage = MorningStage.PROVEN, verdict = verdict, qrError = false) }
+            if (verdict == null) {
+                proving = false
+                _ui.update { it.copy(tooEarly = true, qrError = false, stepsDone = false, reverseCode = null) }
+                return@launch
+            }
+            AlarmService.stop(context)
+            wakeScheduler.cancelMissed()
+            _ui.update { it.copy(stage = MorningStage.PROVEN, verdict = verdict, qrError = false, tooEarly = false) }
         }
     }
 

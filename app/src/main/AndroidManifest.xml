@@ -73,6 +73,7 @@
             android:theme="@style/Theme.IterMeum" />
 
         <service
+            android:directBootAware="true"
             android:name=".sync.alarm.AlarmService"
             android:exported="false"
             android:foregroundServiceType="mediaPlayback" />
@@ -86,7 +87,7 @@
                 android:value="user-started prayer or reading timer with a visible chronometer" />
         </service>
 
-        <receiver android:name=".sync.alarm.AlarmReceiver" android:exported="false" />
+        <receiver android:name=".sync.alarm.AlarmReceiver" android:exported="false" android:directBootAware="true" />
         <receiver android:name=".sync.alarm.MorningEventReceiver" android:exported="false" />
         <receiver android:name=".sync.alarm.AlarmHealthReceiver" android:exported="false" />
         <receiver android:name=".sync.scheduler.NormReminderReceiver" android:exported="false" />
