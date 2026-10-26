@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -27,7 +29,7 @@ android {
     // it from a secret, a local build reads keystore.properties. Without
     // either, the default debug key is used and Google Sign-In stays off.
     val keystoreFile = file(System.getenv("ITERMEUM_KEYSTORE") ?: "keystore/itermeum.jks")
-    val keystoreProps = java.util.Properties().apply {
+    val keystoreProps = Properties().apply {
         val f = rootProject.file("keystore.properties")
         if (f.exists()) f.inputStream().use { load(it) }
     }
