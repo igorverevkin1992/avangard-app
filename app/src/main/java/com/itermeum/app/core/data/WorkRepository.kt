@@ -59,14 +59,15 @@ class WorkRepository @Inject constructor(
     fun observeActiveScript(): Flow<ScriptSessionEntity?> = scriptDao.observeActive()
     fun observeScriptCount(date: LocalDate): Flow<Int> = scriptDao.observeCountForDate(date)
 
-    /** Section 5.2: slot 1 must be OUTREACH (or SHOOT with a follow-up contact on shoot days). */
+    /**
+     * Section 5.2: the plan holds the hero calls — an OUTREACH task (or, on a
+     * shoot day, SHOOT with whom to call after). Since D-43 it may sit in any
+     * slot: the order changes during the day.
+     */
     fun planIsValid(drafts: List<TaskDraft>, shootDay: Boolean): Boolean {
-        val first = drafts.firstOrNull { it.slot == 1 } ?: return false
-        if (drafts.any { it.title.isBlank() }) return false
-        return when (first.type) {
-            TaskType.OUTREACH -> true
-            TaskType.SHOOT -> shootDay && !first.followUpContact.isNullOrBlank()
-            else -> false
+        if (drafts.isEmpty() || drafts.any { it.title.isBlank() }) return false
+        return drafts.any { d ->
+            d.type == TaskType.OUTREACH || (d.type == TaskType.SHOOT && shootDay && !d.followUpContact.isNullOrBlank())
         }
     }
 
