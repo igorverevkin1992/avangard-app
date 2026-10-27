@@ -370,10 +370,12 @@
     <string name="outreach_today">Сегодня</string>
     <string name="last_stone_hint">Закрыть каждую задачу по чеклисту 4/4 или честно перенести. Без 4/4 — «закрыто с долгом», попадёт в испытание совести.</string>
     <string name="last_stone_open">Открытых задач: %1$d</string>
-    <string name="checklist_verified">Результат проверен</string>
-    <string name="checklist_saved">Файл назван и сохранён</string>
-    <string name="checklist_informed">Сообщил тому, кто ждёт</string>
-    <string name="checklist_next_step">Следующий шаг записан</string>
+    <string-array name="checklist_outreach"><item>Итоги звонков записаны: кто что ответил</item><item>Договорённости внесены в календарь</item><item>Кому перезвонить — список на завтра</item><item>Следующий шаг записан</item></string-array>
+    <string-array name="checklist_shoot"><item>Материал скопирован и продублирован</item><item>Папка съёмки названа, файлы разложены</item><item>Команда и герои знают итог дня</item><item>Следующий шаг записан</item></string-array>
+    <string-array name="checklist_ops"><item>Вопрос решён — или понятно, за кем он</item><item>Договорённости записаны</item><item>Сообщил тому, кто ждёт</item><item>Следующий шаг записан</item></string-array>
+    <string-array name="checklist_docs"><item>Документ перечитан, ошибок нет</item><item>Файл назван и сохранён</item><item>Отправлен тому, кто ждёт</item><item>Следующий шаг записан</item></string-array>
+    <string-array name="checklist_ai_gen"><item>Результат просмотрен целиком</item><item>Файлы и промпты названы и сохранены</item><item>Отправил тому, кто ждёт</item><item>Следующий шаг записан</item></string-array>
+    <string-array name="checklist_script"><item>Написанное перечитано</item><item>Версия сохранена с датой</item><item>Сообщил тому, кто ждёт (или не нужно)</item><item>Следующая сцена или шаг записан</item></string-array>
     <string name="last_stone_close">Закрыть</string>
     <string name="last_stone_close_debt">Закрыть с долгом</string>
     <string name="last_stone_move">Перенести</string>

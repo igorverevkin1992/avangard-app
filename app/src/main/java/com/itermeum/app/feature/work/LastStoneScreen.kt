@@ -19,10 +19,12 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.itermeum.app.R
 import com.itermeum.app.core.database.entity.TaskStatus
+import com.itermeum.app.core.database.entity.TaskType
 import com.itermeum.app.core.database.entity.WorkTaskEntity
 import com.itermeum.app.core.designsystem.ImHeader
 import com.itermeum.app.core.designsystem.ImPanel
@@ -47,10 +49,17 @@ fun LastStoneScreen(onBack: () -> Unit, viewModel: WorkViewModel = hiltViewModel
 
 @Composable
 private fun TaskCard(task: WorkTaskEntity, viewModel: WorkViewModel) {
-    val items = listOf(
-        stringResource(R.string.checklist_verified), stringResource(R.string.checklist_saved),
-        stringResource(R.string.checklist_informed), stringResource(R.string.checklist_next_step),
-    )
+    // Four points by the kind of work (D-42): a call is not closed like a file.
+    val items = stringArrayResource(
+        when (task.type) {
+            TaskType.OUTREACH -> R.array.checklist_outreach
+            TaskType.SHOOT -> R.array.checklist_shoot
+            TaskType.OPS -> R.array.checklist_ops
+            TaskType.DOCS -> R.array.checklist_docs
+            TaskType.AI_GEN -> R.array.checklist_ai_gen
+            TaskType.SCRIPT -> R.array.checklist_script
+        },
+    ).toList()
     val checks = remember(task.id, task.status) { mutableStateListOf(false, false, false, false) }
     ImPanel {
         Text("${task.slot}. ${task.title}", style = MaterialTheme.typography.titleMedium)
