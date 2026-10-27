@@ -4,6 +4,10 @@ import android.content.Context
 import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.android.gms.auth.api.signin.GoogleSignInStatusCodes
+import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.common.api.CommonStatusCodes
+import com.itermeum.app.BuildConfig
 import com.itermeum.app.R
 import com.itermeum.app.core.backup.BackupRepository
 import com.itermeum.app.core.common.Clock
@@ -52,7 +56,24 @@ class BackupViewModel @Inject constructor(
     }
 
     fun signInIntent(): Intent = auth.signInIntent()
-    fun onSignInResult(data: Intent?) { auth.handleSignInResult(data); refresh() }
+    /** Sign-in used to fail silently: say what happened, with Google's status code. */
+    fun onSignInResult(data: Intent?) {
+        val result = auth.handleSignInResult(data)
+        val message = result.fold(
+            onSuccess = { context.getString(R.string.backup_signed_in, it.email ?: "") },
+            onFailure = { e ->
+                when (val code = (e as? ApiException)?.statusCode) {
+                    GoogleSignInStatusCodes.SIGN_IN_CANCELLED -> context.getString(R.string.backup_sign_in_cancelled)
+                    CommonStatusCodes.NETWORK_ERROR -> context.getString(R.string.backup_sign_in_network)
+                    CommonStatusCodes.DEVELOPER_ERROR -> context.getString(R.string.backup_sign_in_developer, BuildConfig.APPLICATION_ID, SIGNING_SHA1)
+                    GoogleSignInStatusCodes.SIGN_IN_FAILED -> context.getString(R.string.backup_sign_in_failed_consent)
+                    else -> context.getString(R.string.backup_sign_in_failed, code?.toString() ?: e.message.orEmpty())
+                }
+            },
+        )
+        refresh()
+        _ui.update { it.copy(message = message) }
+    }
     fun signOut() = viewModelScope.launch { auth.signOut(); refresh() }
 
     /** Sets the backup password and arms the daily 03:30 upload. */
@@ -88,3 +109,6 @@ class BackupViewModel @Inject constructor(
 
     fun wipeAll() = viewModelScope.launch { backup.wipeAll(); _ui.update { it.copy(message = context.getString(R.string.backup_msg_wiped)) } }
 }
+
+/** The certificate CI signs with (D-21): the Android OAuth client must carry exactly this. */
+private const val SIGNING_SHA1 = "EE:B5:F0:60:1A:53:98:B1:B5:82:AC:6F:1D:C9:D8:51:30:1D:6D:18"

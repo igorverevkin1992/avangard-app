@@ -457,6 +457,21 @@
     <string name="reading_before">Перед чтением: «Господи, даруй мне свет понять то, что Ты хочешь сказать мне сегодня через этот текст, и силу исполнить это».</string>
     <string name="reading_open_site">Открыть escriva.org/ru</string>
     <string name="reading_paper">Читаю бумажную</string>
+    <string name="book_load">Загрузить файл книги</string>
+    <string name="book_read">Читать в приложении</string>
+    <string name="book_replace">Заменить файл</string>
+    <string name="book_remove">Удалить файл</string>
+    <string name="book_file">Файл: %1$s (%2$s)</string>
+    <string name="book_loaded">Книга загружена: %1$s</string>
+    <string name="book_load_failed">Не удалось прочитать файл. Подходят EPUB, FB2 (и FB2.ZIP), TXT и PDF.</string>
+    <string name="books_all">Все книги программы</string>
+    <string name="books_loaded_count">%1$d из %2$d</string>
+    <string name="books_hint">Файлы книг хранятся только на телефоне: в резервную копию они не входят, после восстановления их нужно загрузить снова.</string>
+    <string name="book_toc">Оглавление</string>
+    <string name="book_prev">← Предыдущая</string>
+    <string name="book_next">Следующая →</string>
+    <string name="book_timer_off">Таймер чтения не идёт</string>
+    <string name="book_timer_start">Засечь</string>
     <string name="reading_rule">Засчитывается при ≥8 минутах.</string>
     <string name="reading_stop">Закончить чтение</string>
     <string name="reading_done">Чтение засчитано</string>
@@ -570,7 +585,14 @@
     <!-- Backup (5.17) -->
     <string name="backup_title">Резервная копия</string>
     <string name="backup_hint">Шифрованный файл itermeum-backup-v1.json.enc в скрытой папке Google Drive. Ключ — из пароля (PBKDF2, 210 000 итераций, AES-GCM). Без пароля копию не прочитать — запиши его. Ежедневно в 03:30 при сети и зарядке.</string>
+    <string name="practices_title">Практики</string>
     <string name="backup_sign_in">Войти через Google</string>
+    <string name="backup_signed_in">Вход выполнен: %1$s</string>
+    <string name="backup_sign_in_cancelled">Вход отменён.</string>
+    <string name="backup_sign_in_network">Нет сети — попробуйте ещё раз.</string>
+    <string name="backup_sign_in_developer">Google отклонил вход (код 10): Android-клиент OAuth в Google Cloud не совпадает с приложением. Проверьте в Google Cloud → «Clients»: тип Android, пакет %1$s, SHA-1 %2$s. Клиент и экран согласия должны быть в одном проекте.</string>
+    <string name="backup_sign_in_failed_consent">Google отклонил вход (код 12500). Чаще всего: ваш адрес не добавлен в «Test users» на экране согласия OAuth, или в Google Cloud не включён Google Drive API.</string>
+    <string name="backup_sign_in_failed">Вход не удался, код %1$s.</string>
     <string name="backup_sign_out">Выйти из Google</string>
     <string name="backup_account">Аккаунт: %1$s</string>
     <string name="backup_password">Пароль копии (не короче 8)</string>

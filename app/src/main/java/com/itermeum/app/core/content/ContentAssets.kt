@@ -42,6 +42,9 @@ data class AsceticJson(val id: String, val book: String, val number: String, val
 @Serializable data class MilestoneJson(val id: String, val title: String, val latin: String, val scripture: String)
 @Serializable data class MilestonesFile(val items: List<MilestoneJson>)
 @Serializable data class GlossaryFile(val items: List<List<String>>)
+@Serializable data class PracticeJson(val title: String, val origin: String, val `when`: String, val text: List<String>)
+@Serializable data class PracticeSectionJson(val title: String, val items: List<PracticeJson>)
+@Serializable data class PracticesFile(val intro: String, val legend: List<List<String>>, val sections: List<PracticeSectionJson>)
 @Serializable data class NotificationsFile(val items: Map<String, Map<String, String>>)
 
 /** Typed access to `assets/content/…json` (section 7). Each file is parsed once. */
@@ -65,6 +68,7 @@ class ContentAssets @Inject constructor(
     val milestones: MilestonesFile by lazy { load("milestones.json") }
     val glossary: GlossaryFile by lazy { load("glossary.json") }
     val notifications: NotificationsFile by lazy { load("notifications.json") }
+    val practices: PracticesFile by lazy { load("practices.json") }
 
     fun notificationText(key: String, level: Int): String? =
         notifications.items[key]?.get(level.toString())

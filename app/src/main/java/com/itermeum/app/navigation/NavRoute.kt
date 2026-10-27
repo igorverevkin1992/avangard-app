@@ -13,6 +13,7 @@ sealed class NavRoute(val route: String) {
     data object Path : NavRoute("path")
     data object Settings : NavRoute("settings")
     data object About : NavRoute("about")
+    data object Practices : NavRoute("practices")
     data object Onboarding : NavRoute("onboarding")
     data object WorkPlan : NavRoute("work/plan")
     data object WorkOutreach : NavRoute("work/outreach")
@@ -26,6 +27,7 @@ sealed class NavRoute(val route: String) {
     data object PrayerRosary : NavRoute("prayer/rosary")
     data object PrayerJaculatory : NavRoute("prayer/jaculatory?situation={situation}") { fun of(s: String?) = "prayer/jaculatory" + (s?.let { "?situation=$it" } ?: "") }
     data object PrayerGospel : NavRoute("prayer/gospel")
+    data object PrayerReader : NavRoute("prayer/reader/{bookId}") { fun of(bookId: String) = "prayer/reader/$bookId" }
     data object PrayerSrs : NavRoute("prayer/srs")
     data object PrayerCalendar : NavRoute("prayer/calendar?ym={ym}")
     data object PrayerMental : NavRoute("prayer/mental")

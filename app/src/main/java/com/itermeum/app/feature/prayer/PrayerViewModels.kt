@@ -1,10 +1,14 @@
 package com.itermeum.app.feature.prayer
 
 import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.itermeum.app.core.common.Clock
 import com.itermeum.app.core.content.ContentAssets
+import com.itermeum.app.core.content.ReadingItemJson
+import com.itermeum.app.core.data.books.BookInfo
+import com.itermeum.app.core.data.books.BookLibrary
 import com.itermeum.app.core.content.NormCatalog
 import com.itermeum.app.core.data.NormRepository
 import com.itermeum.app.core.data.PrayerRepository
@@ -126,7 +130,24 @@ class GospelViewModel @Inject constructor(
     private val norms: NormRepository,
     private val calendar: LiturgicalCalendar,
     private val clock: Clock,
+    private val library: BookLibrary,
+    assets: ContentAssets,
 ) : ViewModel() {
+    /** Books loaded into the app (D-37). */
+    val books: StateFlow<Map<String, BookInfo>> = library.books
+
+    /** Every book of the programme once, to load files ahead of their month. */
+    val programme: List<ReadingItemJson> = assets.reading.months.flatMap { it.items }.distinctBy { it.bookId }
+
+    /** Import result: null while idle, a short message after a load. */
+    val importMessage = MutableStateFlow<String?>(null)
+
+    fun importBook(bookId: String, uri: Uri, ok: String, failed: String) = viewModelScope.launch {
+        importMessage.value = library.import(bookId, uri).fold({ ok.format(it.title) }, { failed })
+    }
+
+    fun removeBook(bookId: String) = library.remove(bookId)
+
     val date: LocalDate = clock.logicalToday()
     private val _ui = MutableStateFlow(GospelUi())
     val ui: StateFlow<GospelUi> = _ui.asStateFlow()

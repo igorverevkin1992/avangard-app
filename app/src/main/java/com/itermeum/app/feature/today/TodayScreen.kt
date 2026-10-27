@@ -71,6 +71,7 @@ import kotlinx.coroutines.delay
 @Composable
 fun TodayScreen(
     onOpenSettings: () -> Unit,
+    onOpenPractices: () -> Unit = {},
     onMilestone: (String) -> Unit = {},
     onOpenRoute: (String) -> Unit = {},
     viewModel: TodayViewModel = hiltViewModel(),
@@ -109,6 +110,7 @@ fun TodayScreen(
             TodayMenu(
                 sick = ui.sick, canSickToday = viewModel.canSetSickToday(), sickTomorrow = sickTomorrow,
                 onSettings = onOpenSettings,
+                onPractices = onOpenPractices,
                 onSickToday = { viewModel.setSick(!ui.sick) },
                 onSickTomorrow = { viewModel.setSickTomorrow(!sickTomorrow) },
                 onLowerBar = viewModel::offerPause,
@@ -162,7 +164,7 @@ fun TodayScreen(
 @Composable
 private fun TodayMenu(
     sick: Boolean, canSickToday: Boolean, sickTomorrow: Boolean,
-    onSettings: () -> Unit, onSickToday: () -> Unit, onSickTomorrow: () -> Unit, onLowerBar: () -> Unit,
+    onSettings: () -> Unit, onPractices: () -> Unit, onSickToday: () -> Unit, onSickTomorrow: () -> Unit, onLowerBar: () -> Unit,
 ) {
     var open by remember { mutableStateOf(false) }
     val menuLabel = stringResource(R.string.today_menu)
@@ -171,6 +173,7 @@ private fun TodayMenu(
             Text("⋯", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.tertiary)
         }
         DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            DropdownMenuItem(text = { Text(stringResource(R.string.practices_title)) }, onClick = { open = false; onPractices() })
             DropdownMenuItem(text = { Text(stringResource(R.string.settings_title)) }, onClick = { open = false; onSettings() })
             // Section 4: sick is set before 06:00 or for tomorrow; switching off is always possible.
             if (sick || canSickToday) {

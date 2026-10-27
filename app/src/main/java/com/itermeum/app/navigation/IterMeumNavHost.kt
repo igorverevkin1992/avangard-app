@@ -5,6 +5,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.itermeum.app.feature.about.AboutScreen
+import com.itermeum.app.feature.about.PracticesScreen
 import com.itermeum.app.feature.onboarding.OnboardingScreen
 import com.itermeum.app.feature.path.CatechesisScreen
 import com.itermeum.app.feature.path.ChronicleScreen
@@ -17,6 +18,7 @@ import com.itermeum.app.feature.examen.ExamenScreen
 import com.itermeum.app.feature.prayer.AngelusScreen
 import com.itermeum.app.feature.prayer.CalendarScreen
 import com.itermeum.app.feature.prayer.GospelScreen
+import com.itermeum.app.feature.prayer.BookReaderScreen
 import com.itermeum.app.feature.prayer.JaculatoriaScreen
 import com.itermeum.app.feature.prayer.MassScreen
 import com.itermeum.app.feature.prayer.MentalPrayerScreen
@@ -49,6 +51,7 @@ fun IterMeumNavHost(navController: NavHostController, startDestination: String) 
         composable(NavRoute.Today.route) {
             TodayScreen(
                 onOpenSettings = { navController.navigate(NavRoute.Settings.route) },
+                onOpenPractices = { navController.navigate(NavRoute.Practices.route) },
                 onMilestone = { navController.navigate(NavRoute.Milestone.of(it)) },
                 onOpenRoute = { navController.navigate(it) { launchSingleTop = true } },
             )
@@ -94,7 +97,10 @@ fun IterMeumNavHost(navController: NavHostController, startDestination: String) 
         composable(NavRoute.PrayerJaculatory.route, arguments = listOf(navArgument("situation") { nullable = true; defaultValue = null })) { entry ->
             JaculatoriaScreen(initialSituation = entry.arguments?.getString("situation"), onBack = { navController.popBackStack() })
         }
-        composable(NavRoute.PrayerGospel.route) { GospelScreen(onBack = { navController.popBackStack() }) }
+        composable(NavRoute.PrayerGospel.route) {
+            GospelScreen(onBack = { navController.popBackStack() }, onOpenBook = { navController.navigate(NavRoute.PrayerReader.of(it)) })
+        }
+        composable(NavRoute.PrayerReader.route) { BookReaderScreen(onBack = { navController.popBackStack() }) }
         composable(NavRoute.PrayerSrs.route) { SrsScreen(onBack = { navController.popBackStack() }) }
         composable(NavRoute.PrayerCalendar.route, arguments = listOf(navArgument("ym") { nullable = true; defaultValue = null })) { entry ->
             CalendarScreen(yearMonth = entry.arguments?.getString("ym"), onBack = { navController.popBackStack() })
@@ -127,5 +133,6 @@ fun IterMeumNavHost(navController: NavHostController, startDestination: String) 
             )
         }
         composable(NavRoute.About.route) { AboutScreen(onBack = { navController.popBackStack() }) }
+        composable(NavRoute.Practices.route) { PracticesScreen(onBack = { navController.popBackStack() }) }
     }
 }
