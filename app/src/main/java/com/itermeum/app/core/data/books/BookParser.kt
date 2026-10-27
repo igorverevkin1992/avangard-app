@@ -209,7 +209,8 @@ object BookParser {
         val textPages = pages.count { p -> p.count { it.isLetter() } >= 100 }
         if (pages.isEmpty() || textPages * 2 < pages.size) return null
 
-        val pageLines = pages.map { p -> p.replace("\r", "").split('\n').map { it.trimEnd() } }
+        // No trimming here: Kotlin counts the paragraph mark U+2029 as whitespace.
+        val pageLines = pages.map { p -> p.replace("\r", "").split('\n') }
         // A line that opens or closes many pages is a running head or foot.
         val edges = pageLines.map { ls -> ls.filter { it.isNotBlank() } }.filter { it.size >= 3 }
             .flatMap { ls -> setOf(norm(ls.first()), norm(ls.last())) }.groupingBy { it }.eachCount()
@@ -218,7 +219,7 @@ object BookParser {
         // (page index, paragraph) in reading order.
         val paragraphs = mutableListOf<Pair<Int, String>>()
         pageLines.forEachIndexed { pageIndex, raw ->
-            val lines = raw.filterNot { l -> PAGE_NUMBER.matches(l) || norm(l) in repeated }
+            val lines = raw.filterNot { l -> PAGE_NUMBER.matches(l.replace(PDF_PARAGRAPH, "")) || norm(l) in repeated }
             val widths = lines.filter { it.isNotBlank() }.map { it.replace(PDF_PARAGRAPH, "").trim().length }.sorted()
             val typical = widths.getOrNull(widths.size * 3 / 4) ?: 0
             val buf = StringBuilder()
