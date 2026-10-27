@@ -13,6 +13,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -31,6 +32,7 @@ import com.itermeum.app.core.database.entity.TaskType
 import com.itermeum.app.core.designsystem.ImHeader
 import com.itermeum.app.core.designsystem.ImPanel
 import com.itermeum.app.core.designsystem.ImPrimaryButton
+import com.itermeum.app.core.designsystem.ImSecondaryButton
 import com.itermeum.app.core.designsystem.ImSectionLabel
 import com.itermeum.app.core.designsystem.ImSpacing
 
@@ -46,25 +48,30 @@ fun TaskType.label(): String = stringResource(
     },
 )
 
-/** Section 5.2: three slots, slot 1 = OUTREACH (or SHOOT with «кому позвонить после»). */
+/**
+ * Section 5.2: at least three slots, slot 1 = OUTREACH (or SHOOT with
+ * «кому позвонить после»); more slots can be added (D-41).
+ */
 @Composable
 fun DayPlanScreen(onBack: () -> Unit, viewModel: WorkViewModel = hiltViewModel()) {
     val ui by viewModel.ui.collectAsState()
     val titles = remember { mutableStateListOf("", "", "") }
     val types = remember { mutableStateListOf(TaskType.OUTREACH, TaskType.OPS, TaskType.OPS) }
+    fun addSlot() { titles += ""; types += TaskType.OPS }
     var followUp by remember { mutableStateOf("") }
     var intention by remember { mutableStateOf("") }
     var shootDay by remember { mutableStateOf(false) }
     var seeded by remember { mutableStateOf(false) }
     LaunchedEffect(ui.tasks, ui.plan) {
         if (!seeded && (ui.tasks.isNotEmpty() || ui.plan != null)) {
-            ui.tasks.forEach { t -> if (t.slot in 1..3) { titles[t.slot - 1] = t.title; types[t.slot - 1] = t.type; if (t.slot == 1) followUp = t.followUpContact ?: "" } }
+            while (titles.size < (ui.tasks.maxOfOrNull { it.slot } ?: 0)) addSlot()
+            ui.tasks.forEach { t -> if (t.slot >= 1) { titles[t.slot - 1] = t.title; types[t.slot - 1] = t.type; if (t.slot == 1) followUp = t.followUpContact ?: "" } }
             intention = ui.plan?.intention ?: ""
             shootDay = ui.plan?.shootDay ?: false
             seeded = true
         }
     }
-    val drafts = (0..2).map { i -> WorkRepository.TaskDraft(i + 1, types[i], titles[i], followUpContact = if (i == 0) followUp else null) }
+    val drafts = titles.indices.map { i -> WorkRepository.TaskDraft(i + 1, types[i], titles[i], followUpContact = if (i == 0) followUp else null) }
     val valid = viewModel.planIsValid(drafts, shootDay)
 
     Column(
@@ -77,7 +84,7 @@ fun DayPlanScreen(onBack: () -> Unit, viewModel: WorkViewModel = hiltViewModel()
             Text(stringResource(R.string.plan_shoot_day), style = MaterialTheme.typography.bodyLarge)
             Switch(checked = shootDay, onCheckedChange = { shootDay = it; if (!it && types[0] == TaskType.SHOOT) types[0] = TaskType.OUTREACH })
         }
-        (0..2).forEach { i ->
+        titles.indices.forEach { i ->
             ImPanel {
                 ImSectionLabel(stringResource(R.string.plan_slot, i + 1))
                 // Wraps onto several lines: six types do not fit a phone width.
@@ -89,8 +96,13 @@ fun DayPlanScreen(onBack: () -> Unit, viewModel: WorkViewModel = hiltViewModel()
                 if (i == 0 && types[0] == TaskType.SHOOT) {
                     OutlinedTextField(value = followUp, onValueChange = { followUp = it }, label = { Text(stringResource(R.string.plan_follow_up)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 }
+                // The first three are the plan itself; added slots can go again.
+                if (i >= MIN_SLOTS) {
+                    TextButton(onClick = { titles.removeAt(i); types.removeAt(i) }) { Text(stringResource(R.string.plan_remove_slot)) }
+                }
             }
         }
+        if (titles.size < MAX_SLOTS) ImSecondaryButton(stringResource(R.string.plan_add_slot), { addSlot() }, Modifier.fillMaxWidth())
         OutlinedTextField(value = intention, onValueChange = { intention = it }, label = { Text(stringResource(R.string.plan_intention)) }, modifier = Modifier.fillMaxWidth())
         if (!ui.beforeCutoff && ui.tasks.isNotEmpty()) {
             Text(stringResource(R.string.plan_after_cutoff), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -99,4 +111,5 @@ fun DayPlanScreen(onBack: () -> Unit, viewModel: WorkViewModel = hiltViewModel()
     }
 }
 
-
+private const val MIN_SLOTS = 3
+private const val MAX_SLOTS = 10

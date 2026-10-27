@@ -339,9 +339,11 @@
     <string name="work_projects">Проекты и студия</string>
     <string name="projects_open">Проекты-приношения</string>
     <string name="studio_open">Карта к студии</string>
-    <string name="plan_hint">Слот 1 — обзвон героев (в день съёмок — съёмка и кому позвонить после). План считается до 12:30; правки после 14:00 помечаются как перенос.</string>
+    <string name="plan_hint">Слот 1 — обзвон героев (в день съёмок — съёмка и кому позвонить после). Задач больше трёх — «Добавить слот». План считается до 12:30; правки после 14:00 помечаются как перенос.</string>
     <string name="plan_shoot_day">День съёмок</string>
     <string name="plan_slot">Слот %1$d</string>
+    <string name="plan_add_slot">+ Добавить слот</string>
+    <string name="plan_remove_slot">Убрать слот</string>
     <string name="plan_task_title">Задача</string>
     <string name="plan_follow_up">Кому позвонить после съёмки</string>
     <string name="plan_intention">Намерение дня (необязательно)</string>

@@ -75,13 +75,16 @@ class WorkRepository @Inject constructor(
         val now = clock.nowEpochMillis()
         val afterCutoff = !clock.now().isBefore(date.atTime(cutoffFor()))
         db.withTransaction {
-            val existing = taskDao.forDate(date).associateBy { it.slot }
+            val before = taskDao.forDate(date)
+            val existing = before.associateBy { it.slot }
+            // A removed slot shifts the ones after it: keep each task's status by its title first.
+            val byTitle = before.associateBy { it.title }
             val plan = dayPlanDao.get(date) ?: DayPlanEntity(logicalDate = date)
             dayPlanDao.upsert(plan.copy(intention = intention, savedAt = plan.savedAt ?: now, shootDay = shootDay))
             taskDao.deleteForDate(date)
             taskDao.upsertAll(
                 drafts.map { d ->
-                    val old = existing[d.slot]
+                    val old = existing[d.slot]?.takeIf { it.title == d.title.trim() } ?: byTitle[d.title.trim()] ?: existing[d.slot]
                     WorkTaskEntity(
                         id = old?.id ?: 0, logicalDate = date, slot = d.slot, type = d.type, title = d.title.trim(),
                         projectId = d.projectId, status = old?.status ?: TaskStatus.OPEN, checklistJson = old?.checklistJson,
@@ -135,7 +138,8 @@ class WorkRepository @Inject constructor(
 
     private suspend fun checkLastStone(date: LocalDate) {
         val tasks = taskDao.forDate(date)
-        val allClosed = tasks.size == 3 && tasks.none { it.status == TaskStatus.OPEN }
+        // Any number of tasks (D-41) — also a two-task plan saved from the evening Examen.
+        val allClosed = tasks.isNotEmpty() && tasks.none { it.status == TaskStatus.OPEN }
         val inTime = clock.now().toLocalDate() == date && clock.localTime().isBefore(LAST_STONE_DEADLINE)
         if (allClosed && inTime && !norms.isDone(NormCatalog.LAST_STONE, date)) norms.markDone(NormCatalog.LAST_STONE, date)
     }
