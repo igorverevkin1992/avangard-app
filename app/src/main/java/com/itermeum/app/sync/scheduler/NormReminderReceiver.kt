@@ -78,7 +78,10 @@ class NormReminderReceiver : BroadcastReceiver() {
                 if (StreakEngine.fidelityMet(facts)) return
                 val threshold = if (facts.travel) StreakEngine.THRESHOLD_TRAVEL else StreakEngine.THRESHOLD_HOME
                 val needed = kotlin.math.ceil(facts.activeNorms * threshold).toInt()
-                assets.notificationText("streak_threat", 3)?.format(needed - facts.completedNorms, facts.activeNorms) ?: return
+                val missing = needed - facts.completedNorms
+                // Enough norms but no core one (wake by QR or Examen): say that, not «0 норм» (D-45).
+                if (missing <= 0) assets.notificationText("streak_threat_core", 3)?.format(facts.completedNorms, facts.activeNorms) ?: return
+                else assets.notificationText("streak_threat", 3)?.format(missing, facts.completedNorms, facts.activeNorms) ?: return
             }
             NormCatalog.FROG -> {
                 val attempts = outreachDao.countBeforeCutoff(date)
