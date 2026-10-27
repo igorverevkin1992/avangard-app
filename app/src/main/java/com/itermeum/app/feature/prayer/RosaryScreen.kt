@@ -72,8 +72,9 @@ fun RosaryScreen(onBack: () -> Unit, viewModel: RosaryViewModel = hiltViewModel(
             ImPanel { Text(text("our_father"), style = MaterialTheme.typography.bodyMedium) }
             ImPanel(Modifier.fillMaxWidth().clickable { if (aves < 10) aves++ }) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text(stringResource(R.string.rosary_ave_tap), style = MaterialTheme.typography.titleMedium)
-                    Text("$aves/10", style = MaterialTheme.typography.headlineMedium.copy(fontFamily = ImMonoFamily), color = if (aves >= 10) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface)
+                    Text(stringResource(R.string.rosary_ave_tap), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                    // One line, always: the long label used to squeeze the counter into a column.
+                    Text("$aves/10", maxLines = 1, softWrap = false, style = MaterialTheme.typography.headlineMedium.copy(fontFamily = ImMonoFamily), color = if (aves >= 10) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface)
                 }
                 Text(text("hail_mary"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
