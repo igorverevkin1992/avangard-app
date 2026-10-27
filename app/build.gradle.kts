@@ -158,6 +158,8 @@ dependencies {
     implementation(libs.androidx.camera.view)
     implementation(libs.mlkit.barcode.scanning)
     implementation(libs.zxing.core)
+    // D-40: text of PDF books. Bouncy Castle is only for certificate-encrypted PDFs — not needed for reading.
+    implementation(libs.pdfbox.android) { exclude(group = "org.bouncycastle") }
 
     // Section 9: Glance 4×2 home-screen widget (D-17).
     implementation(libs.androidx.glance.appwidget)

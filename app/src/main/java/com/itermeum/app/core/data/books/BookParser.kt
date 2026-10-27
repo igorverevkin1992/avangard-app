@@ -18,8 +18,10 @@ enum class BookFormat { EPUB, FB2, TXT, PDF }
 
 /**
  * Turns a book file the user owns into chapters of plain paragraphs (D-37).
- * EPUB, FB2 (also zipped) and TXT are parsed here; PDF is kept as is and
- * rendered page by page. Pure Kotlin: no Android types, so it is unit-tested.
+ * EPUB, FB2 (also zipped) and TXT are parsed here; for a PDF, [pdf] turns
+ * the text PdfBox extracts into the same chapters (D-40) — a scan without a
+ * text layer stays as page images. Pure Kotlin: no Android types, so it is
+ * unit-tested.
  */
 object BookParser {
 
@@ -45,8 +47,13 @@ object BookParser {
             BookFormat.TXT -> txt(bytes, fallbackTitle)
             BookFormat.PDF -> throw BookFormatException("pdf is rendered, not parsed")
         }
+        return finish(book) ?: throw BookFormatException("no text")
+    }
+
+    /** Drops empty chapters and names untitled ones; null when nothing is left. */
+    private fun finish(book: ParsedBook): ParsedBook? {
         val chapters = book.chapters.filter { it.paragraphs.isNotEmpty() }
-        if (chapters.isEmpty()) throw BookFormatException("no text")
+        if (chapters.isEmpty()) return null
         return book.copy(chapters = chapters.mapIndexed { i, c -> if (c.title.isBlank()) c.copy(title = "Часть ${i + 1}") else c })
     }
 
@@ -181,6 +188,102 @@ object BookParser {
         chapters += BookChapter(title, paragraphs)
         return ParsedBook(fallbackTitle, chapters)
     }
+
+    // ── PDF text ─────────────────────────────────────────────────────────────
+
+    /** Paragraph break the PDF text extractor puts where it sees one (D-40). */
+    const val PDF_PARAGRAPH = "\u2029"
+
+    private val PAGE_NUMBER = Regex("^[\\s\\-–—]*(\\d{1,4}|[ivxlcdmIVXLCDM]{1,7})[\\s\\-–—]*$")
+    private val SENTENCE_END = Regex("[.!?…:;»”\"')\\]]$")
+
+    /**
+     * Text of a PDF, page by page, → chapters (D-40). Removes page numbers and
+     * running heads/feet, glues hyphenated words and wrapped lines back into
+     * paragraphs, carries a paragraph over a page break. Chapters come from the
+     * PDF bookmarks ([outline]: title → page index), else from «Глава …» lines,
+     * else every 10 pages. Null when there is (almost) no text: a scan.
+     */
+    fun pdf(pages: List<String>, outline: List<Pair<String, Int>>, title: String): ParsedBook? {
+        // A scan has no text layer (or only on a few pages): it stays as page images.
+        val textPages = pages.count { p -> p.count { it.isLetter() } >= 100 }
+        if (pages.isEmpty() || textPages * 2 < pages.size) return null
+
+        val pageLines = pages.map { p -> p.replace("\r", "").split('\n').map { it.trimEnd() } }
+        // A line that opens or closes many pages is a running head or foot.
+        val edges = pageLines.map { ls -> ls.filter { it.isNotBlank() } }.filter { it.size >= 3 }
+            .flatMap { ls -> setOf(norm(ls.first()), norm(ls.last())) }.groupingBy { it }.eachCount()
+        val repeated = edges.filter { (k, n) -> k.isNotEmpty() && n >= maxOf(3, pages.size / 3) }.keys
+
+        // (page index, paragraph) in reading order.
+        val paragraphs = mutableListOf<Pair<Int, String>>()
+        pageLines.forEachIndexed { pageIndex, raw ->
+            val lines = raw.filterNot { l -> PAGE_NUMBER.matches(l) || norm(l) in repeated }
+            val widths = lines.filter { it.isNotBlank() }.map { it.replace(PDF_PARAGRAPH, "").trim().length }.sorted()
+            val typical = widths.getOrNull(widths.size * 3 / 4) ?: 0
+            val buf = StringBuilder()
+            var pageStart = true
+            fun flush() {
+                val t = Markup.squash(buf); buf.setLength(0)
+                if (t.isEmpty()) return
+                val prev = paragraphs.lastOrNull()
+                // The page broke a paragraph: it went on lower-case on the next page.
+                if (pageStart && prev != null && prev.first == pageIndex - 1 && !SENTENCE_END.containsMatchIn(prev.second) && t.first().isLowerCase()) {
+                    paragraphs[paragraphs.lastIndex] = prev.first to join(prev.second, t)
+                } else paragraphs += pageIndex to t
+                pageStart = false
+            }
+            for (line in lines) {
+                val ends = line.contains(PDF_PARAGRAPH)
+                val text = line.replace(PDF_PARAGRAPH, "").trim()
+                if (text.isEmpty()) { flush(); continue }
+                if (buf.isEmpty()) buf.append(text) else buf.replace(0, buf.length, join(buf.toString(), text))
+                // A short line that ends a sentence is the last line of its paragraph.
+                val shortEnd = typical > 20 && text.length < typical * 0.8 && SENTENCE_END.containsMatchIn(text)
+                if (ends || shortEnd) flush()
+            }
+            flush()
+        }
+        if (paragraphs.isEmpty()) return null
+
+        val marks = outline.filter { it.second in pages.indices && it.first.isNotBlank() }.sortedBy { it.second }.distinctBy { it.second }
+        val chapters: List<BookChapter> = when {
+            marks.size >= 2 -> {
+                val out = mutableListOf<BookChapter>()
+                val before = paragraphs.filter { it.first < marks.first().second }.map { it.second }
+                if (before.isNotEmpty()) out += BookChapter("", before)
+                marks.forEachIndexed { i, (name, start) ->
+                    val end = marks.getOrNull(i + 1)?.second ?: Int.MAX_VALUE
+                    out += BookChapter(name.trim(), paragraphs.filter { it.first in start until end }.map { it.second })
+                }
+                out
+            }
+            paragraphs.any { it.second.length <= 80 && CHAPTER_LINE.matches(it.second) } -> {
+                val out = mutableListOf<BookChapter>()
+                var name = ""
+                var cur = mutableListOf<String>()
+                paragraphs.forEach { (_, t) ->
+                    if (t.length <= 80 && CHAPTER_LINE.matches(t)) {
+                        if (cur.isNotEmpty()) out += BookChapter(name, cur)
+                        name = t; cur = mutableListOf()
+                    } else cur += t
+                }
+                out += BookChapter(name, cur)
+                out
+            }
+            else -> paragraphs.groupBy { it.first / 10 }.map { (block, ps) ->
+                BookChapter("Стр. ${block * 10 + 1}–${minOf(block * 10 + 10, pages.size)}", ps.map { it.second })
+            }
+        }
+        return finish(ParsedBook(title, chapters))
+    }
+
+    /** «сло-» + «во» → «слово»; otherwise the two lines join with a space. */
+    private fun join(a: String, b: String): String =
+        if (a.length > 1 && (a.endsWith('-') || a.endsWith('\u00AD')) && a[a.length - 2].isLetter() && b.firstOrNull()?.isLowerCase() == true) a.dropLast(1) + b
+        else "$a $b"
+
+    private fun norm(line: String) = line.replace(PDF_PARAGRAPH, "").replace(Regex("\\d+"), "#").trim().lowercase()
 
     // ── helpers ──────────────────────────────────────────────────────────────
 

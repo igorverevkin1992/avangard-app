@@ -86,4 +86,50 @@ class BookParserTest {
         assertTrue(runCatching { BookParser.parse(zip("a.png" to "x"), "x") }.exceptionOrNull() is BookFormatException)
         assertTrue(runCatching { BookParser.parse("   \n\n".toByteArray(), "x") }.exceptionOrNull() is BookFormatException)
     }
+
+    private val P = BookParser.PDF_PARAGRAPH
+    private val body = "Слово за слово складывается длинная строка текста книги здесь"
+
+    @Test fun `pdf text drops page numbers and running heads, glues hyphens and wrapped lines`() {
+        val pages = (1..6).map { n ->
+            "Христос проходит рядом\n" +
+                "$body и пере-\nнос слова продолжается до самого конца стро\nки дальше.$P\n" +
+                "Второй абзац страницы $n с обычным текстом и ещё одной длинной строкой\nкороткий конец.$P\n" +
+                "$n\n"
+        }
+        val book = BookParser.pdf(pages, emptyList(), "Книга")!!
+        val all = book.chapters.flatMap { it.paragraphs }
+        assertFalse(all.any { "Христос проходит рядом" in it })
+        assertTrue(all.first().contains("перенос слова"))
+        assertTrue(all.first().contains("стро ки")) // only a hyphen joins without a space
+        assertEquals(12, all.size)
+        assertEquals("Второй абзац страницы 1 с обычным текстом и ещё одной длинной строкой короткий конец.", all[1])
+    }
+
+    @Test fun `pdf paragraph broken by a page goes on`() {
+        val pages = listOf(
+            "$body $body и предложение не закончено на этой\n",
+            "странице, а продолжается на следующей. $body $body.$P\n",
+        )
+        val all = BookParser.pdf(pages, emptyList(), "x")!!.chapters.flatMap { it.paragraphs }
+        assertEquals(1, all.size)
+        assertTrue(all.single().contains("этой странице"))
+    }
+
+    @Test fun `pdf chapters come from bookmarks`() {
+        val pages = (0..3).map { "$body $body страница $it.$P\n" }
+        val book = BookParser.pdf(pages, listOf("Труд" to 1, "Дисциплина" to 3), "x")!!
+        assertEquals(listOf("Часть 1", "Труд", "Дисциплина"), book.chapters.map { it.title })
+        assertEquals(2, book.chapters[1].paragraphs.size)
+    }
+
+    @Test fun `pdf without bookmarks splits on chapter lines`() {
+        val pages = listOf("Глава 1$P\n$body $body.$P\n", "Глава 2$P\n$body $body.$P\n")
+        assertEquals(listOf("Глава 1", "Глава 2"), BookParser.pdf(pages, emptyList(), "x")!!.chapters.map { it.title })
+    }
+
+    @Test fun `scanned pdf without text stays as pages`() {
+        assertEquals(null, BookParser.pdf(List(10) { "" }, emptyList(), "x"))
+        assertEquals(null, BookParser.pdf(listOf("$body $body $body") + List(9) { " " }, emptyList(), "x"))
+    }
 }

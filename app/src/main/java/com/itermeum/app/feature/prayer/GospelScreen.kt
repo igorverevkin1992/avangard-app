@@ -52,10 +52,11 @@ fun GospelScreen(onBack: () -> Unit, onOpenBook: (String) -> Unit = {}, viewMode
     // The picked file goes to the book whose «Загрузить файл» was tapped.
     var pendingBook by rememberSaveable { mutableStateOf<String?>(null) }
     val okText = stringResource(R.string.book_loaded)
+    val okPagesText = stringResource(R.string.book_loaded_pages)
     val failText = stringResource(R.string.book_load_failed)
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         val id = pendingBook
-        if (uri != null && id != null) viewModel.importBook(id, uri, okText, failText)
+        if (uri != null && id != null) viewModel.importBook(id, uri, okText, okPagesText, failText)
         pendingBook = null
     }
     val pick: (String) -> Unit = { id -> pendingBook = id; picker.launch(arrayOf("*/*")) }
@@ -140,7 +141,7 @@ private fun BookFileActions(info: BookInfo?, onRead: () -> Unit, onLoad: () -> U
         ImSecondaryButton(stringResource(R.string.book_load), onLoad)
         return
     }
-    Text(stringResource(R.string.book_file, info.title, info.format.name), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Text(stringResource(R.string.book_file, info.title, if (info.asPages) stringResource(R.string.book_pages) else info.format.name), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     ImPrimaryButton(stringResource(R.string.book_read), onClick = onRead)
     Row(horizontalArrangement = Arrangement.spacedBy(ImSpacing.grid)) {
         ImSecondaryButton(stringResource(R.string.book_replace), onLoad, Modifier.weight(1f))

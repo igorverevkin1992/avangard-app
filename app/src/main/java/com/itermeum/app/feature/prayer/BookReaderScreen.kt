@@ -47,7 +47,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.itermeum.app.R
 import com.itermeum.app.core.data.TimerController
-import com.itermeum.app.core.data.books.BookFormat
 import com.itermeum.app.core.data.books.BookLibrary
 import com.itermeum.app.core.data.books.ParsedBook
 import com.itermeum.app.core.designsystem.ImHeader
@@ -73,7 +72,8 @@ class BookReaderViewModel @Inject constructor(
 ) : ViewModel() {
     val bookId: String = savedState["bookId"] ?: ""
     val title: String = library.books.value[bookId]?.title ?: ""
-    val isPdf: Boolean = library.books.value[bookId]?.format == BookFormat.PDF
+    /** A scanned PDF (no text layer) is shown as page images. */
+    val asPages: Boolean = library.books.value[bookId]?.asPages == true
 
     private val saved = library.position(bookId)
     /** Paragraph (or page) to reopen at, for the chapter reading stopped in. */
@@ -89,7 +89,7 @@ class BookReaderViewModel @Inject constructor(
         private set
 
     init {
-        if (!isPdf) viewModelScope.launch {
+        if (!asPages) viewModelScope.launch {
             val b = library.load(bookId)
             _book.value = b
             if (b != null) _chapter.value = _chapter.value.coerceIn(0, b.chapters.lastIndex)
@@ -123,12 +123,12 @@ fun BookReaderScreen(onBack: () -> Unit, viewModel: BookReaderViewModel = hiltVi
                 Text(stringResource(R.string.book_timer_off), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
                 TextButton(onClick = { timers.startReading(viewModel.bookId) }) { Text(stringResource(R.string.book_timer_start)) }
             }
-            if (!viewModel.isPdf) {
+            if (!viewModel.asPages) {
                 TextButton(onClick = { viewModel.font(-0.1f) }) { Text("A−") }
                 TextButton(onClick = { viewModel.font(0.1f) }) { Text("A+") }
             }
         }
-        if (viewModel.isPdf) PdfPages(viewModel) else TextBook(viewModel)
+        if (viewModel.asPages) PdfPages(viewModel) else TextBook(viewModel)
     }
 }
 

@@ -142,8 +142,8 @@ class GospelViewModel @Inject constructor(
     /** Import result: null while idle, a short message after a load. */
     val importMessage = MutableStateFlow<String?>(null)
 
-    fun importBook(bookId: String, uri: Uri, ok: String, failed: String) = viewModelScope.launch {
-        importMessage.value = library.import(bookId, uri).fold({ ok.format(it.title) }, { failed })
+    fun importBook(bookId: String, uri: Uri, ok: String, okPages: String, failed: String) = viewModelScope.launch {
+        importMessage.value = library.import(bookId, uri).fold({ (if (it.asPages) okPages else ok).format(it.title) }, { failed })
     }
 
     fun removeBook(bookId: String) = library.remove(bookId)

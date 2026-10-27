@@ -14,7 +14,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 
-data class BookInfo(val bookId: String, val title: String, val format: BookFormat)
+/** [asPages] — a scanned PDF without text, shown as page images. */
+data class BookInfo(val bookId: String, val title: String, val format: BookFormat, val asPages: Boolean = false)
 
 /**
  * Book files the user loads from the phone for spiritual reading (D-37).
@@ -37,10 +38,10 @@ class BookLibrary @Inject constructor(
     private fun scan(): Map<String, BookInfo> = dir.listFiles().orEmpty().mapNotNull { f ->
         val id = f.nameWithoutExtension
         val format = when (f.extension) { "json" -> prefs.getString("$id.format", null)?.let(BookFormat::valueOf) ?: BookFormat.EPUB; "pdf" -> BookFormat.PDF; else -> null }
-        format?.let { BookInfo(id, prefs.getString("$id.title", null) ?: id, it) }
+        format?.let { BookInfo(id, prefs.getString("$id.title", null) ?: id, it, asPages = f.extension == "pdf") }
     }.associateBy { it.bookId }
 
-    /** Reads the picked file, parses it (or keeps a PDF as is) and replaces any earlier file of this book. */
+    /** Reads the picked file, parses it (a scanned PDF is kept as is) and replaces any earlier file of this book. */
     suspend fun import(bookId: String, uri: Uri): Result<BookInfo> = withContext(Dispatchers.IO) {
         runCatching {
             val name = displayName(uri) ?: bookId
@@ -56,14 +57,19 @@ class BookLibrary @Inject constructor(
             } ?: throw BookFormatException("unreadable")
             val format = BookParser.detect(bytes)
             remove(bookId)
+            val fileTitle = name.substringBeforeLast('.')
+            // A PDF with a text layer becomes chapters like any other book (D-40); a scan stays as pages.
+            val book = if (format == BookFormat.PDF) {
+                runCatching { PdfText.extract(context, bytes) }.getOrNull()
+                    ?.let { BookParser.pdf(it.pages, it.outline, it.title ?: fileTitle) }
+            } else BookParser.parse(bytes, fileTitle)
             val title: String
-            if (format == BookFormat.PDF) {
-                File(dir, "$bookId.pdf").writeBytes(bytes)
-                title = name.substringBeforeLast('.')
-            } else {
-                val book = BookParser.parse(bytes, name.substringBeforeLast('.'))
+            if (book != null) {
                 File(dir, "$bookId.json").writeText(json.encodeToString(ParsedBook.serializer(), book))
                 title = book.title
+            } else {
+                File(dir, "$bookId.pdf").writeBytes(bytes)
+                title = fileTitle
             }
             prefs.edit().putString("$bookId.title", title).putString("$bookId.format", format.name).apply()
             _books.value = scan()

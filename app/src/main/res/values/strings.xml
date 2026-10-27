@@ -463,6 +463,8 @@
     <string name="book_remove">Удалить файл</string>
     <string name="book_file">Файл: %1$s (%2$s)</string>
     <string name="book_loaded">Книга загружена: %1$s</string>
+    <string name="book_loaded_pages">Загружено страницами: %1$s. В этом PDF нет текста (скан) — шрифт не меняется, оглавления нет.</string>
+    <string name="book_pages">PDF, страницами</string>
     <string name="book_load_failed">Не удалось прочитать файл. Подходят EPUB, FB2 (и FB2.ZIP), TXT и PDF.</string>
     <string name="books_all">Все книги программы</string>
     <string name="books_loaded_count">%1$d из %2$d</string>

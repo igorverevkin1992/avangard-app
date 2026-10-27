@@ -23,3 +23,7 @@
     kotlinx.serialization.KSerializer serializer(...);
 }
 -keep,includedescriptorclasses class com.itermeum.app.**$$serializer { *; }
+
+# PdfBox-Android (D-40): JPEG 2000 and public-key encryption are optional and not shipped.
+-dontwarn com.gemalto.jp2.**
+-dontwarn org.bouncycastle.**
