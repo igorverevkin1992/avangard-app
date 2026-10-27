@@ -137,7 +137,12 @@ class GospelViewModel @Inject constructor(
     val books: StateFlow<Map<String, BookInfo>> = library.books
 
     /** Every book of the programme once, to load files ahead of their month. */
-    val programme: List<ReadingItemJson> = assets.reading.months.flatMap { it.items }.distinctBy { it.bookId }
+    val programme: List<ReadingItemJson> = (assets.reading.always + assets.reading.months.flatMap { it.items }).distinctBy { it.bookId }
+
+    /** The Bible and other always-present books, shown with each month's reading. */
+    private val always: List<ReadingPlanItemEntity> = assets.reading.always.map {
+        ReadingPlanItemEntity(id = "always_${it.bookId}", month = 0, bookId = it.bookId, title = it.title, sectionLabel = it.section, url = it.url)
+    }
 
     /** Import result: null while idle, a short message after a load. */
     val importMessage = MutableStateFlow<String?>(null)
@@ -158,7 +163,7 @@ class GospelViewModel @Inject constructor(
         val day = calendar.day(date)
         _ui.update {
             it.copy(passage = reading.gospel(date), title = day.title, focus = reading.focusPhrase(date),
-                read = norms.isDone(NormCatalog.GOSPEL, date), plan = reading.readingFor(date), readingDone = norms.isDone(NormCatalog.READING, date))
+                read = norms.isDone(NormCatalog.GOSPEL, date), plan = always + reading.readingFor(date), readingDone = norms.isDone(NormCatalog.READING, date))
         }
     }
 

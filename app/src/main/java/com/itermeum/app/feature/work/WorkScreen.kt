@@ -2,12 +2,14 @@ package com.itermeum.app.feature.work
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -15,6 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -59,6 +62,19 @@ fun WorkScreen(
             done = NormCatalog.DAY_PLAN in ui.done,
             onClick = onPlan,
         )
+        // D-44: the queue of open tasks — any of them can jump to «next» without opening the plan.
+        val queue = ui.tasks.filter { it.status == TaskStatus.OPEN }.sortedBy { it.slot }
+        if (queue.size > 1) {
+            ImPanel {
+                Text(stringResource(R.string.work_queue_now, queue.first().title), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
+                queue.drop(1).forEach { t ->
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(t.title, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+                        TextButton(onClick = { viewModel.makeNext(t) }) { Text(stringResource(R.string.work_make_next)) }
+                    }
+                }
+            }
+        }
         ImNavRow(
             title = stringResource(R.string.work_step_outreach),
             subtitle = stringResource(R.string.work_outreach_today, ui.attempts, ui.agreements),

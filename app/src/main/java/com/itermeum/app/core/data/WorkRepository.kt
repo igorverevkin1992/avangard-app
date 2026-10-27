@@ -135,6 +135,16 @@ class WorkRepository @Inject constructor(
         checkLastStone(task.logicalDate)
     }
 
+    /** «Сделать следующей» (D-44): the task moves just before the first open one; slots are renumbered. */
+    suspend fun makeNext(task: WorkTaskEntity) = db.withTransaction {
+        val tasks = taskDao.forDate(task.logicalDate).sortedBy { it.slot }.toMutableList()
+        val target = tasks.firstOrNull { it.id == task.id } ?: return@withTransaction
+        tasks.remove(target)
+        val at = tasks.indexOfFirst { it.status == TaskStatus.OPEN }.let { if (it < 0) tasks.size else it }
+        tasks.add(at, target)
+        tasks.forEachIndexed { i, t -> if (t.slot != i + 1) taskDao.update(t.copy(slot = i + 1)) }
+    }
+
     suspend fun reopenTask(task: WorkTaskEntity) = taskDao.update(task.copy(status = TaskStatus.OPEN, closedAt = null, checklistJson = null))
 
     private suspend fun checkLastStone(date: LocalDate) {

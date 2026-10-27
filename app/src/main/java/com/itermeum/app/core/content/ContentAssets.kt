@@ -33,7 +33,8 @@ data class AsceticJson(val id: String, val book: String, val number: String, val
 
 @Serializable data class ReadingItemJson(val bookId: String, val title: String, val section: String, val url: String? = null)
 @Serializable data class ReadingMonthJson(val month: Int, val items: List<ReadingItemJson>)
-@Serializable data class ReadingFile(val months: List<ReadingMonthJson>)
+/** [always] — books shown every month, whatever the programme (the Bible, D-44). */
+@Serializable data class ReadingFile(val months: List<ReadingMonthJson>, val always: List<ReadingItemJson> = emptyList())
 
 @Serializable data class StringListFile(val items: List<String>)
 @Serializable data class OrderFile(val order: List<String>)

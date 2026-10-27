@@ -78,6 +78,10 @@ class WorkViewModel @Inject constructor(
 
     fun planIsValid(drafts: List<WorkRepository.TaskDraft>, shootDay: Boolean) = work.planIsValid(drafts, shootDay)
 
+    fun makeNext(task: com.itermeum.app.core.database.entity.WorkTaskEntity) {
+        viewModelScope.launch { work.makeNext(task); widget.requestUpdate() }
+    }
+
     fun savePlan(drafts: List<WorkRepository.TaskDraft>, intention: String?, shootDay: Boolean, onDone: () -> Unit) {
         viewModelScope.launch { work.savePlan(date, drafts, intention, shootDay); widget.requestUpdate(); onDone() }
     }

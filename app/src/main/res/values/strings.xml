@@ -342,6 +342,8 @@
     <string name="plan_hint">В плане — обзвон героев (в день съёмок — съёмка и кому позвонить после). Порядок меняется стрелками ↑ ↓ в любой момент дня; задач больше трёх — «Добавить слот». План считается до 12:30; правки после 14:00 помечаются как перенос.</string>
     <string name="plan_shoot_day">День съёмок</string>
     <string name="plan_slot">Слот %1$d</string>
+    <string name="work_queue_now">Сейчас: %1$s</string>
+    <string name="work_make_next">Сделать следующей</string>
     <string name="plan_move_up">Выше</string>
     <string name="plan_move_down">Ниже</string>
     <string name="plan_add_slot">+ Добавить слот</string>
