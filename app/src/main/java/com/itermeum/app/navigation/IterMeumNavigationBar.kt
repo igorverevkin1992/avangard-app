@@ -51,6 +51,14 @@ fun IterMeumNavigationBar(navController: NavHostController, modifier: Modifier =
                 selected = selected,
                 onClick = {
                     if (selected) return@NavigationBarItem
+                    // Today is the start destination: restoring «its» saved state brought back the tab
+                    // that was open (Work) — so for Today just go back to it.
+                    if (tab.route == NavRoute.Today) {
+                        if (!navController.popBackStack(NavRoute.Today.route, inclusive = false)) {
+                            navController.navigate(NavRoute.Today.route) { launchSingleTop = true }
+                        }
+                        return@NavigationBarItem
+                    }
                     navController.navigate(tab.route.route) {
                         popUpTo(navController.graph.startDestinationId) { saveState = true }
                         launchSingleTop = true
