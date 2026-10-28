@@ -469,6 +469,7 @@
     <string name="reading_before">Перед чтением: «Господи, даруй мне свет понять то, что Ты хочешь сказать мне сегодня через этот текст, и силу исполнить это».</string>
     <string name="reading_open_site">Открыть escriva.org/ru</string>
     <string name="reading_paper">Читаю бумажную</string>
+    <string name="book_loading">Читаю файл… Большой PDF — до минуты.</string>
     <string name="book_load">Загрузить файл книги</string>
     <string name="book_read">Читать в приложении</string>
     <string name="book_replace">Заменить файл</string>

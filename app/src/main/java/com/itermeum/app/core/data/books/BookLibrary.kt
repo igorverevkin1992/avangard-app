@@ -15,7 +15,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 
 /** [asPages] — a scanned PDF without text, shown as page images. */
-data class BookInfo(val bookId: String, val title: String, val format: BookFormat, val asPages: Boolean = false)
+data class BookInfo(val bookId: String, val title: String, val format: BookFormat, val asPages: Boolean = false, val fileName: String? = null)
 
 /**
  * Book files the user loads from the phone for spiritual reading (D-37).
@@ -38,7 +38,7 @@ class BookLibrary @Inject constructor(
     private fun scan(): Map<String, BookInfo> = dir.listFiles().orEmpty().mapNotNull { f ->
         val id = f.nameWithoutExtension
         val format = when (f.extension) { "json" -> prefs.getString("$id.format", null)?.let(BookFormat::valueOf) ?: BookFormat.EPUB; "pdf" -> BookFormat.PDF; else -> null }
-        format?.let { BookInfo(id, prefs.getString("$id.title", null) ?: id, it, asPages = f.extension == "pdf") }
+        format?.let { BookInfo(id, prefs.getString("$id.title", null) ?: id, it, asPages = f.extension == "pdf", fileName = prefs.getString("$id.file", null)) }
     }.associateBy { it.bookId }
 
     /** Reads the picked file, parses it (a scanned PDF is kept as is) and replaces any earlier file of this book. */
@@ -71,7 +71,7 @@ class BookLibrary @Inject constructor(
                 File(dir, "$bookId.pdf").writeBytes(bytes)
                 title = fileTitle
             }
-            prefs.edit().putString("$bookId.title", title).putString("$bookId.format", format.name).apply()
+            prefs.edit().putString("$bookId.title", title).putString("$bookId.format", format.name).putString("$bookId.file", name).apply()
             _books.value = scan()
             _books.value.getValue(bookId)
         }
@@ -85,7 +85,7 @@ class BookLibrary @Inject constructor(
 
     fun remove(bookId: String) {
         File(dir, "$bookId.json").delete(); File(dir, "$bookId.pdf").delete()
-        prefs.edit().remove("$bookId.title").remove("$bookId.format").remove("$bookId.chapter").remove("$bookId.item").apply()
+        prefs.edit().remove("$bookId.title").remove("$bookId.format").remove("$bookId.file").remove("$bookId.chapter").remove("$bookId.item").apply()
         _books.value = scan()
     }
 

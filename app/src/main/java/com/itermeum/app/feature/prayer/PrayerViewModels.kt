@@ -144,11 +144,17 @@ class GospelViewModel @Inject constructor(
         ReadingPlanItemEntity(id = "always_${it.bookId}", month = 0, bookId = it.bookId, title = it.title, sectionLabel = it.section, url = it.url)
     }
 
-    /** Import result: null while idle, a short message after a load. */
-    val importMessage = MutableStateFlow<String?>(null)
+    /** The book whose file is being read now (a large PDF takes a while). */
+    val importing = MutableStateFlow<String?>(null)
+    /** The last import's result, shown under that book: bookId → message. */
+    val importMessage = MutableStateFlow<Pair<String, String>?>(null)
 
     fun importBook(bookId: String, uri: Uri, ok: String, okPages: String, failed: String) = viewModelScope.launch {
-        importMessage.value = library.import(bookId, uri).fold({ (if (it.asPages) okPages else ok).format(it.title) }, { failed })
+        importing.value = bookId
+        importMessage.value = null
+        val result = library.import(bookId, uri)
+        importing.value = null
+        importMessage.value = bookId to result.fold({ (if (it.asPages) okPages else ok).format(it.fileName ?: it.title) }, { failed })
     }
 
     fun removeBook(bookId: String) = library.remove(bookId)

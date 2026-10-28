@@ -10,8 +10,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -22,13 +24,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.itermeum.app.R
 import com.itermeum.app.core.data.TimerController
@@ -49,6 +53,7 @@ fun GospelScreen(onBack: () -> Unit, onOpenBook: (String) -> Unit = {}, viewMode
     val ui by viewModel.ui.collectAsState()
     val books by viewModel.books.collectAsState()
     val importMessage by viewModel.importMessage.collectAsState()
+    val importing by viewModel.importing.collectAsState()
     // The picked file goes to the book whose «Загрузить файл» was tapped.
     var pendingBook by rememberSaveable { mutableStateOf<String?>(null) }
     val okText = stringResource(R.string.book_loaded)
@@ -91,11 +96,20 @@ fun GospelScreen(onBack: () -> Unit, onOpenBook: (String) -> Unit = {}, viewMode
 
         ImSectionLabel(stringResource(R.string.reading_title))
         Text(stringResource(R.string.reading_before), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        // The running timer stands above the books — it used to sit below them, out of sight.
+        session?.takeIf { it.kind == TimerController.Kind.READING }?.let { s ->
+            val el = s.elapsed(now)
+            ImPanel {
+                Text("%02d:%02d".format(el / 60_000, (el / 1000) % 60), style = MaterialTheme.typography.displayLarge.copy(fontFamily = ImMonoFamily))
+                Text(stringResource(R.string.reading_rule), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                ImSecondaryButton(stringResource(R.string.reading_stop), onClick = { timers.stop(); viewModel.refresh() })
+            }
+        }
         ui.plan.forEach { item ->
             ImPanel {
                 Text(item.title, style = MaterialTheme.typography.titleMedium)
                 Text(item.sectionLabel, style = MaterialTheme.typography.bodyMedium)
-                BookFileActions(books[item.bookId], onRead = { onOpenBook(item.bookId) }, onLoad = { pick(item.bookId) })
+                BookFileActions(books[item.bookId], importing == item.bookId, importMessage?.takeIf { it.first == item.bookId }?.second, onRead = { onOpenBook(item.bookId) }, onLoad = { pick(item.bookId) })
                 Row(horizontalArrangement = Arrangement.spacedBy(ImSpacing.grid)) {
                     item.url?.let { url ->
                         ImSecondaryButton(stringResource(R.string.reading_open_site), {
@@ -109,15 +123,6 @@ fun GospelScreen(onBack: () -> Unit, onOpenBook: (String) -> Unit = {}, viewMode
                 }
             }
         }
-        session?.takeIf { it.kind == TimerController.Kind.READING }?.let { s ->
-            val el = s.elapsed(now)
-            ImPanel {
-                Text("%02d:%02d".format(el / 60_000, (el / 1000) % 60), style = MaterialTheme.typography.displayLarge.copy(fontFamily = ImMonoFamily))
-                Text(stringResource(R.string.reading_rule), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                ImSecondaryButton(stringResource(R.string.reading_stop), onClick = { timers.stop(); viewModel.refresh() })
-            }
-        }
-        importMessage?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary) }
         if (ui.readingDone) Text(stringResource(R.string.reading_done), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
         Text(stringResource(R.string.reading_no_debt), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
@@ -127,21 +132,29 @@ fun GospelScreen(onBack: () -> Unit, onOpenBook: (String) -> Unit = {}, viewMode
             viewModel.programme.forEach { item ->
                 ImPanel {
                     Text(item.title, style = MaterialTheme.typography.titleMedium)
-                    BookFileActions(books[item.bookId], onRead = { onOpenBook(item.bookId) }, onLoad = { pick(item.bookId) }, onRemove = { viewModel.removeBook(item.bookId) })
+                    BookFileActions(books[item.bookId], importing == item.bookId, importMessage?.takeIf { it.first == item.bookId }?.second, onRead = { onOpenBook(item.bookId) }, onLoad = { pick(item.bookId) }, onRemove = { viewModel.removeBook(item.bookId) })
                 }
             }
         }
     }
 }
 
-/** «Читать» for a loaded file (and which file it is), «Загрузить файл» otherwise. */
+/** «Читать» for a loaded file (and which file it is), «Загрузить файл» otherwise; progress and result in place. */
 @Composable
-private fun BookFileActions(info: BookInfo?, onRead: () -> Unit, onLoad: () -> Unit, onRemove: (() -> Unit)? = null) {
+private fun BookFileActions(info: BookInfo?, busy: Boolean, message: String?, onRead: () -> Unit, onLoad: () -> Unit, onRemove: (() -> Unit)? = null) {
+    if (busy) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(ImSpacing.grid)) {
+            CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+            Text(stringResource(R.string.book_loading), style = MaterialTheme.typography.bodyMedium)
+        }
+        return
+    }
+    message?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary) }
     if (info == null) {
         ImSecondaryButton(stringResource(R.string.book_load), onLoad)
         return
     }
-    Text(stringResource(R.string.book_file, info.title, if (info.asPages) stringResource(R.string.book_pages) else info.format.name), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Text(stringResource(R.string.book_file, info.fileName ?: info.title, if (info.asPages) stringResource(R.string.book_pages) else info.format.name), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     ImPrimaryButton(stringResource(R.string.book_read), onClick = onRead)
     Row(horizontalArrangement = Arrangement.spacedBy(ImSpacing.grid)) {
         ImSecondaryButton(stringResource(R.string.book_replace), onLoad, Modifier.weight(1f))
