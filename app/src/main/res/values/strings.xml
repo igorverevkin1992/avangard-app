@@ -62,6 +62,10 @@
     <string name="proof_qr_hint">Наведи камеру на QR-код на кухне.</string>
     <string name="proof_qr_wrong">Это не тот код. Нужен QR из настроек Iter Meum.</string>
     <string name="proof_camera_needed">Для сканирования QR нужна камера.</string>
+    <string name="alarm_emergency_stop">Выключить без подтверждения</string>
+    <string name="alarm_emergency_confirm">Будильник выключится, подъём не засчитается.</string>
+    <string name="alarm_emergency_yes">Да, выключить</string>
+    <string name="settings_emergency_stop">Кнопка «Выключить без подтверждения» на будильнике (на время проверки)</string>
     <string name="proof_use_steps">Нет QR — 20 шагов</string>
     <string name="proof_steps_title">20 шагов за 2 минуты</string>
     <string name="proof_steps_progress">%1$d из %2$d · осталось %3$d с</string>

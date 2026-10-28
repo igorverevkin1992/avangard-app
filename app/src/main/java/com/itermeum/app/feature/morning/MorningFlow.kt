@@ -46,13 +46,33 @@ fun MorningFlow(
     onServiam: () -> Unit,
     onTestDismiss: () -> Unit,
     onSwitchToSteps: () -> Unit = {},
+    onEmergencyStop: () -> Unit = {},
 ) {
-    Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-        when {
-            state.test -> TestRingScreen(onTestDismiss)
-            state.stage == MorningStage.RINGING || state.stage == MorningStage.SCHEDULED -> RingScreen(onProofStart)
-            state.stage == MorningStage.PROOF_PENDING -> WakeProofScreen(state, onQrScanned, onStepsProven, onReverseCode, onSwitchToSteps)
-            else -> HeroicMinuteScreen(state.verdict, onServiam)
+    // The stop sits under the screen, not over it: the proof screen ends with «Нет QR — 20 шагов».
+    Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+        Box(Modifier.fillMaxWidth().weight(1f)) {
+            when {
+                state.test -> TestRingScreen(onTestDismiss)
+                state.stage == MorningStage.RINGING || state.stage == MorningStage.SCHEDULED -> RingScreen(onProofStart)
+                state.stage == MorningStage.PROOF_PENDING -> WakeProofScreen(state, onQrScanned, onStepsProven, onReverseCode, onSwitchToSteps)
+                else -> HeroicMinuteScreen(state.verdict, onServiam)
+            }
+        }
+        val ringing = !state.test && state.stage in setOf(MorningStage.RINGING, MorningStage.SCHEDULED, MorningStage.PROOF_PENDING)
+        if (state.emergencyStop && ringing) EmergencyStop(onEmergencyStop, Modifier.align(Alignment.CenterHorizontally))
+    }
+}
+
+/** D-47: the manual stop for the testing period — two taps, and the wake does not count. */
+@Composable
+private fun EmergencyStop(onStop: () -> Unit, modifier: Modifier) {
+    var confirm by remember { mutableStateOf(false) }
+    Column(modifier.padding(ImSpacing.screen), horizontalAlignment = Alignment.CenterHorizontally) {
+        if (!confirm) {
+            TextButton(onClick = { confirm = true }) { Text(stringResource(R.string.alarm_emergency_stop), color = MaterialTheme.colorScheme.onSurfaceVariant) }
+        } else {
+            Text(stringResource(R.string.alarm_emergency_confirm), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center)
+            TextButton(onClick = onStop) { Text(stringResource(R.string.alarm_emergency_yes), color = MaterialTheme.colorScheme.error) }
         }
     }
 }

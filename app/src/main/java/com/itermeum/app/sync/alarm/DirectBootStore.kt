@@ -21,7 +21,13 @@ class DirectBootStore(context: Context) {
     fun sound(): Int = prefs.getInt(KEY_SOUND, 1)
     fun volume(): Int = prefs.getInt(KEY_VOLUME, 100)
 
+    /** D-47: «Выключить без подтверждения» on the ring screen (for the testing period). */
+    var emergencyStop: Boolean
+        get() = prefs.getBoolean(KEY_EMERGENCY, true)
+        set(value) { prefs.edit().putBoolean(KEY_EMERGENCY, value).apply() }
+
     private companion object {
+        const val KEY_EMERGENCY = "emergency_stop"
         const val KEY_AT = "at"
         const val KEY_DATE = "date"
         const val KEY_SOUND = "sound"

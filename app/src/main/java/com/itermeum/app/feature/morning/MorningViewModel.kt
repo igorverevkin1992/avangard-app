@@ -23,6 +23,8 @@ import kotlinx.coroutines.launch
 data class MorningUi(
     val date: LocalDate = LocalDate.now(),
     val test: Boolean = false,
+    /** D-47: the manual stop is shown while it is on in Settings. */
+    val emergencyStop: Boolean = false,
     val stage: MorningStage = MorningStage.RINGING,
     val proofMethod: ProofMethod = ProofMethod.QR,
     val expectedQrUuid: String? = null,
@@ -60,7 +62,7 @@ class MorningViewModel @Inject constructor(
             val method = if (profile.wakeProofMethod == "STEPS") ProofMethod.STEPS else ProofMethod.QR
             _ui.update {
                 it.copy(
-                    date = date, test = test, expectedQrUuid = profile.wakeQrUuid, proofMethod = method,
+                    date = date, test = test, emergencyStop = com.itermeum.app.sync.alarm.DirectBootStore(context).emergencyStop, expectedQrUuid = profile.wakeQrUuid, proofMethod = method,
                     stage = when {
                         test -> MorningStage.RINGING
                         existing == null -> MorningStage.RINGING
@@ -128,6 +130,17 @@ class MorningViewModel @Inject constructor(
             morning.markHeroicDone(s.date)
             morning.get(s.date)?.provenAt?.let { wakeScheduler.scheduleQuarantineCheck(s.date, it) }
             wakeScheduler.scheduleNext()
+        }
+    }
+
+    /** D-47: stops the ring without proof; the wake is recorded as missed, tomorrow's alarm stays. */
+    fun forceStop() {
+        AlarmService.stop(context)
+        wakeScheduler.cancelMissed()
+        val date = _ui.value.date
+        viewModelScope.launch {
+            runCatching { morning.markMissed(date) }
+            runCatching { wakeScheduler.scheduleNext() }
         }
     }
 

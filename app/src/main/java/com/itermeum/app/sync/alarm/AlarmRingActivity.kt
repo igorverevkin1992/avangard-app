@@ -63,6 +63,7 @@ class AlarmRingActivity : ComponentActivity() {
                         finish()
                     },
                     onTestDismiss = { viewModel.stopTest(); finish() },
+                    onEmergencyStop = { viewModel.forceStop(); finish() },
                 )
             }
         }

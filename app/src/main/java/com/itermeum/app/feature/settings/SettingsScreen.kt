@@ -157,6 +157,12 @@ fun SettingsScreen(onBack: () -> Unit, onOpenAbout: () -> Unit, viewModel: Setti
                 Text(stringResource(R.string.settings_travel_auto), style = MaterialTheme.typography.bodyLarge)
                 androidx.compose.material3.Switch(checked = p.travelAuto, onCheckedChange = { v -> viewModel.update { it.copy(travelAuto = v) } })
             }
+            // D-47: for the testing period and trips without the QR on the wall.
+            val emergency by viewModel.emergencyStop.collectAsState()
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.settings_emergency_stop), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+                androidx.compose.material3.Switch(checked = emergency, onCheckedChange = viewModel::setEmergencyStop)
+            }
             if (travel == null) ImSecondaryButton(stringResource(R.string.settings_travel_start), viewModel::startTravel)
             else ImSecondaryButton(stringResource(R.string.settings_travel_end_since, travel!!.startDate.toString()), viewModel::endTravel)
         }

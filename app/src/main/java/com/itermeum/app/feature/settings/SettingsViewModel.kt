@@ -37,6 +37,7 @@ class SettingsViewModel @Inject constructor(
     private val streaks: StreakRepository,
     private val norms: NormRepository,
     private val uiPrefs: UiPrefs,
+    @dagger.hilt.android.qualifiers.ApplicationContext private val appContext: android.content.Context,
 ) : ViewModel() {
 
     /** Section 5.17: every norm can be switched off (except the core) and given its own time. */
@@ -49,6 +50,10 @@ class SettingsViewModel @Inject constructor(
 
     val lightTheme: StateFlow<Boolean> = uiPrefs.light
     fun setLightTheme(light: Boolean) = uiPrefs.setLight(light)
+
+    private val directBoot = com.itermeum.app.sync.alarm.DirectBootStore(appContext)
+    val emergencyStop = kotlinx.coroutines.flow.MutableStateFlow(directBoot.emergencyStop)
+    fun setEmergencyStop(on: Boolean) { directBoot.emergencyStop = on; emergencyStop.value = on }
 
     /** The wake QR is rendered off the main thread, once per uuid. */
     @OptIn(ExperimentalCoroutinesApi::class)
