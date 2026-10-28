@@ -93,7 +93,8 @@ class MorningRepository @Inject constructor(
 
     suspend fun answerQuarantine(date: LocalDate, kept: Boolean) {
         val now = clock.nowEpochMillis()
-        transition(date) { it.copy(quarantineAnswer = kept, quarantineAnsweredAt = now, stage = MorningStage.DONE) }
+        // A missed wake stays missed: answering from Today (D-48) must not turn it into «подтверждён».
+        transition(date) { it.copy(quarantineAnswer = kept, quarantineAnsweredAt = now, stage = if (it.stage == MorningStage.QUARANTINE) MorningStage.DONE else it.stage) }
         if (kept) norms.markDone(NormCatalog.QUARANTINE, date)
     }
 

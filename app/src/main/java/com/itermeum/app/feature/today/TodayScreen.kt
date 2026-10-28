@@ -318,6 +318,16 @@ private fun NormRow(
             Spacer(Modifier.height(ImSpacing.tight))
             if (item.normId == NormCatalog.MORTIFICATION) MortificationCard(mortification, viewModel)
             else hint?.let { Text(stringResource(it), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+            // D-48: when the morning flow did not ask (wake missed, Serviam skipped), answer here.
+            val m = ui.morning
+            if (item.normId == NormCatalog.QUARANTINE && !done && m?.quarantineAnswer == null && m?.stage != MorningStage.QUARANTINE) {
+                Spacer(Modifier.height(ImSpacing.grid))
+                Text(stringResource(R.string.quarantine_question_title), style = MaterialTheme.typography.titleMedium)
+                Row(horizontalArrangement = Arrangement.spacedBy(ImSpacing.grid)) {
+                    ImSecondaryButton(stringResource(R.string.yes), { viewModel.answerQuarantine(true) }, Modifier.weight(1f))
+                    ImSecondaryButton(stringResource(R.string.no), { viewModel.answerQuarantine(false) }, Modifier.weight(1f))
+                }
+            }
         }
     }
 }

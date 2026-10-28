@@ -257,8 +257,8 @@
     <string name="ritual_prayer">Господи, благодарю за прошедшую встречу; благослови людей, к которым я сейчас иду</string>
     <string-array name="weekdays_short"><item>Пн</item><item>Вт</item><item>Ср</item><item>Чт</item><item>Пт</item><item>Сб</item><item>Вс</item></string-array>
     <string name="today_hint_wake">Отмечается утром: будильник → QR-код (или 20 шагов) в течение 20 минут после звонка.</string>
-    <string name="today_hint_serviam">Отмечается кнопкой SERVIAM на экране будильника — в течение 5 минут после подъёма.</string>
-    <string name="today_hint_quarantine">Отмечается ответом «Да» на вопрос через 35 минут после подъёма (уведомление или карточка утра выше).</string>
+    <string name="today_hint_serviam">Утреннее приношение: отдать Богу весь начинающийся день. Отмечается кнопкой SERVIAM на экране будильника — в течение 5 минут после подтверждения подъёма.</string>
+    <string name="today_hint_quarantine">Первые 30 минут после подъёма — без мессенджеров. Через 35 минут придёт вопрос; если не пришёл — ответьте здесь честно.</string>
     <string name="today_hint_mortification">Выберите умерщвление в карточке «Малое умерщвление» выше и отметьте вечером.</string>
     <string name="today_progress">%1$d из %2$d норм</string>
     <string name="today_fidelity_days">Верность: %1$d дн. подряд</string>
