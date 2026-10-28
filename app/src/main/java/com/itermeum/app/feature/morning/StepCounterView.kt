@@ -35,7 +35,7 @@ import com.itermeum.app.core.designsystem.ImPanel
 import com.itermeum.app.core.designsystem.ImSpacing
 import kotlinx.coroutines.delay
 
-/** Section 5.1 fallback: TYPE_STEP_COUNTER delta ≥ [target] within [windowSeconds]. */
+/** Section 5.1 fallback: ≥ [target] steps within [windowSeconds] (step sensors and the accelerometer, D-46). */
 @Composable
 fun StepCounterView(target: Int, windowSeconds: Int, onReached: () -> Unit) {
     val context = LocalContext.current
@@ -58,26 +58,40 @@ fun StepCounterView(target: Int, windowSeconds: Int, onReached: () -> Unit) {
         expired = true
     }
 
+    // D-46: three sources, the highest count wins. The step sensors need «Физическая активность»
+    // and HyperOS batches the step counter by tens of seconds; the accelerometer needs no
+    // permission and answers at once — so steps count even when the permission was refused.
     DisposableEffect(granted, restartKey) {
-        if (!granted) return@DisposableEffect onDispose { }
         val sm = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        val sensor = sm.getDefaultSensor(Sensor.TYPE_STEP_COUNTER) ?: sm.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR)
-        var baseline = -1f
+        var counterBase = -1f
+        var counterSteps = 0
+        var detectorSteps = 0
+        val accel = AccelStepDetector()
         var reached = false
+        fun publish() {
+            if (expired) return
+            steps = maxOf(counterSteps, detectorSteps, accel.steps)
+            if (steps >= target && !reached) { reached = true; latestOnReached() }
+        }
         val listener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent) {
-                if (expired) return
-                if (event.sensor.type == Sensor.TYPE_STEP_COUNTER) {
-                    if (baseline < 0) baseline = event.values[0]
-                    steps = (event.values[0] - baseline).toInt()
-                } else {
-                    steps += 1
+                when (event.sensor.type) {
+                    Sensor.TYPE_STEP_COUNTER -> {
+                        if (counterBase < 0) counterBase = event.values[0]
+                        counterSteps = (event.values[0] - counterBase).toInt()
+                    }
+                    Sensor.TYPE_STEP_DETECTOR -> detectorSteps++
+                    Sensor.TYPE_ACCELEROMETER -> accel.onSample(event.values[0], event.values[1], event.values[2], event.timestamp)
                 }
-                if (steps >= target && !reached) { reached = true; latestOnReached() }
+                publish()
             }
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
         }
-        if (sensor != null) sm.registerListener(listener, sensor, SensorManager.SENSOR_DELAY_UI)
+        if (granted) {
+            sm.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)?.let { sm.registerListener(listener, it, SensorManager.SENSOR_DELAY_FASTEST, 0) }
+            sm.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR)?.let { sm.registerListener(listener, it, SensorManager.SENSOR_DELAY_FASTEST, 0) }
+        }
+        sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)?.let { sm.registerListener(listener, it, SensorManager.SENSOR_DELAY_GAME) }
         onDispose { sm.unregisterListener(listener) }
     }
 
