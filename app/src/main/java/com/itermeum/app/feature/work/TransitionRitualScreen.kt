@@ -30,7 +30,7 @@ import kotlinx.coroutines.delay
 fun TransitionRitualScreen(onDone: () -> Unit, viewModel: WorkViewModel = hiltViewModel()) {
     var phase by remember { mutableIntStateOf(0) }
     var left by remember { mutableIntStateOf(3) }
-    var prayer by remember { mutableStateOf("") }
+    var prayer by remember { mutableStateOf("" to "") }
     LaunchedEffect(Unit) {
         prayer = viewModel.ritualPrayer()
         for ((p, secs) in listOf(0 to 3, 1 to 5, 2 to 7)) {
@@ -43,9 +43,12 @@ fun TransitionRitualScreen(onDone: () -> Unit, viewModel: WorkViewModel = hiltVi
     Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(ImSpacing.screen), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(ImSpacing.screen)) {
             Text(
-                when (phase) { 0 -> stringResource(R.string.ritual_close_file); 1 -> stringResource(R.string.ritual_breathe); else -> prayer },
+                when (phase) { 0 -> stringResource(R.string.ritual_close_file); 1 -> stringResource(R.string.ritual_breathe); else -> prayer.first },
                 style = MaterialTheme.typography.headlineMedium, textAlign = TextAlign.Center,
             )
+            if (phase == 2 && prayer.second.isNotEmpty()) {
+                Text(prayer.second, style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
             Text(left.toString(), style = MaterialTheme.typography.displayLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
             TextButton(onClick = onDone) { Text(stringResource(R.string.cancel)) }
         }

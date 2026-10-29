@@ -47,6 +47,7 @@ class WorkViewModel @Inject constructor(
     private val prayers: PrayerRepository,
     private val widget: com.itermeum.app.sync.widget.WidgetUpdater,
     private val clock: Clock,
+    private val assets: com.itermeum.app.core.content.ContentAssets,
 ) : ViewModel() {
 
     val date: LocalDate = clock.logicalToday()
@@ -93,7 +94,19 @@ class WorkViewModel @Inject constructor(
     suspend fun recentPeople() = work.recentPeople()
     suspend fun beforeCallPrayer(): String = prayers.pickJaculatoria("BEFORE_CALL")?.text ?: context.getString(R.string.jaculatoria_fallback_call)
     /** Section 5.4 ritual prayer, kept in resources (content texts carry their own sources). */
-    fun ritualPrayer(): String = context.getString(R.string.ritual_prayer)
+    /**
+     * D-52: a random Opus Dei jaculatory — Latin, then Russian — never the one
+     * shown last time.
+     */
+    fun ritualPrayer(): Pair<String, String> {
+        val list = assets.jaculatoria.opusDei
+        if (list.isEmpty()) return context.getString(R.string.ritual_prayer) to ""
+        val prefs = context.getSharedPreferences("ritual", android.content.Context.MODE_PRIVATE)
+        val last = prefs.getInt("last", -1)
+        val pick = (list.indices - last).random()
+        prefs.edit().putInt("last", pick).apply()
+        return list[pick].latin to list[pick].text
+    }
     suspend fun afterRejectionPrayer(): String = prayers.pickJaculatoria("AFTER_REJECTION")?.text ?: "Omnia in bonum"
 
     fun closeTask(task: WorkTaskEntity, checklist: List<Boolean>) = viewModelScope.launch { work.closeTask(task, checklist); widget.requestUpdate() }

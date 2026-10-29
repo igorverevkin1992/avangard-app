@@ -483,5 +483,110 @@
    "legal": "собственный текст",
    "verify": false
   }
+ ],
+ "opusDeiNote": "D-52: стрелы Opus Dei и св. Хосемарии для ритуала перехода. Латинский возглас и русский перевод (перевод приложения); verify — сверить с изданиями Opus Dei.",
+ "opusDei": [
+  {
+   "latin": "Omnia in bonum!",
+   "text": "Всё — ко благу!",
+   "source": "св. Хосемария; ср. Рим 8:28",
+   "verify": true
+  },
+  {
+   "latin": "Deo omnis gloria!",
+   "text": "Вся слава — Богу!",
+   "source": "св. Хосемария",
+   "verify": true
+  },
+  {
+   "latin": "Serviam!",
+   "text": "Буду служить!",
+   "source": "девиз св. Хосемарии",
+   "verify": true
+  },
+  {
+   "latin": "Domine, ut videam!",
+   "text": "Господи, чтобы мне прозреть!",
+   "source": "св. Хосемария; ср. Лк 18:41",
+   "verify": true
+  },
+  {
+   "latin": "Domine, ut sit!",
+   "text": "Господи, да будет!",
+   "source": "св. Хосемария",
+   "verify": true
+  },
+  {
+   "latin": "Domina, ut sit!",
+   "text": "Госпожа наша, да будет!",
+   "source": "св. Хосемария",
+   "verify": true
+  },
+  {
+   "latin": "Nunc coepi!",
+   "text": "Теперь начинаю!",
+   "source": "св. Хосемария; Пс 76:11 (Вульгата)",
+   "verify": true
+  },
+  {
+   "latin": "Regnare Christum volumus!",
+   "text": "Хотим, чтобы царствовал Христос!",
+   "source": "св. Хосемария",
+   "verify": true
+  },
+  {
+   "latin": "In laetitia, nulla dies sine cruce!",
+   "text": "В радости — ни дня без креста!",
+   "source": "св. Хосемария",
+   "verify": true
+  },
+  {
+   "latin": "Ure igne Sancti Spiritus!",
+   "text": "Опали огнём Святого Духа!",
+   "source": "молитва Opus Dei",
+   "verify": true
+  },
+  {
+   "latin": "Cor Mariae dulcissimum, iter para tutum!",
+   "text": "Сладчайшее Сердце Марии, уготовь безопасный путь!",
+   "source": "молитва Opus Dei",
+   "verify": true
+  },
+  {
+   "latin": "Sancta Maria, Spes nostra, Sedes Sapientiae, ora pro nobis!",
+   "text": "Святая Мария, Надежда наша, Престол Премудрости, молись о нас!",
+   "source": "молитва Opus Dei",
+   "verify": true
+  },
+  {
+   "latin": "Sancta Maria, Stella Orientis, filios tuos adiuva!",
+   "text": "Святая Мария, Звезда Востока, помоги детям твоим!",
+   "source": "св. Хосемария",
+   "verify": true
+  },
+  {
+   "latin": "Cor Iesu sacratissimum et misericors, dona nobis pacem!",
+   "text": "Святейшее и милосердное Сердце Иисуса, даруй нам мир!",
+   "source": "молитва Opus Dei",
+   "verify": true
+  },
+  {
+   "latin": "Quia tu es, Deus, fortitudo mea!",
+   "text": "Ибо Ты, Боже, — крепость моя!",
+   "source": "св. Хосемария; Пс 42:2 (Вульгата)",
+   "verify": true
+  },
+  {
+   "latin": "Ignem veni mittere in terram!",
+   "text": "Огонь пришёл Я низвести на землю!",
+   "source": "св. Хосемария; Лк 12:49",
+   "verify": true
+  },
+  {
+   "latin": "Fiat, adimpleatur, laudetur!",
+   "text": "Да будет, да исполнится, да будет восхвалена воля Божия!",
+   "source": "молитва св. Хосемарии",
+   "verify": true
+  }
  ]
 }

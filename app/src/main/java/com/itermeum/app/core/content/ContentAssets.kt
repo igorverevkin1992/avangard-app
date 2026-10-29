@@ -22,7 +22,9 @@ data class JaculatoriaJson(
 )
 
 @Serializable data class SituationJson(val id: String, val title: String)
-@Serializable data class JaculatoriaFile(val situations: List<SituationJson>, val items: List<JaculatoriaJson>)
+/** D-52: Opus Dei / St Josemaría jaculatories for the transition ritual. */
+@Serializable data class OpusDeiJaculatoryJson(val latin: String, val text: String, val source: String, val verify: Boolean = true)
+@Serializable data class JaculatoriaFile(val situations: List<SituationJson>, val items: List<JaculatoriaJson>, val opusDei: List<OpusDeiJaculatoryJson> = emptyList())
 
 @Serializable
 data class AsceticJson(val id: String, val book: String, val number: String, val theme: String, val microCommitment: String, val legal: String = "")
