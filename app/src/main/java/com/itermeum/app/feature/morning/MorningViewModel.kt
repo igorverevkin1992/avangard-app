@@ -14,6 +14,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.time.LocalDate
 import javax.inject.Inject
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -138,7 +141,9 @@ class MorningViewModel @Inject constructor(
         AlarmService.stop(context)
         wakeScheduler.cancelMissed()
         val date = _ui.value.date
-        viewModelScope.launch {
+        // The ring screen finishes right away and clears this ViewModel: the record must outlive it,
+        // or the morning would stay «ringing» with no missed-alarm left to close it.
+        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             runCatching { morning.markMissed(date) }
             runCatching { wakeScheduler.scheduleNext() }
         }
