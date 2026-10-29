@@ -25,6 +25,8 @@ class NotificationChannels @Inject constructor(
             // D-34: the work card buzzes once at each block change, never rings.
             Spec(WORK_CARD, R.string.channel_work_card, NotificationManager.IMPORTANCE_DEFAULT, vibrate = true, silent = true),
             // Non-work reminders during working hours: shown, but without sound or pop-up.
+            // D-50: the prayer/reading timer card — shown like the work card, one buzz when it counts.
+            Spec(TIMER_CARD, R.string.channel_timer_card, NotificationManager.IMPORTANCE_DEFAULT, vibrate = true, silent = true),
             Spec(QUIET_REMINDERS, R.string.channel_quiet_reminders, NotificationManager.IMPORTANCE_LOW, vibrate = false),
         )
         specs.forEach { spec ->
@@ -49,6 +51,7 @@ class NotificationChannels @Inject constructor(
         const val NORM_REMINDERS = "norm_reminders"
         const val NORM_ESCALATION = "norm_escalation"
         const val TIMERS = "timers"
+        const val TIMER_CARD = "timer_card"
         const val SYSTEM_HEALTH = "system_health"
         const val BACKUP = "backup"
         const val WORK_CARD = "work_card"

@@ -92,6 +92,7 @@ class TimerViewModel @Inject constructor(
     private val norms: NormRepository,
     private val reading: ReadingRepository,
     private val clock: Clock,
+    private val finisher: com.itermeum.app.core.data.TimerFinisher,
 ) : ViewModel() {
     val session: StateFlow<TimerController.Session?> = timers.session
 
@@ -102,17 +103,8 @@ class TimerViewModel @Inject constructor(
     fun startMental() { timers.start(TimerController.Kind.MENTAL_PRAYER, MENTAL_MS); SessionTimerService.start(context) }
     fun startReading(bookId: String) { timers.start(TimerController.Kind.READING, READING_MS, bookId); SessionTimerService.start(context) }
 
-    /** Mental prayer counts at ≥80 % of the time; reading logs its minutes (≥8 counts). */
-    fun stop() {
-        val s = timers.stop() ?: return
-        val now = clock.nowEpochMillis()
-        viewModelScope.launch {
-            when (s.kind) {
-                TimerController.Kind.MENTAL_PRAYER -> if (s.fraction(now) >= 0.8) norms.markDone(NormCatalog.MENTAL_PRAYER, clock.logicalToday())
-                TimerController.Kind.READING -> reading.logReading(clock.logicalToday(), s.bookId ?: "book", (s.elapsed(now) / 60_000L).toInt())
-            }
-        }
-    }
+    /** Mental prayer counts at ≥80 % of the time; reading logs its minutes (≥8 counts) — see [TimerFinisher]. */
+    fun stop() { viewModelScope.launch { finisher.finish() } }
 
     fun now() = clock.nowEpochMillis()
 
