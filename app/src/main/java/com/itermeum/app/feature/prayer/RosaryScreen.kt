@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -42,9 +43,10 @@ fun RosaryScreen(onBack: () -> Unit, viewModel: RosaryViewModel = hiltViewModel(
     val prayers by book.prayerList.collectAsState()
     fun text(id: String) = prayers.firstOrNull { it.id == id }?.let { book.displayText(it) } ?: ""
     // step: 0 = opening, 1..5 = decade n, 6 = closing, 7 = done
-    var step by remember(ui.decadesDone) { mutableIntStateOf(if (ui.decadesDone >= 5) 6 else ui.decadesDone + 1) }
-    var opened by remember { mutableIntStateOf(0) }
-    var aves by remember(step) { mutableIntStateOf(0) }
+    // rememberSaveable: turning the phone or leaving the app must not lose the place in the decade.
+    var step by rememberSaveable(ui.decadesDone) { mutableIntStateOf(if (ui.decadesDone >= 5) 6 else ui.decadesDone + 1) }
+    var opened by rememberSaveable { mutableIntStateOf(0) }
+    var aves by rememberSaveable(step) { mutableIntStateOf(0) }
 
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(ImSpacing.screen), verticalArrangement = Arrangement.spacedBy(ImSpacing.grid)) {
         ImHeader(stringResource(R.string.hub_rosary), onBack = onBack)

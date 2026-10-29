@@ -46,6 +46,7 @@
 
         <activity
             android:name=".MainActivity"
+            android:screenOrientation="portrait"
             android:exported="true"
             android:launchMode="singleTop"
             android:theme="@style/Theme.IterMeum">
@@ -63,6 +64,7 @@
 
         <activity
             android:name=".sync.alarm.AlarmRingActivity"
+            android:screenOrientation="portrait"
             android:exported="false"
             android:excludeFromRecents="true"
             android:launchMode="singleInstance"
