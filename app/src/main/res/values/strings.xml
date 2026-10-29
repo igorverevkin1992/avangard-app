@@ -349,6 +349,7 @@
     <string name="work_queue_now">Сейчас: %1$s</string>
     <string name="work_make_next">Сделать следующей</string>
     <string name="plan_no_calls">В плане нет звонков героям — сохранить можно, но обычно они идут первой задачей.</string>
+    <string name="plan_too_late">Норма «План дня» засчитывается, если план сохранён до %1$s. Сейчас позже — план сохранится, но галочки сегодня не будет. Удобнее всего составлять план накануне вечером, в испытании совести.</string>
     <string name="plan_need_task">Впишите хотя бы одну задачу.</string>
     <string name="plan_move_up">Выше</string>
     <string name="plan_move_down">Ниже</string>

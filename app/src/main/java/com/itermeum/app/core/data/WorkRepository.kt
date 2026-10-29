@@ -111,6 +111,9 @@ class WorkRepository @Inject constructor(
     }
 
     /** Outreach cutoff for the current profile (14:00, later for a late `workStart`). */
+    /** The plan counts for its day when saved before this (workStart + 30, section 4). */
+    suspend fun planDeadline(): LocalTime = profiles.get().workStart.plusMinutes(30)
+
     suspend fun cutoffFor(): LocalTime = DayScheduleEngine.frogCutoff(profiles.get())
 
     suspend fun targetFor(date: LocalDate): Int {

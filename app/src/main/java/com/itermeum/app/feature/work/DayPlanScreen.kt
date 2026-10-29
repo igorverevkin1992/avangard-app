@@ -29,6 +29,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.itermeum.app.R
+import com.itermeum.app.core.content.NormCatalog
 import com.itermeum.app.core.data.WorkRepository
 import com.itermeum.app.core.database.entity.TaskType
 import com.itermeum.app.core.designsystem.ImHeader
@@ -126,6 +127,11 @@ fun DayPlanScreen(onBack: () -> Unit, viewModel: WorkViewModel = hiltViewModel()
         }
         if (drafts.none { it.type == TaskType.OUTREACH || it.type == TaskType.SHOOT }) {
             Text(stringResource(R.string.plan_no_calls), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        // The norm counts only before workStart + 30: say so instead of a silent missing tick.
+        val deadline by viewModel.planDeadline.collectAsState()
+        if (deadline != null && viewModel.planTooLate() && NormCatalog.DAY_PLAN !in ui.done) {
+            Text(stringResource(R.string.plan_too_late, deadline.toString()), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
         }
         if (!valid) Text(stringResource(R.string.plan_need_task), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.error)
         ImPrimaryButton(stringResource(R.string.save), enabled = valid, onClick = { viewModel.savePlan(drafts, intention.ifBlank { null }, shootDay, onBack) })

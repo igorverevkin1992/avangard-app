@@ -55,7 +55,12 @@ class WorkViewModel @Inject constructor(
 
     private val cutoff = MutableStateFlow(DayScheduleEngine.FROG_CUTOFF)
 
-    init { viewModelScope.launch { target.value = work.targetFor(date); cutoff.value = work.cutoffFor() } }
+    /** Null until loaded; the plan norm counts only when saved before it. */
+    val planDeadline = MutableStateFlow<java.time.LocalTime?>(null)
+
+    init { viewModelScope.launch { target.value = work.targetFor(date); cutoff.value = work.cutoffFor(); planDeadline.value = work.planDeadline() } }
+
+    fun planTooLate(): Boolean = planDeadline.value?.let { !clock.now().isBefore(date.atTime(it)) } ?: false
 
     val ui: StateFlow<WorkUi> = combine(
         work.observePlan(date), work.observeTasks(date), work.observeOutreach(date), work.observeRitualCount(date), norms.observeDoneIds(date),
