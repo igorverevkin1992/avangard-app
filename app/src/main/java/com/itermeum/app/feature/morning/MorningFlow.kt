@@ -1,6 +1,5 @@
 package com.itermeum.app.feature.morning
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,6 +12,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -49,7 +49,9 @@ fun MorningFlow(
     onEmergencyStop: () -> Unit = {},
 ) {
     // The stop sits under the screen, not over it: the proof screen ends with «Нет QR — 20 шагов».
-    Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+    // Surface gives the text its colour: without it Text falls back to black on this black screen.
+    Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background, contentColor = MaterialTheme.colorScheme.onBackground) {
+    Column(Modifier.fillMaxSize()) {
         Box(Modifier.fillMaxWidth().weight(1f)) {
             when {
                 state.test -> TestRingScreen(onTestDismiss)
@@ -60,6 +62,7 @@ fun MorningFlow(
         }
         val ringing = !state.test && state.stage in setOf(MorningStage.RINGING, MorningStage.SCHEDULED, MorningStage.PROOF_PENDING)
         if (state.emergencyStop && ringing) EmergencyStop(onEmergencyStop, Modifier.align(Alignment.CenterHorizontally))
+    }
     }
 }
 
