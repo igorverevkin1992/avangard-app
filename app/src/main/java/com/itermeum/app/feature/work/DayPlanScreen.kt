@@ -79,7 +79,10 @@ fun DayPlanScreen(onBack: () -> Unit, viewModel: WorkViewModel = hiltViewModel()
             seeded = true
         }
     }
-    val drafts = titles.indices.map { i -> WorkRepository.TaskDraft(i + 1, types[i], titles[i], followUpContact = followUps[i].takeIf { types[i] == TaskType.SHOOT }) }
+    // Empty slots are skipped (D-51): two tasks are a plan too.
+    val drafts = titles.indices.filter { titles[it].isNotBlank() }.mapIndexed { n, i ->
+        WorkRepository.TaskDraft(n + 1, types[i], titles[i], followUpContact = followUps[i].takeIf { types[i] == TaskType.SHOOT })
+    }
     val valid = viewModel.planIsValid(drafts, shootDay)
     val upLabel = stringResource(R.string.plan_move_up)
     val downLabel = stringResource(R.string.plan_move_down)
@@ -121,6 +124,10 @@ fun DayPlanScreen(onBack: () -> Unit, viewModel: WorkViewModel = hiltViewModel()
         if (!ui.beforeCutoff && ui.tasks.isNotEmpty()) {
             Text(stringResource(R.string.plan_after_cutoff), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
+        if (drafts.none { it.type == TaskType.OUTREACH || it.type == TaskType.SHOOT }) {
+            Text(stringResource(R.string.plan_no_calls), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        if (!valid) Text(stringResource(R.string.plan_need_task), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.error)
         ImPrimaryButton(stringResource(R.string.save), enabled = valid, onClick = { viewModel.savePlan(drafts, intention.ifBlank { null }, shootDay, onBack) })
     }
 }

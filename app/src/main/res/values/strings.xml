@@ -348,6 +348,8 @@
     <string name="plan_slot">Слот %1$d</string>
     <string name="work_queue_now">Сейчас: %1$s</string>
     <string name="work_make_next">Сделать следующей</string>
+    <string name="plan_no_calls">В плане нет звонков героям — сохранить можно, но обычно они идут первой задачей.</string>
+    <string name="plan_need_task">Впишите хотя бы одну задачу.</string>
     <string name="plan_move_up">Выше</string>
     <string name="plan_move_down">Ниже</string>
     <string name="plan_add_slot">+ Добавить слот</string>

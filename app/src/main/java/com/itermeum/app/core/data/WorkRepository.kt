@@ -60,16 +60,13 @@ class WorkRepository @Inject constructor(
     fun observeScriptCount(date: LocalDate): Flow<Int> = scriptDao.observeCountForDate(date)
 
     /**
-     * Section 5.2: the plan holds the hero calls — an OUTREACH task (or, on a
-     * shoot day, SHOOT with whom to call after). Since D-43 it may sit in any
-     * slot: the order changes during the day.
+     * Section 5.2, relaxed by D-51: a plan is at least one named task. Hero calls
+     * are recommended (the screen says so) but no longer block saving — on a trip
+     * or a day without calls the plan must still be savable.
      */
-    fun planIsValid(drafts: List<TaskDraft>, shootDay: Boolean): Boolean {
-        if (drafts.isEmpty() || drafts.any { it.title.isBlank() }) return false
-        return drafts.any { d ->
-            d.type == TaskType.OUTREACH || (d.type == TaskType.SHOOT && shootDay && !d.followUpContact.isNullOrBlank())
-        }
-    }
+    @Suppress("UNUSED_PARAMETER")
+    fun planIsValid(drafts: List<TaskDraft>, shootDay: Boolean): Boolean =
+        drafts.isNotEmpty() && drafts.none { it.title.isBlank() }
 
     suspend fun savePlan(date: LocalDate, drafts: List<TaskDraft>, intention: String?, shootDay: Boolean) {
         require(planIsValid(drafts, shootDay))
