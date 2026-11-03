@@ -14,6 +14,9 @@ concurrency:
 jobs:
   test-and-build:
     runs-on: ubuntu-latest
+    # contents: write — only to publish the APK to the «latest» release below.
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -87,6 +90,19 @@ jobs:
           path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 14
+
+      # A stable link that needs no GitHub login (artifact pages do), asked for by the owner:
+      # https://github.com/<owner>/<repo>/releases/download/latest/itermeum.apk
+      - name: Publish APK to the «latest» release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/claude/sleepy-curie-c5lhqh'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp app/build/outputs/apk/debug/app-debug.apk itermeum.apk
+          gh release delete latest --yes --cleanup-tag || true
+          gh release create latest itermeum.apk --prerelease --target "$GITHUB_SHA" \
+            --title "Iter Meum — последняя сборка" \
+            --notes "Сборка ${GITHUB_SHA::7}. Ставить поверх установленного приложения — данные сохранятся."
 
       - name: Upload release APK and R8 mapping
         uses: actions/upload-artifact@v4
