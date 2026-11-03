@@ -18,6 +18,7 @@ import com.itermeum.app.feature.examen.ExamenScreen
 import com.itermeum.app.feature.prayer.AngelusScreen
 import com.itermeum.app.feature.prayer.CalendarScreen
 import com.itermeum.app.feature.prayer.GospelScreen
+import com.itermeum.app.feature.prayer.MarianSaturdayScreen
 import com.itermeum.app.feature.prayer.BookReaderScreen
 import com.itermeum.app.feature.prayer.JaculatoriaScreen
 import com.itermeum.app.feature.prayer.MassScreen
@@ -89,6 +90,7 @@ fun IterMeumNavHost(navController: NavHostController, startDestination: String) 
                 onExamen = { navController.navigate(NavRoute.Examen.route) },
                 onAngelus = { navController.navigate(NavRoute.PrayerAngelus.route) },
                 onMass = { navController.navigate(NavRoute.PrayerMass.route) },
+                onMarian = { navController.navigate(NavRoute.PrayerMarian.route) },
             )
         }
         composable(NavRoute.PrayerBook.route) { PrayerBookScreen(onBack = { navController.popBackStack() }, onOpen = { navController.navigate(NavRoute.PrayerItem.of(it)) }) }
@@ -107,6 +109,7 @@ fun IterMeumNavHost(navController: NavHostController, startDestination: String) 
         }
         composable(NavRoute.PrayerMental.route) { MentalPrayerScreen(onBack = { navController.popBackStack() }) }
         composable(NavRoute.PrayerAngelus.route) { AngelusScreen(onBack = { navController.popBackStack() }) }
+        composable(NavRoute.PrayerMarian.route) { MarianSaturdayScreen(onBack = { navController.popBackStack() }) }
         composable(NavRoute.PrayerMass.route) { MassScreen(onBack = { navController.popBackStack() }) }
         composable(NavRoute.Examen.route) { ExamenScreen(onBack = { navController.popBackStack() }) }
         composable(NavRoute.Path.route) {

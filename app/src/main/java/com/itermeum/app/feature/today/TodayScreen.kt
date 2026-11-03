@@ -338,6 +338,7 @@ internal fun normRoute(normId: String): String? = when (normId) {
     NormCatalog.GOSPEL, NormCatalog.READING -> NavRoute.PrayerGospel.route
     NormCatalog.SRS -> NavRoute.PrayerSrs.route
     NormCatalog.ANGELUS -> NavRoute.PrayerAngelus.route
+    NormCatalog.MARIAN_SATURDAY -> NavRoute.PrayerMarian.route
     NormCatalog.JACULATORIA -> NavRoute.PrayerJaculatory.of(null)
     NormCatalog.ROSARY -> NavRoute.PrayerRosary.route
     NormCatalog.MASS -> NavRoute.PrayerMass.route

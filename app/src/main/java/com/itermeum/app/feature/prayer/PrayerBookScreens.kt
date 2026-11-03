@@ -24,6 +24,7 @@ import com.itermeum.app.R
 import com.itermeum.app.core.database.entity.PrayerEntity
 import com.itermeum.app.core.designsystem.ImHeader
 import com.itermeum.app.core.designsystem.ImPanel
+import com.itermeum.app.core.designsystem.ImPrimaryButton
 import com.itermeum.app.core.designsystem.ImSecondaryButton
 import com.itermeum.app.core.designsystem.ImSectionLabel
 import com.itermeum.app.core.designsystem.ImSpacing
@@ -71,6 +72,24 @@ fun PrayerItemScreen(id: String, onBack: () -> Unit, viewModel: PrayerHubViewMod
         ImSectionLabel(stringResource(R.string.prayer_source))
         Text("${p.source} · ${p.status}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text(p.legal, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+/** D-53: Saturday's «Славься, Царица» — what it is, the prayer itself, then «Помолился». */
+@Composable
+fun MarianSaturdayScreen(onBack: () -> Unit, viewModel: PrayerHubViewModel = hiltViewModel()) {
+    val prayer by viewModel.observePrayer("salve_regina").collectAsState(initial = null)
+    val done by viewModel.done.collectAsState()
+    val p = prayer ?: return
+    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(ImSpacing.screen), verticalArrangement = Arrangement.spacedBy(ImSpacing.grid)) {
+        ImHeader(p.title, onBack = onBack)
+        Text(stringResource(R.string.marian_saturday_about), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        VerifyBadge(p)
+        ImPanel { Text(viewModel.displayText(p), style = MaterialTheme.typography.bodyLarge) }
+        ImPrimaryButton(
+            if (com.itermeum.app.core.content.NormCatalog.MARIAN_SATURDAY in done) stringResource(R.string.marked) else stringResource(R.string.angelus_mark),
+            onClick = { viewModel.markMarianSaturday(); onBack() },
+        )
     }
 }
 

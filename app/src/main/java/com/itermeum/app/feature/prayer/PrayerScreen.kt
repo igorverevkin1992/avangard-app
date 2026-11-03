@@ -31,6 +31,7 @@ import java.time.DayOfWeek
 fun PrayerScreen(
     onBook: () -> Unit, onRosary: () -> Unit, onJaculatory: () -> Unit, onGospel: () -> Unit,
     onSrs: () -> Unit, onCalendar: () -> Unit, onMental: () -> Unit, onExamen: () -> Unit, onAngelus: () -> Unit, onMass: () -> Unit,
+    onMarian: () -> Unit = {},
     viewModel: PrayerHubViewModel = hiltViewModel(),
 ) {
     val done by viewModel.done.collectAsState()
@@ -53,7 +54,7 @@ fun PrayerScreen(
             ImNavRow(if (profile.baptized) stringResource(R.string.hub_mass_baptized) else stringResource(R.string.hub_mass), onMass, done = NormCatalog.MASS in done)
         }
         if (viewModel.date.dayOfWeek == DayOfWeek.SATURDAY) {
-            ImNavRow(stringResource(R.string.hub_marian), { viewModel.markMarianSaturday(); onBook() }, done = NormCatalog.MARIAN_SATURDAY in done)
+            ImNavRow(stringResource(R.string.hub_marian), onMarian, subtitle = stringResource(R.string.marian_saturday_sub), done = NormCatalog.MARIAN_SATURDAY in done)
         }
         ImNavRow(stringResource(R.string.hub_examen), onExamen, subtitle = stringResource(R.string.prayer_examen_sub), done = NormCatalog.EXAMEN in done)
 
