@@ -287,6 +287,29 @@ class LiturgicalCalendar @Inject constructor(private val tables: LectionaryTable
     private fun weeksBetween(a: LocalDate, b: LocalDate): Int = (ChronoUnit.DAYS.between(a, b) / 7).toInt()
     private fun monthDay(d: LocalDate) = "%02d-%02d".format(d.monthValue, d.dayOfMonth)
 
+    /**
+     * D-54: the liturgical year containing [date] as a wheel — the seasons with
+     * their dates and colours, and the solemnities — for the year circle.
+     */
+    fun overview(date: LocalDate): YearOverview {
+        val y = yearFor(date)
+        val triduum = y.easter.minusDays(3)
+        val seasons = listOf(
+            SeasonSpan(Season.ADVENT, y.advent1, y.christmas, LiturgicalColor.VIOLET),
+            SeasonSpan(Season.CHRISTMAS, y.christmas, y.baptism.plusDays(1), LiturgicalColor.WHITE),
+            SeasonSpan(Season.ORDINARY_1, y.baptism.plusDays(1), y.ashWednesday, LiturgicalColor.GREEN),
+            SeasonSpan(Season.LENT, y.ashWednesday, triduum, LiturgicalColor.VIOLET),
+            SeasonSpan(Season.TRIDUUM, triduum, y.easter, LiturgicalColor.RED),
+            SeasonSpan(Season.EASTER, y.easter, y.pentecost.plusDays(1), LiturgicalColor.WHITE),
+            SeasonSpan(Season.ORDINARY_2, y.pentecost.plusDays(1), y.nextAdvent1, LiturgicalColor.GREEN),
+        )
+        val feasts = y.celebrations.entries
+            .filter { (d, c) -> c.rank == Rank.SOLEMNITY && d >= y.advent1 && d < y.nextAdvent1 }
+            .sortedBy { it.key }
+            .map { (d, c) -> YearFeast(d, c.title, c.color) }
+        return YearOverview(y.litYear, sundayCycle(y.litYear), y.advent1, y.nextAdvent1, seasons, feasts)
+    }
+
     fun sundayCycle(litYear: Int): SundayCycle = when (litYear % 3) { 1 -> SundayCycle.A; 2 -> SundayCycle.B; else -> SundayCycle.C }
 
     fun easter(year: Int): LocalDate = Easter.of(year)

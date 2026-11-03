@@ -165,4 +165,16 @@ class LiturgicalCalendarTest {
             day = day.plusDays(1)
         }
     }
+
+    @Test fun `year overview covers the year with contiguous seasons`() {
+        val y = cal.overview(LocalDate.of(2026, 12, 10))
+        assertEquals(2026, y.start.year)
+        assertEquals(LocalDate.of(2026, 11, 29), y.start) // I Advent 2026
+        assertEquals(y.start, y.seasons.first().start)
+        assertEquals(y.endExclusive, y.seasons.last().endExclusive)
+        y.seasons.zipWithNext().forEach { (a, b) -> assertEquals(a.endExclusive, b.start) }
+        assertEquals(LocalDate.of(2026, 12, 25), y.seasons[1].start)
+        assertEquals(LocalDate.of(2027, 3, 28), y.seasons[5].start) // Easter 2027
+        assertTrue(y.feasts.isNotEmpty())
+    }
 }

@@ -9,6 +9,14 @@ enum class Rank { SOLEMNITY, FEAST, SUNDAY, MEMORIAL, WEEKDAY }
 /** Section 12 liturgical accent names; hex values live in the design system. */
 enum class LiturgicalColor { GREEN, VIOLET, ROSE, WHITE, RED }
 
+/** D-54: one season of the liturgical year, [start] inclusive, [endExclusive] exclusive. */
+data class SeasonSpan(val season: Season, val start: LocalDate, val endExclusive: LocalDate, val color: LiturgicalColor)
+data class YearFeast(val date: LocalDate, val title: String, val color: LiturgicalColor)
+data class YearOverview(
+    val litYear: Int, val cycle: SundayCycle, val start: LocalDate, val endExclusive: LocalDate,
+    val seasons: List<SeasonSpan>, val feasts: List<YearFeast>,
+)
+
 data class LiturgicalDay(
     val date: LocalDate,
     val season: Season,

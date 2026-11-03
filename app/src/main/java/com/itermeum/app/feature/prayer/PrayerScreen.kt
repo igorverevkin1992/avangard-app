@@ -32,6 +32,7 @@ fun PrayerScreen(
     onBook: () -> Unit, onRosary: () -> Unit, onJaculatory: () -> Unit, onGospel: () -> Unit,
     onSrs: () -> Unit, onCalendar: () -> Unit, onMental: () -> Unit, onExamen: () -> Unit, onAngelus: () -> Unit, onMass: () -> Unit,
     onMarian: () -> Unit = {},
+    onYear: () -> Unit = {},
     viewModel: PrayerHubViewModel = hiltViewModel(),
 ) {
     val done by viewModel.done.collectAsState()
@@ -61,6 +62,7 @@ fun PrayerScreen(
         ImCollapsible(title = stringResource(R.string.prayer_library), summary = if (due > 0) stringResource(R.string.prayer_due, due) else null, initiallyExpanded = due > 0) {
             ImNavRow(stringResource(R.string.hub_srs), onSrs, subtitle = if (due > 0) stringResource(R.string.prayer_due, due) else null, done = NormCatalog.SRS in done)
             ImNavRow(stringResource(R.string.hub_book), onBook)
+            ImNavRow(stringResource(R.string.year_title), onYear, subtitle = stringResource(R.string.year_row_sub))
             ImNavRow(stringResource(R.string.hub_calendar), onCalendar)
             if (!weekend) ImNavRow(if (profile.baptized) stringResource(R.string.hub_mass_baptized) else stringResource(R.string.hub_mass), onMass)
         }

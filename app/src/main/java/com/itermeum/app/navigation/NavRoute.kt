@@ -33,6 +33,7 @@ sealed class NavRoute(val route: String) {
     data object PrayerMental : NavRoute("prayer/mental")
     data object PrayerAngelus : NavRoute("prayer/angelus")
     data object PrayerMarian : NavRoute("prayer/marian")
+    data object PrayerYear : NavRoute("prayer/year")
     data object PrayerMass : NavRoute("prayer/mass")
     data object Examen : NavRoute("examen")
     data object PathCatechesis : NavRoute("path/catechesis?noteId={noteId}") { fun of(id: Long?) = "path/catechesis" + (id?.let { "?noteId=$it" } ?: "") }
