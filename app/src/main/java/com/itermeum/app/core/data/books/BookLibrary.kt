@@ -37,6 +37,11 @@ class BookLibrary @Inject constructor(
     private val prefs = context.getSharedPreferences("books", Context.MODE_PRIVATE)
 
     private val _books = MutableStateFlow(scan())
+    /** D-63: what the running import is doing — megabytes read, then parsing — for the screen. */
+    data class Progress(val stage: Stage, val megabytes: Int = 0) { enum class Stage { READING, PARSING, SAVING } }
+    private val _progress = MutableStateFlow<Progress?>(null)
+    val progress: StateFlow<Progress?> = _progress.asStateFlow()
+
     /** Loaded books by the reading programme's `bookId`. */
     val books: StateFlow<Map<String, BookInfo>> = _books.asStateFlow()
 
@@ -62,11 +67,14 @@ class BookLibrary @Inject constructor(
                     while (true) {
                         val n = input.read(buf); if (n < 0) break
                         out.write(buf, 0, n); total += n
+                        val mb = (total / (1024 * 1024)).toInt()
+                        if (mb != _progress.value?.megabytes) _progress.value = Progress(Progress.Stage.READING, mb)
                         if (total > MAX_PDF_BYTES) throw BookImportException(BookImportException.Reason.TOO_LARGE)
                     }
                     total
                 }
             } ?: throw BookImportException(BookImportException.Reason.UNREADABLE)
+            _progress.value = Progress(Progress.Stage.PARSING, (size / (1024 * 1024)).toInt())
             val head = ByteArray(minOf(size, 4096L).toInt()).also { h -> tmp.inputStream().use { it.read(h) } }
             val pdf = head.size >= 4 && String(head, 0, 4, Charsets.ISO_8859_1) == "%PDF"
             val fileTitle = name.substringBeforeLast('.')
@@ -83,6 +91,7 @@ class BookLibrary @Inject constructor(
                 format = runCatching { BookParser.detect(bytes) }.getOrElse { throw BookImportException(BookImportException.Reason.FORMAT) }
                 book = runCatching { BookParser.parse(bytes, fileTitle) }.getOrElse { throw BookImportException(BookImportException.Reason.FORMAT) }
             }
+            _progress.value = Progress(Progress.Stage.SAVING)
             remove(bookId)
             val title: String
             if (book != null) {
@@ -97,7 +106,7 @@ class BookLibrary @Inject constructor(
             _books.value.getValue(bookId)
         }.recoverCatching { e ->
             throw if (e is OutOfMemoryError) BookImportException(BookImportException.Reason.MEMORY) else e
-        }.also { tmp.delete() }
+        }.also { tmp.delete(); _progress.value = null }
     }
 
     suspend fun load(bookId: String): ParsedBook? = withContext(Dispatchers.IO) {

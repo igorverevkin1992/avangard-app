@@ -52,6 +52,17 @@ fun GospelScreen(onBack: () -> Unit, onOpenBook: (String) -> Unit = {}, viewMode
     val importMessage by viewModel.importMessage.collectAsState()
     val importing by viewModel.importing.collectAsState()
     val lastBook by viewModel.lastBook.collectAsState()
+    val progress by viewModel.importProgress.collectAsState()
+    val readingMb = stringResource(R.string.book_progress_reading)
+    val parsing = stringResource(R.string.book_progress_parsing)
+    val saving = stringResource(R.string.book_progress_saving)
+    val progressText = progress?.let { p ->
+        when (p.stage) {
+            com.itermeum.app.core.data.books.BookLibrary.Progress.Stage.READING -> readingMb.format(p.megabytes)
+            com.itermeum.app.core.data.books.BookLibrary.Progress.Stage.PARSING -> parsing.format(p.megabytes)
+            com.itermeum.app.core.data.books.BookLibrary.Progress.Stage.SAVING -> saving
+        }
+    }
     // The picked file goes to the book whose «Загрузить файл» was tapped.
     var pendingBook by rememberSaveable { mutableStateOf<String?>(null) }
     val okText = stringResource(R.string.book_loaded)
@@ -123,7 +134,7 @@ fun GospelScreen(onBack: () -> Unit, onOpenBook: (String) -> Unit = {}, viewMode
             ImPanel {
                 Text(item.title, style = MaterialTheme.typography.titleMedium)
                 Text(item.sectionLabel, style = MaterialTheme.typography.bodyMedium)
-                BookFileActions(books[item.bookId], importing == item.bookId, importMessage?.takeIf { it.first == item.bookId }?.second, onRead = { onOpenBook(item.bookId) }, onLoad = { pick(item.bookId) })
+                BookFileActions(books[item.bookId], importing == item.bookId, progressText, importMessage?.takeIf { it.first == item.bookId }?.second, onRead = { onOpenBook(item.bookId) }, onLoad = { pick(item.bookId) })
                 Row(horizontalArrangement = Arrangement.spacedBy(ImSpacing.grid)) {
                     ImSecondaryButton(stringResource(R.string.reading_paper), {
                         if (session == null) timers.startReading(item.bookId)
@@ -140,7 +151,7 @@ fun GospelScreen(onBack: () -> Unit, onOpenBook: (String) -> Unit = {}, viewMode
             viewModel.programme.forEach { item ->
                 ImPanel {
                     Text(item.title, style = MaterialTheme.typography.titleMedium)
-                    BookFileActions(books[item.bookId], importing == item.bookId, importMessage?.takeIf { it.first == item.bookId }?.second, onRead = { onOpenBook(item.bookId) }, onLoad = { pick(item.bookId) }, onRemove = { viewModel.removeBook(item.bookId) })
+                    BookFileActions(books[item.bookId], importing == item.bookId, progressText, importMessage?.takeIf { it.first == item.bookId }?.second, onRead = { onOpenBook(item.bookId) }, onLoad = { pick(item.bookId) }, onRemove = { viewModel.removeBook(item.bookId) })
                 }
             }
         }
@@ -149,11 +160,11 @@ fun GospelScreen(onBack: () -> Unit, onOpenBook: (String) -> Unit = {}, viewMode
 
 /** «Читать» for a loaded file (and which file it is), «Загрузить файл» otherwise; progress and result in place. */
 @Composable
-private fun BookFileActions(info: BookInfo?, busy: Boolean, message: String?, onRead: () -> Unit, onLoad: () -> Unit, onRemove: (() -> Unit)? = null) {
+private fun BookFileActions(info: BookInfo?, busy: Boolean, progress: String?, message: String?, onRead: () -> Unit, onLoad: () -> Unit, onRemove: (() -> Unit)? = null) {
     if (busy) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(ImSpacing.grid)) {
             CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
-            Text(stringResource(R.string.book_loading), style = MaterialTheme.typography.bodyMedium)
+            Text(progress ?: stringResource(R.string.book_loading), style = MaterialTheme.typography.bodyMedium)
         }
         return
     }

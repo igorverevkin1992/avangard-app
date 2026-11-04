@@ -138,6 +138,7 @@ class GospelViewModel @Inject constructor(
     val books: StateFlow<Map<String, BookInfo>> = library.books
     /** D-59: the book read last, for «Продолжить чтение». */
     val lastBook: StateFlow<String?> = library.lastBook
+    val importProgress = library.progress
 
     /** Every book of the programme once, to load files ahead of their month. */
     val programme: List<ReadingItemJson> = (

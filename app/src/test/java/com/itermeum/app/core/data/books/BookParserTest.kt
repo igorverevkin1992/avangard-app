@@ -132,4 +132,12 @@ class BookParserTest {
         assertEquals(null, BookParser.pdf(List(10) { "" }, emptyList(), "x"))
         assertEquals(null, BookParser.pdf(listOf("$body $body $body") + List(9) { " " }, emptyList(), "x"))
     }
+
+    @Test fun `fb2 pictures are cut out before decoding`() {
+        val fb2 = """<?xml version="1.0" encoding="utf-8"?><FictionBook><body><section><p>Стих</p></section></body><binary id="a" content-type="image/jpeg">QUJDREVG</binary><binary id="b">WFla</binary></FictionBook>""".toByteArray()
+        val stripped = String(BookParser.stripBinaries(fb2))
+        assertFalse("QUJD" in stripped || "WFla" in stripped)
+        assertTrue("<p>Стих</p>" in stripped)
+        assertEquals(listOf("Стих"), BookParser.parse(fb2, "x").chapters.single().paragraphs)
+    }
 }

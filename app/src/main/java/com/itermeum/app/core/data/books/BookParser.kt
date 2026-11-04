@@ -112,7 +112,9 @@ object BookParser {
     // ── FB2 ──────────────────────────────────────────────────────────────────
 
     private fun fb2(bytes: ByteArray, fallbackTitle: String): ParsedBook {
-        val source = xmlText(bytes)
+        // D-63: embedded pictures (<binary>, base64) can be most of the file: cut them out
+        // as bytes, before decoding, so a big illustrated FB2 does not flood the memory.
+        val source = xmlText(stripBinaries(bytes))
         val chapters = mutableListOf<BookChapter>()
         var bookTitle = ""
         var title = StringBuilder()
@@ -153,6 +155,33 @@ object BookParser {
         }
         flush(); endChapter()
         return ParsedBook(bookTitle.ifEmpty { fallbackTitle }, chapters)
+    }
+
+    /** Removes every `<binary …>…</binary>` block, working on bytes (ASCII tags in any encoding). */
+    internal fun stripBinaries(bytes: ByteArray): ByteArray {
+        val open = "<binary".toByteArray(Charsets.ISO_8859_1)
+        val close = "</binary>".toByteArray(Charsets.ISO_8859_1)
+        fun find(p: ByteArray, from: Int): Int {
+            var i = from
+            outer@ while (i <= bytes.size - p.size) {
+                for (j in p.indices) if (bytes[i + j] != p[j]) { i++; continue@outer }
+                return i
+            }
+            return -1
+        }
+        var at = find(open, 0)
+        if (at < 0) return bytes
+        val out = java.io.ByteArrayOutputStream(bytes.size)
+        var from = 0
+        while (at >= 0) {
+            out.write(bytes, from, at - from)
+            val end = find(close, at)
+            if (end < 0) { from = bytes.size; break }
+            from = end + close.size
+            at = find(open, from)
+        }
+        if (from < bytes.size) out.write(bytes, from, bytes.size - from)
+        return out.toByteArray()
     }
 
     // ── TXT ──────────────────────────────────────────────────────────────────
@@ -388,5 +417,6 @@ internal object Markup {
     }
 
     /** Collapses whitespace (including line breaks inside a paragraph) to single spaces. */
-    fun squash(s: CharSequence): String = s.toString().replace(Regex("[\\s\u00A0]+"), " ").trim()
+    private val SPACES = Regex("[\\s\u00A0]+")
+    fun squash(s: CharSequence): String = s.toString().replace(SPACES, " ").trim()
 }
