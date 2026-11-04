@@ -53,7 +53,24 @@ class SrsEngineTest {
         assertEquals(1, it.repetitions)
         assertEquals(1, it.intervalDays)
         it = SrsEngine.review(it, SrsEngine.Grade.HARD, today)
-        assertEquals(6, it.intervalDays)
+        assertEquals(2, it.repetitions)
+        assertEquals(1, it.intervalDays) // D-55: daily while still being learned
+    }
+
+    @Test
+    fun `a prayer being learned comes back daily, recall at most every 3 days`() {
+        var it = item(SrsStage.CLOZE_25, reps = 5, interval = 1)
+        it = SrsEngine.review(it, SrsEngine.Grade.EASY, today)
+        assertEquals(today.plusDays(1), it.dueDate)
+        val recall = SrsEngine.review(item(SrsStage.RECALL, reps = 5, interval = 10), SrsEngine.Grade.HARD, today)
+        assertTrue(recall.intervalDays <= 3)
+    }
+
+    @Test
+    fun `the next prayer starts once the current one is past the first stages`() {
+        assertFalse(SrsEngine.canIntroduce(today.minusDays(2), today, earlyLearning = 1))
+        assertTrue(SrsEngine.canIntroduce(today.minusDays(2), today, earlyLearning = 0))
+        assertFalse(SrsEngine.canIntroduce(today, today, earlyLearning = 0))
     }
 
     @Test

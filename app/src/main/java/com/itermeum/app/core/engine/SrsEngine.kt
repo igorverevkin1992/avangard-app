@@ -15,6 +15,7 @@ object SrsEngine {
     const val MIN_EASINESS = 1.3
     const val KNOWN_INTERVAL_DAYS = 21
     const val NEW_PRAYER_EVERY_DAYS = 7
+    const val RECALL_MAX_INTERVAL_DAYS = 3
     const val SESSION_MAX_MINUTES = 5
 
     enum class Grade(val q: Int) { FORGOT(1), HARD(3), EASY(5) }
@@ -47,7 +48,14 @@ object SrsEngine {
             stage = promote(stage)
             run = 0
         }
-        val finalInterval = if (stage == SrsStage.KNOWN) maxOf(interval, KNOWN_INTERVAL_DAYS) else interval
+        // D-55: a prayer being learned comes back every day (the norm is daily); growing
+        // SM-2 gaps start only once it is recited by heart — a 6-day gap after two good
+        // answers left whole weeks without a card.
+        val finalInterval = when (stage) {
+            SrsStage.KNOWN -> maxOf(interval, KNOWN_INTERVAL_DAYS)
+            SrsStage.RECALL -> minOf(interval, RECALL_MAX_INTERVAL_DAYS)
+            else -> 1
+        }
         return item.copy(
             easiness = ef, repetitions = repetitions, intervalDays = finalInterval, stage = stage,
             consecutiveEasy = run, dueDate = today.plusDays(finalInterval.toLong()), lastReviewed = today,
@@ -72,9 +80,18 @@ object SrsEngine {
         SrsStage.KNOWN -> SrsStage.RECALL
     }
 
-    /** May a new prayer be introduced today? At most one per 7 days. */
-    fun canIntroduce(lastIntroducedOn: LocalDate?, today: LocalDate): Boolean =
-        lastIntroducedOn == null || !today.isBefore(lastIntroducedOn.plusDays(NEW_PRAYER_EVERY_DAYS.toLong()))
+    /**
+     * May a new prayer be introduced today? Once a week at the latest — and sooner
+     * (D-55) as soon as no prayer is still at the first stages (READ, CLOZE_25):
+     * the one being learned is half known, so the next can start.
+     */
+    fun canIntroduce(lastIntroducedOn: LocalDate?, today: LocalDate, earlyLearning: Int = 1): Boolean =
+        lastIntroducedOn == null ||
+            (earlyLearning == 0 && today.isAfter(lastIntroducedOn)) ||
+            !today.isBefore(lastIntroducedOn.plusDays(NEW_PRAYER_EVERY_DAYS.toLong()))
+
+    /** The first stages: a prayer here still needs daily work before the next one starts. */
+    fun isEarly(stage: SrsStage): Boolean = stage == SrsStage.READ || stage == SrsStage.CLOZE_25
 
     /** Fraction of words hidden at each stage. */
     fun clozeFraction(stage: SrsStage): Double = when (stage) {

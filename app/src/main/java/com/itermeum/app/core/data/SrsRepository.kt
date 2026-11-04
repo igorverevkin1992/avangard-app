@@ -23,8 +23,12 @@ class SrsRepository @Inject constructor(
 
     /** Introduces the next prayer if a week has passed, then returns today's queue. */
     suspend fun queue(date: LocalDate = clock.logicalToday()): List<MemorizationItemEntity> {
-        val last = dao.lastIntroducedOn()
-        if (SrsEngine.canIntroduce(last, date)) {
+        val all = dao.all()
+        // D-55: prayers still being learned that an older rule pushed days ahead are due again now.
+        all.filter { it.introducedOn != null && it.stage != SrsStage.KNOWN && it.stage != SrsStage.RECALL && (it.dueDate?.isAfter(date.plusDays(1)) == true) }
+            .forEach { dao.update(it.copy(dueDate = date, intervalDays = 1)) }
+        val early = all.count { it.introducedOn != null && SrsEngine.isEarly(it.stage) }
+        if (SrsEngine.canIntroduce(dao.lastIntroducedOn(), date, early)) {
             dao.nextToIntroduce()?.let { dao.update(it.copy(introducedOn = date, dueDate = date)) }
         }
         return dao.due(date)

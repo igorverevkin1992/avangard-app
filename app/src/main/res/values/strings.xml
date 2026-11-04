@@ -527,7 +527,7 @@
     <string name="rosary_closing">Завершение</string>
     <string name="rosary_complete">Розарий завершён</string>
     <string name="srs_known">Наизусть: %1$d из %2$d</string>
-    <string name="srs_nothing_due">Сегодня карточек нет. Новая молитва — раз в неделю.</string>
+    <string name="srs_nothing_due">На сегодня всё повторено. Молитва, которую учите, вернётся завтра; новая добавится, как только текущая выучена наполовину (и не реже раза в неделю).</string>
     <string name="srs_session_done">Повторение закончено.</string>
     <string name="srs_recall_prompt">Прочитай молитву по памяти, затем открой текст и оцени себя.</string>
     <string name="srs_reveal">Показать</string>
