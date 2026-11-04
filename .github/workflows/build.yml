@@ -63,6 +63,8 @@ jobs:
 
       - name: Room schema is committed
         # A DB version bump must ship its exported schema (section 8: every version has a migration test).
+        # Runs after failed tests too: a migration test fails until the new schema is committed.
+        if: ${{ !cancelled() }}
         run: |
           if [ -n "$(git status --porcelain app/schemas)" ]; then
             git status --porcelain app/schemas

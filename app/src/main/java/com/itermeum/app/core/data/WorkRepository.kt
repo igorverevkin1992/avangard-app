@@ -83,17 +83,26 @@ class WorkRepository @Inject constructor(
         db.withTransaction {
             val before = taskDao.forDate(date)
             removedItems = before.mapNotNull { it.itemId }.toSet()
+            // Each draft keeps the status of one earlier task, each earlier task goes to at most one draft:
+            // the same item first, then the same slot and title, the same title anywhere, the same slot.
             val existing = before.associateBy { it.slot }
-            // A removed slot shifts the ones after it: keep each task's status by its title first.
-            val byTitle = before.associateBy { it.title }
+            val match = arrayOfNulls<WorkTaskEntity>(drafts.size)
+            val used = mutableSetOf<Long>()
+            fun pass(pick: (TaskDraft) -> WorkTaskEntity?) = drafts.forEachIndexed { i, d ->
+                if (match[i] == null) pick(d)?.takeIf { it.id !in used }?.let { match[i] = it; used += it.id }
+            }
+            pass { d -> d.itemId?.let { id -> before.firstOrNull { it.itemId == id } } }
+            pass { d -> existing[d.slot]?.takeIf { it.title == d.title.trim() } }
+            pass { d -> before.firstOrNull { it.title == d.title.trim() && it.id !in used } }
+            pass { d -> existing[d.slot] }
             // An item stays with its slot only when the screen says so or the title is the same (not by slot number).
             val claimed = drafts.mapNotNull { it.itemId }.toSet()
             val plan = dayPlanDao.get(date) ?: DayPlanEntity(logicalDate = date)
             dayPlanDao.upsert(plan.copy(intention = intention, savedAt = plan.savedAt ?: now, shootDay = shootDay))
             taskDao.deleteForDate(date)
             taskDao.upsertAll(
-                drafts.map { d ->
-                    val old = existing[d.slot]?.takeIf { it.title == d.title.trim() } ?: byTitle[d.title.trim()] ?: existing[d.slot]
+                drafts.mapIndexed { i, d ->
+                    val old = match[i]
                     WorkTaskEntity(
                         itemId = d.itemId ?: old?.takeIf { it.title == d.title.trim() }?.itemId?.takeIf { it !in claimed },
                         id = old?.id ?: 0, logicalDate = date, slot = d.slot, type = d.type, title = d.title.trim(),
