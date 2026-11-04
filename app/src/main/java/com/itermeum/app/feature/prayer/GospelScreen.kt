@@ -51,6 +51,7 @@ fun GospelScreen(onBack: () -> Unit, onOpenBook: (String) -> Unit = {}, viewMode
     val books by viewModel.books.collectAsState()
     val importMessage by viewModel.importMessage.collectAsState()
     val importing by viewModel.importing.collectAsState()
+    val lastBook by viewModel.lastBook.collectAsState()
     // The picked file goes to the book whose «Загрузить файл» was tapped.
     var pendingBook by rememberSaveable { mutableStateOf<String?>(null) }
     val okText = stringResource(R.string.book_loaded)
@@ -104,6 +105,11 @@ fun GospelScreen(onBack: () -> Unit, onOpenBook: (String) -> Unit = {}, viewMode
 
         ImSectionLabel(stringResource(R.string.reading_title))
         Text(stringResource(R.string.reading_before), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        // D-59: one tap back to the place reading stopped.
+        lastBook?.let { id -> books[id] }?.let { info ->
+            val name = viewModel.programme.firstOrNull { it.bookId == info.bookId }?.title ?: info.title
+            ImPrimaryButton(stringResource(R.string.book_continue, name), onClick = { onOpenBook(info.bookId) })
+        }
         // The running timer stands above the books — it used to sit below them, out of sight.
         session?.takeIf { it.kind == TimerController.Kind.READING }?.let { s ->
             val el = s.elapsed(now)

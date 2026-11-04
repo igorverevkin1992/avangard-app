@@ -101,7 +101,14 @@ class TimerViewModel @Inject constructor(
     init { viewModelScope.launch { gospelTitle.value = runCatching { reading.gospel(clock.logicalToday())?.title }.getOrNull() } }
 
     fun startMental() { timers.start(TimerController.Kind.MENTAL_PRAYER, MENTAL_MS); SessionTimerService.start(context) }
-    fun startReading(bookId: String) { timers.start(TimerController.Kind.READING, READING_MS, bookId); SessionTimerService.start(context) }
+    /** D-59: the reading clock continues from what was already read today. */
+    fun startReading(bookId: String) {
+        viewModelScope.launch {
+            if (timers.current() != null) return@launch
+            timers.start(TimerController.Kind.READING, READING_MS, bookId, finisher.readingPriorMs())
+            SessionTimerService.start(context)
+        }
+    }
 
     /** Mental prayer counts at ≥80 % of the time; reading logs its minutes (≥8 counts) — see [TimerFinisher]. */
     // Its own scope: the reader calls this while leaving, when this ViewModel is about to be cleared.
@@ -128,6 +135,8 @@ class GospelViewModel @Inject constructor(
 ) : ViewModel() {
     /** Books loaded into the app (D-37). */
     val books: StateFlow<Map<String, BookInfo>> = library.books
+    /** D-59: the book read last, for «Продолжить чтение». */
+    val lastBook: StateFlow<String?> = library.lastBook
 
     /** Every book of the programme once, to load files ahead of their month. */
     val programme: List<ReadingItemJson> = (

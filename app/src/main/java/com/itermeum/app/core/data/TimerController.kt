@@ -18,7 +18,8 @@ class TimerController @Inject constructor(private val clock: Clock) {
 
     enum class Kind { MENTAL_PRAYER, READING }
 
-    data class Session(val kind: Kind, val startedAt: Long, val durationMs: Long, val bookId: String? = null) {
+    /** [priorMs] — reading already done today before this session (D-59): the clock continues from it. */
+    data class Session(val kind: Kind, val startedAt: Long, val durationMs: Long, val bookId: String? = null, val priorMs: Long = 0) {
         fun elapsed(now: Long) = (now - startedAt).coerceAtLeast(0)
         fun fraction(now: Long) = (elapsed(now).toDouble() / durationMs).coerceIn(0.0, 1.0)
     }
@@ -26,8 +27,8 @@ class TimerController @Inject constructor(private val clock: Clock) {
     private val _session = MutableStateFlow<Session?>(null)
     val session: StateFlow<Session?> = _session.asStateFlow()
 
-    fun start(kind: Kind, durationMs: Long, bookId: String? = null): Session {
-        val s = Session(kind, clock.nowEpochMillis(), durationMs, bookId)
+    fun start(kind: Kind, durationMs: Long, bookId: String? = null, priorMs: Long = 0): Session {
+        val s = Session(kind, clock.nowEpochMillis() - priorMs, durationMs, bookId, priorMs)
         _session.value = s
         return s
     }

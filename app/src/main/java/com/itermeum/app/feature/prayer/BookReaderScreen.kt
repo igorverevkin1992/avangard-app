@@ -76,9 +76,16 @@ class BookReaderViewModel @Inject constructor(
     val asPages: Boolean = library.books.value[bookId]?.asPages == true
 
     private val saved = library.position(bookId)
-    /** Paragraph (or page) to reopen at, for the chapter reading stopped in. */
-    val savedChapter: Int = saved.first
-    val savedItem: Int = saved.second
+    /**
+     * Where reading stands now — updated on every scroll, so reopening the list
+     * (after the contents, a chapter change, or a new visit) lands there (D-59).
+     */
+    var savedChapter: Int = saved.first
+        private set
+    var savedItem: Int = saved.second
+        private set
+    var savedOffset: Int = library.offset(bookId)
+        private set
 
     private val _book = MutableStateFlow<ParsedBook?>(null)
     val book: StateFlow<ParsedBook?> = _book.asStateFlow()
@@ -98,8 +105,15 @@ class BookReaderViewModel @Inject constructor(
 
     fun pdf(): File? = library.pdf(bookId)
 
-    fun openChapter(index: Int) { _chapter.value = index; library.savePosition(bookId, index, 0) }
-    fun savePosition(item: Int) = library.savePosition(bookId, _chapter.value, item)
+    fun openChapter(index: Int) {
+        _chapter.value = index
+        savedChapter = index; savedItem = 0; savedOffset = 0
+        library.savePosition(bookId, index, 0, 0)
+    }
+    fun savePosition(item: Int, offset: Int = 0) {
+        savedChapter = _chapter.value; savedItem = item; savedOffset = offset
+        library.savePosition(bookId, _chapter.value, item, offset)
+    }
     fun font(delta: Float) { fontScale = (fontScale + delta).coerceIn(0.8f, 1.8f); library.fontScale = fontScale }
 }
 
@@ -169,8 +183,12 @@ private fun TextBook(viewModel: BookReaderViewModel) {
         lineHeight = if (body.lineHeight.isSpecified) body.lineHeight * scale else body.lineHeight,
     )
     key(chapter) {
-        val state = rememberLazyListState(if (chapter == viewModel.savedChapter) viewModel.savedItem else 0)
-        LaunchedEffect(state) { snapshotFlow { state.firstVisibleItemIndex }.collect { viewModel.savePosition(it) } }
+        val here = chapter == viewModel.savedChapter
+        val state = rememberLazyListState(if (here) viewModel.savedItem else 0, if (here) viewModel.savedOffset else 0)
+        LaunchedEffect(state) {
+            snapshotFlow { state.firstVisibleItemIndex to state.firstVisibleItemScrollOffset }
+                .collect { (item, offset) -> viewModel.savePosition(item, offset) }
+        }
         LazyColumn(state = state, modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(ImSpacing.card)) {
             item { Text(c.title, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary) }
             itemsIndexed(c.paragraphs) { _, p -> Text(p, style = style) }
@@ -194,8 +212,11 @@ private fun PdfPages(viewModel: BookReaderViewModel) {
         ImPanel { Text(stringResource(R.string.book_load_failed)) }
         return
     }
-    val state = rememberLazyListState(viewModel.savedItem.coerceIn(0, (renderer.pageCount - 1).coerceAtLeast(0)))
-    LaunchedEffect(state) { snapshotFlow { state.firstVisibleItemIndex }.collect { viewModel.savePosition(it) } }
+    val state = rememberLazyListState(viewModel.savedItem.coerceIn(0, (renderer.pageCount - 1).coerceAtLeast(0)), viewModel.savedOffset)
+    LaunchedEffect(state) {
+        snapshotFlow { state.firstVisibleItemIndex to state.firstVisibleItemScrollOffset }
+            .collect { (item, offset) -> viewModel.savePosition(item, offset) }
+    }
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val widthPx = with(LocalDensity.current) { maxWidth.roundToPx() }
         LazyColumn(state = state, verticalArrangement = Arrangement.spacedBy(ImSpacing.grid)) {

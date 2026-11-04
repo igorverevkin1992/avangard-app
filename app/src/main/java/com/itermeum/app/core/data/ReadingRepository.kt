@@ -45,10 +45,14 @@ class ReadingRepository @Inject constructor(
         dao.forDate(date).lastOrNull { it.bookId == GOSPEL_BOOK && it.phraseEnc != null }?.phraseEnc?.let { runCatching { cipher.decrypt(it) }.getOrNull() }
 
     /** Counted at ≥8 minutes (section 4). */
-    suspend fun logReading(date: LocalDate, bookId: String, minutes: Int) {
-        dao.insertLog(ReadingLogEntity(logicalDate = date, bookId = bookId, minutes = minutes))
-        if (minutes >= READING_MIN_MINUTES && !norms.isDone(NormCatalog.READING, date)) norms.markDone(NormCatalog.READING, date)
+    /** [dayMinutes] — the day's reading so far including these minutes (D-59): the norm counts the day, not one sitting. */
+    suspend fun logReading(date: LocalDate, bookId: String, minutes: Int, dayMinutes: Int = minutes) {
+        if (minutes > 0) dao.insertLog(ReadingLogEntity(logicalDate = date, bookId = bookId, minutes = minutes))
+        if (dayMinutes >= READING_MIN_MINUTES && !norms.isDone(NormCatalog.READING, date)) norms.markDone(NormCatalog.READING, date)
     }
+
+    /** Minutes of spiritual reading logged on [date] (the Gospel's 0-minute marks do not add). */
+    suspend fun minutesOn(date: LocalDate): Int = dao.minutesBetween(date, date)
 
     companion object {
         const val GOSPEL_BOOK = "gospel"

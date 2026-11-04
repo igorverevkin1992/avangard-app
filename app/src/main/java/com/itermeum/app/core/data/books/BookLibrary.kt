@@ -108,15 +108,23 @@ class BookLibrary @Inject constructor(
 
     fun remove(bookId: String) {
         File(dir, "$bookId.json").delete(); File(dir, "$bookId.pdf").delete()
-        prefs.edit().remove("$bookId.title").remove("$bookId.format").remove("$bookId.file").remove("$bookId.chapter").remove("$bookId.item").apply()
+        prefs.edit().remove("$bookId.title").remove("$bookId.format").remove("$bookId.file").remove("$bookId.chapter").remove("$bookId.item").remove("$bookId.offset").apply()
         _books.value = scan()
     }
 
     /** Where reading stopped: chapter (0 for a PDF) and paragraph or page. */
     fun position(bookId: String): Pair<Int, Int> = prefs.getInt("$bookId.chapter", 0) to prefs.getInt("$bookId.item", 0)
-    fun savePosition(bookId: String, chapter: Int, item: Int) {
-        prefs.edit().putInt("$bookId.chapter", chapter).putInt("$bookId.item", item).apply()
+    /** Pixels scrolled into the first visible paragraph or page (D-59). */
+    fun offset(bookId: String): Int = prefs.getInt("$bookId.offset", 0)
+    fun savePosition(bookId: String, chapter: Int, item: Int, offset: Int = 0) {
+        prefs.edit().putInt("$bookId.chapter", chapter).putInt("$bookId.item", item).putInt("$bookId.offset", offset)
+            .putString(KEY_LAST, bookId).apply()
+        _last.value = bookId
     }
+
+    private val _last = MutableStateFlow(prefs.getString(KEY_LAST, null))
+    /** The book read last — «Продолжить чтение» (D-59). */
+    val lastBook: StateFlow<String?> = _last.asStateFlow()
 
     var fontScale: Float
         get() = prefs.getFloat("font_scale", 1f)
@@ -130,6 +138,7 @@ class BookLibrary @Inject constructor(
 
     companion object {
         private const val MAX_BYTES = 80L * 1024 * 1024
+        private const val KEY_LAST = "last_book"
         private const val MAX_PDF_BYTES = 400L * 1024 * 1024
     }
 }

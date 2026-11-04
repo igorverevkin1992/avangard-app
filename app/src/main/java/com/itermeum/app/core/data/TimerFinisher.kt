@@ -22,9 +22,26 @@ class TimerFinisher @Inject constructor(
         val now = clock.nowEpochMillis()
         when (s.kind) {
             TimerController.Kind.MENTAL_PRAYER -> if (s.fraction(now) >= 0.8) norms.markDone(NormCatalog.MENTAL_PRAYER, clock.logicalToday())
-            TimerController.Kind.READING -> reading.logReading(clock.logicalToday(), s.bookId ?: "book", (s.elapsed(now) / 60_000L).toInt())
+            TimerController.Kind.READING -> {
+                // D-59: the session continued the day's clock — log only what it added.
+                val total = s.elapsed(now)
+                val date = clock.logicalToday()
+                readingCarry = date to total
+                // Whole minutes of the day minus whole minutes before: no seconds lost between sittings.
+                reading.logReading(date, s.bookId ?: "book", (total / 60_000L - s.priorMs / 60_000L).toInt(), (total / 60_000L).toInt())
+            }
         }
         return s
+    }
+
+    /** The day's reading so far, to the second while the app runs (minutes from the log after a restart). */
+    @Volatile private var readingCarry: Pair<java.time.LocalDate, Long>? = null
+
+    suspend fun readingPriorMs(): Long {
+        val date = clock.logicalToday()
+        val fromLog = reading.minutesOn(date) * 60_000L
+        val carried = readingCarry?.takeIf { it.first == date }?.second ?: 0L
+        return maxOf(fromLog, carried)
     }
 
     /** Milliseconds from the start after which the session counts. */
