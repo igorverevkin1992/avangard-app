@@ -123,13 +123,28 @@ class GospelViewModel @Inject constructor(
     private val calendar: LiturgicalCalendar,
     private val clock: Clock,
     private val library: BookLibrary,
-    assets: ContentAssets,
+    private val assets: ContentAssets,
 ) : ViewModel() {
     /** Books loaded into the app (D-37). */
     val books: StateFlow<Map<String, BookInfo>> = library.books
 
     /** Every book of the programme once, to load files ahead of their month. */
-    val programme: List<ReadingItemJson> = (assets.reading.always + assets.reading.months.flatMap { it.items }).distinctBy { it.bookId }
+    val programme: List<ReadingItemJson> = (
+        assets.reading.always +
+            assets.reading.seasonal.map { ReadingItemJson(it.bookId, it.title, it.section, it.url) } +
+            assets.reading.months.flatMap { it.items }
+        ).distinctBy { it.bookId }
+
+    /** D-57: «Крестный путь» in Lent, «Святой Розарий» in October — on top of the month's reading. */
+    private fun seasonal(date: LocalDate): List<ReadingPlanItemEntity> {
+        val season = calendar.day(date).season
+        return assets.reading.seasonal.filter { s ->
+            when (s.`when`) {
+                "LENT" -> season == com.itermeum.app.core.liturgy.Season.LENT || season == com.itermeum.app.core.liturgy.Season.TRIDUUM
+                else -> runCatching { java.time.Month.valueOf(s.`when`) }.getOrNull() == date.month
+            }
+        }.map { ReadingPlanItemEntity(id = "seasonal_${it.bookId}", month = 0, bookId = it.bookId, title = it.title, sectionLabel = it.section, url = it.url) }
+    }
 
     /** The Bible and other always-present books, shown with each month's reading. */
     private val always: List<ReadingPlanItemEntity> = assets.reading.always.map {
@@ -141,12 +156,12 @@ class GospelViewModel @Inject constructor(
     /** The last import's result, shown under that book: bookId → message. */
     val importMessage = MutableStateFlow<Pair<String, String>?>(null)
 
-    fun importBook(bookId: String, uri: Uri, ok: String, okPages: String, failed: String) = viewModelScope.launch {
+    fun importBook(bookId: String, uri: Uri, ok: String, okPages: String, failed: (Throwable) -> String) = viewModelScope.launch {
         importing.value = bookId
         importMessage.value = null
         val result = library.import(bookId, uri)
         importing.value = null
-        importMessage.value = bookId to result.fold({ (if (it.asPages) okPages else ok).format(it.fileName ?: it.title) }, { failed })
+        importMessage.value = bookId to result.fold({ (if (it.asPages) okPages else ok).format(it.fileName ?: it.title) }, failed)
     }
 
     fun removeBook(bookId: String) = library.remove(bookId)
@@ -161,7 +176,7 @@ class GospelViewModel @Inject constructor(
         val day = calendar.day(date)
         _ui.update {
             it.copy(passage = reading.gospel(date), title = day.title, focus = reading.focusPhrase(date),
-                read = norms.isDone(NormCatalog.GOSPEL, date), plan = always + reading.readingFor(date), readingDone = norms.isDone(NormCatalog.READING, date))
+                read = norms.isDone(NormCatalog.GOSPEL, date), plan = always + seasonal(date) + reading.readingFor(date), readingDone = norms.isDone(NormCatalog.READING, date))
         }
     }
 

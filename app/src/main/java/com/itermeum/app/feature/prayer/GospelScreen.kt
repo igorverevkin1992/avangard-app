@@ -59,9 +59,21 @@ fun GospelScreen(onBack: () -> Unit, onOpenBook: (String) -> Unit = {}, viewMode
     val okText = stringResource(R.string.book_loaded)
     val okPagesText = stringResource(R.string.book_loaded_pages)
     val failText = stringResource(R.string.book_load_failed)
+    val tooLarge = stringResource(R.string.book_load_too_large)
+    val noMemory = stringResource(R.string.book_load_memory)
+    val unreadable = stringResource(R.string.book_load_unreadable)
+    // D-57: say why, not just «не удалось».
+    val failed: (Throwable) -> String = { e ->
+        when ((e as? com.itermeum.app.core.data.books.BookImportException)?.reason) {
+            com.itermeum.app.core.data.books.BookImportException.Reason.TOO_LARGE -> tooLarge
+            com.itermeum.app.core.data.books.BookImportException.Reason.MEMORY -> noMemory
+            com.itermeum.app.core.data.books.BookImportException.Reason.UNREADABLE -> unreadable
+            else -> failText + " (" + (e.message ?: e.javaClass.simpleName) + ")"
+        }
+    }
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         val id = pendingBook
-        if (uri != null && id != null) viewModel.importBook(id, uri, okText, okPagesText, failText)
+        if (uri != null && id != null) viewModel.importBook(id, uri, okText, okPagesText, failed)
         pendingBook = null
     }
     val pick: (String) -> Unit = { id -> pendingBook = id; picker.launch(arrayOf("*/*")) }

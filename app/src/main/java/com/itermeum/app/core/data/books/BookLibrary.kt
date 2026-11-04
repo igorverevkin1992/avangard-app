@@ -15,6 +15,11 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 
 /** [asPages] — a scanned PDF without text, shown as page images. */
+/** Why a book file could not be loaded — shown to the user (D-57). */
+class BookImportException(val reason: Reason) : Exception(reason.name) {
+    enum class Reason { TOO_LARGE, UNREADABLE, FORMAT, MEMORY }
+}
+
 data class BookInfo(val bookId: String, val title: String, val format: BookFormat, val asPages: Boolean = false, val fileName: String? = null)
 
 /**
@@ -41,40 +46,58 @@ class BookLibrary @Inject constructor(
         format?.let { BookInfo(id, prefs.getString("$id.title", null) ?: id, it, asPages = f.extension == "pdf", fileName = prefs.getString("$id.file", null)) }
     }.associateBy { it.bookId }
 
-    /** Reads the picked file, parses it (a scanned PDF is kept as is) and replaces any earlier file of this book. */
+    /**
+     * Reads the picked file, parses it (a scanned PDF is kept as is) and replaces any earlier
+     * file of this book. D-57: the file is streamed to disk first, never held whole in memory,
+     * so a large PDF (a whole Bible) loads; PdfBox reads it from that file with temp-file buffers.
+     */
     suspend fun import(bookId: String, uri: Uri): Result<BookInfo> = withContext(Dispatchers.IO) {
+        val tmp = File(context.cacheDir, "import-$bookId.tmp")
         runCatching {
             val name = displayName(uri) ?: bookId
-            val bytes = context.contentResolver.openInputStream(uri)?.use { input ->
-                val out = java.io.ByteArrayOutputStream()
-                val buf = ByteArray(64 * 1024)
-                while (true) {
-                    val n = input.read(buf); if (n < 0) break
-                    out.write(buf, 0, n)
-                    if (out.size() > MAX_BYTES) throw BookFormatException("too large")
+            val size = context.contentResolver.openInputStream(uri)?.use { input ->
+                tmp.outputStream().use { out ->
+                    val buf = ByteArray(256 * 1024)
+                    var total = 0L
+                    while (true) {
+                        val n = input.read(buf); if (n < 0) break
+                        out.write(buf, 0, n); total += n
+                        if (total > MAX_PDF_BYTES) throw BookImportException(BookImportException.Reason.TOO_LARGE)
+                    }
+                    total
                 }
-                out.toByteArray()
-            } ?: throw BookFormatException("unreadable")
-            val format = BookParser.detect(bytes)
-            remove(bookId)
+            } ?: throw BookImportException(BookImportException.Reason.UNREADABLE)
+            val head = ByteArray(minOf(size, 4096L).toInt()).also { h -> tmp.inputStream().use { it.read(h) } }
+            val pdf = head.size >= 4 && String(head, 0, 4, Charsets.ISO_8859_1) == "%PDF"
             val fileTitle = name.substringBeforeLast('.')
-            // A PDF with a text layer becomes chapters like any other book (D-40); a scan stays as pages.
-            val book = if (format == BookFormat.PDF) {
-                runCatching { PdfText.extract(context, bytes) }.getOrNull()
+            val format: BookFormat
+            val book: ParsedBook?
+            if (pdf) {
+                format = BookFormat.PDF
+                // A PDF with a text layer becomes chapters like any other book (D-40); a scan stays as pages.
+                book = runCatching { PdfText.extract(context, tmp) }.getOrNull()
                     ?.let { BookParser.pdf(it.pages, it.outline, it.title ?: fileTitle) }
-            } else BookParser.parse(bytes, fileTitle)
+            } else {
+                if (size > MAX_BYTES) throw BookImportException(BookImportException.Reason.TOO_LARGE)
+                val bytes = tmp.readBytes()
+                format = runCatching { BookParser.detect(bytes) }.getOrElse { throw BookImportException(BookImportException.Reason.FORMAT) }
+                book = runCatching { BookParser.parse(bytes, fileTitle) }.getOrElse { throw BookImportException(BookImportException.Reason.FORMAT) }
+            }
+            remove(bookId)
             val title: String
             if (book != null) {
                 File(dir, "$bookId.json").writeText(json.encodeToString(ParsedBook.serializer(), book))
                 title = book.title
             } else {
-                File(dir, "$bookId.pdf").writeBytes(bytes)
+                tmp.copyTo(File(dir, "$bookId.pdf"), overwrite = true)
                 title = fileTitle
             }
             prefs.edit().putString("$bookId.title", title).putString("$bookId.format", format.name).putString("$bookId.file", name).apply()
             _books.value = scan()
             _books.value.getValue(bookId)
-        }
+        }.recoverCatching { e ->
+            throw if (e is OutOfMemoryError) BookImportException(BookImportException.Reason.MEMORY) else e
+        }.also { tmp.delete() }
     }
 
     suspend fun load(bookId: String): ParsedBook? = withContext(Dispatchers.IO) {
@@ -107,5 +130,6 @@ class BookLibrary @Inject constructor(
 
     companion object {
         private const val MAX_BYTES = 80L * 1024 * 1024
+        private const val MAX_PDF_BYTES = 400L * 1024 * 1024
     }
 }

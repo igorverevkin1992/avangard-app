@@ -104,5 +104,21 @@
    "section": "всегда под рукой: Евангелие дня, псалмы, книги по плану катехизации",
    "url": null
   }
+ ],
+ "seasonal": [
+  {
+   "bookId": "via_crucis",
+   "title": "«Крестный путь»",
+   "section": "Великий пост: одна станция в день, медленно",
+   "url": "https://escriva.org/ru/via-crucis/",
+   "when": "LENT"
+  },
+  {
+   "bookId": "santo_rosario",
+   "title": "«Святой Розарий»",
+   "section": "Октябрь — месяц Розария: тайна дня перед вечерним Розарием",
+   "url": "https://escriva.org/ru/santo-rosario/",
+   "when": "OCTOBER"
+  }
  ]
 }

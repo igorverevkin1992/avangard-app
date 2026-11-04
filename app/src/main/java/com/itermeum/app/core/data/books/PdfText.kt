@@ -2,6 +2,7 @@ package com.itermeum.app.core.data.books
 
 import android.content.Context
 import com.tom_roush.pdfbox.android.PDFBoxResourceLoader
+import com.tom_roush.pdfbox.io.MemoryUsageSetting
 import com.tom_roush.pdfbox.pdmodel.PDDocument
 import com.tom_roush.pdfbox.text.PDFTextStripper
 
@@ -12,9 +13,10 @@ object PdfText {
 
     private const val PAGE_BREAK = "\u000C"
 
-    fun extract(context: Context, bytes: ByteArray): Extracted {
+    fun extract(context: Context, file: java.io.File): Extracted {
         PDFBoxResourceLoader.init(context.applicationContext)
-        PDDocument.load(bytes).use { doc ->
+        // Temp-file buffers: a 1500-page Bible must not be held in memory.
+        PDDocument.load(file, MemoryUsageSetting.setupTempFileOnly()).use { doc ->
             // Books with owner-password permissions only: reading the text is allowed.
             if (doc.isEncrypted) doc.setAllSecurityToBeRemoved(true)
             val stripper = PDFTextStripper().apply {
