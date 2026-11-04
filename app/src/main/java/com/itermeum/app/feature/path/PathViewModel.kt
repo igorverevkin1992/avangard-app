@@ -85,13 +85,13 @@ class PathViewModel @Inject constructor(
         viewModelScope.launch {
             val weekEnd = weekStart.plusDays(6)
             val outreach = outreachDao.between(weekStart, minOf(weekEnd, today))
-            val to = minOf(weekEnd, today)
-            val tasks = work.observeTasksBetween(weekStart, to).first()
+            val weekTo = minOf(weekEnd, today)
+            val tasks = work.observeTasksBetween(weekStart, weekTo).first()
             _week.value = WeekStats(
                 outreach.size, outreach.count { it.outcome == OutreachOutcome.AGREEMENT }, streaks.fidelityDaysBetween(weekStart, minOf(weekEnd, today.minusDays(1))),
                 tasksClosed = tasks.count { it.status == TaskStatus.DONE || it.status == TaskStatus.DONE_WITH_DEBT },
                 tasksMoved = tasks.count { it.status == TaskStatus.MOVED },
-                focusMinutes = (items.observeFocusMs(weekStart, to).first() / 60_000L).toInt(),
+                focusMinutes = (items.observeFocusMs(weekStart, weekTo).first() / 60_000L).toInt(),
             )
             val ym = YearMonth.from(today.minusMonths(if (today.dayOfMonth == 1) 1 else 0))
             val from = ym.atDay(1); val to = minOf(ym.atEndOfMonth(), today)

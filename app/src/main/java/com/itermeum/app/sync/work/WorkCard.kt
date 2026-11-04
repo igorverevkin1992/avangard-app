@@ -40,7 +40,7 @@ import kotlinx.coroutines.sync.withLock
 class WorkCard @Inject constructor(
     @ApplicationContext private val context: Context,
     private val work: WorkRepository,
-    private val items: com.itermeum.app.core.data.WorkItemRepository,
+    private val workItems: com.itermeum.app.core.data.WorkItemRepository,
     private val norms: NormRepository,
     private val channels: NotificationChannels,
     private val clock: Clock,
@@ -72,7 +72,7 @@ class WorkCard @Inject constructor(
         val done = norms.observeDoneIds(date).first()
         if (NormCatalog.LAST_STONE in done) return null
         // D-64: items due today join the plan before the card reads it.
-        runCatching { items.ensureDuePlanned(date) }
+        runCatching { workItems.ensureDuePlanned(date) }
         val tasks = work.tasksFor(date)
         // Items can fill the plan by themselves: until it is saved (and while it still counts) the step is the plan.
         val planOpen = work.observePlan(date).first() == null && now.isBefore(date.atTime(work.planDeadline()))
