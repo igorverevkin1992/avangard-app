@@ -20,6 +20,7 @@ import com.itermeum.app.core.database.entity.OutreachOutcome
 import com.itermeum.app.core.database.entity.ProfileEntity
 import com.itermeum.app.core.database.entity.QuarterGoalEntity
 import com.itermeum.app.core.database.entity.StreakStateEntity
+import com.itermeum.app.core.database.entity.TaskStatus
 import com.itermeum.app.core.database.entity.WeeklyReviewEntity
 import com.itermeum.app.sync.scheduler.ReminderScheduler
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -30,11 +31,16 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-data class WeekStats(val calls: Int = 0, val agreements: Int = 0, val fidelityDays: Int = 0)
+data class WeekStats(
+    val calls: Int = 0, val agreements: Int = 0, val fidelityDays: Int = 0,
+    /** D-64: work of the week — closed and moved slots, minutes of focus. */
+    val tasksClosed: Int = 0, val tasksMoved: Int = 0, val focusMinutes: Int = 0,
+)
 data class MonthStats(val fidelityDays: Int = 0, val calls: Int = 0, val agreements: Int = 0, val prayersKnown: Int = 0, val scriptMinutes: Int = 0, val catechesis: Int = 0)
 
 @HiltViewModel
@@ -51,6 +57,7 @@ class PathViewModel @Inject constructor(
     private val profiles: ProfileRepository,
     private val reminders: ReminderScheduler,
     private val clock: Clock,
+    private val items: com.itermeum.app.core.data.WorkItemRepository,
 ) : ViewModel() {
     val today: LocalDate = clock.logicalToday()
     val nextClass: LocalDate = path.nextCatechesisDate()
@@ -78,7 +85,14 @@ class PathViewModel @Inject constructor(
         viewModelScope.launch {
             val weekEnd = weekStart.plusDays(6)
             val outreach = outreachDao.between(weekStart, minOf(weekEnd, today))
-            _week.value = WeekStats(outreach.size, outreach.count { it.outcome == OutreachOutcome.AGREEMENT }, streaks.fidelityDaysBetween(weekStart, minOf(weekEnd, today.minusDays(1))))
+            val to = minOf(weekEnd, today)
+            val tasks = work.observeTasksBetween(weekStart, to).first()
+            _week.value = WeekStats(
+                outreach.size, outreach.count { it.outcome == OutreachOutcome.AGREEMENT }, streaks.fidelityDaysBetween(weekStart, minOf(weekEnd, today.minusDays(1))),
+                tasksClosed = tasks.count { it.status == TaskStatus.DONE || it.status == TaskStatus.DONE_WITH_DEBT },
+                tasksMoved = tasks.count { it.status == TaskStatus.MOVED },
+                focusMinutes = (items.observeFocusMs(weekStart, to).first() / 60_000L).toInt(),
+            )
             val ym = YearMonth.from(today.minusMonths(if (today.dayOfMonth == 1) 1 else 0))
             val from = ym.atDay(1); val to = minOf(ym.atEndOfMonth(), today)
             val mo = outreachDao.between(from, to)

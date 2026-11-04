@@ -101,10 +101,16 @@ class TimerViewModel @Inject constructor(
     val gospelTitle = MutableStateFlow<String?>(null)
     init { viewModelScope.launch { gospelTitle.value = runCatching { reading.gospel(clock.logicalToday())?.title }.getOrNull() } }
 
-    fun startMental() { timers.start(TimerController.Kind.MENTAL_PRAYER, MENTAL_MS); SessionTimerService.start(context) }
+    /** A running work focus (D-64) is recorded first: prayer and reading take the one timer. */
+    private suspend fun endFocus() { if (timers.current()?.kind == TimerController.Kind.FOCUS) finisher.finish() }
+
+    fun startMental() {
+        viewModelScope.launch { endFocus(); timers.start(TimerController.Kind.MENTAL_PRAYER, MENTAL_MS); SessionTimerService.start(context) }
+    }
     /** D-59: the reading clock continues from what was already read today. */
     fun startReading(bookId: String) {
         viewModelScope.launch {
+            endFocus()
             if (timers.current() != null) return@launch
             timers.start(TimerController.Kind.READING, READING_MS, bookId, finisher.readingPriorMs())
             SessionTimerService.start(context)

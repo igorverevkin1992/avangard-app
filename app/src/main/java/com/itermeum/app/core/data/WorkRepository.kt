@@ -35,11 +35,17 @@ class WorkRepository @Inject constructor(
     private val norms: NormRepository,
     private val profiles: ProfileRepository,
     private val clock: Clock,
+    private val items: WorkItemRepository,
 ) {
-    data class TaskDraft(val slot: Int, val type: TaskType, val title: String, val projectId: Long? = null, val followUpContact: String? = null)
+    data class TaskDraft(
+        val slot: Int, val type: TaskType, val title: String, val projectId: Long? = null, val followUpContact: String? = null,
+        /** D-64: the work item this slot carries, if it came from one. */
+        val itemId: Long? = null,
+    )
 
     fun observePlan(date: LocalDate): Flow<DayPlanEntity?> = dayPlanDao.observe(date)
     fun observeTasks(date: LocalDate): Flow<List<WorkTaskEntity>> = taskDao.observeForDate(date)
+    fun observeTasksBetween(from: LocalDate, to: LocalDate): Flow<List<WorkTaskEntity>> = taskDao.observeBetween(from, to)
     suspend fun tasksFor(date: LocalDate): List<WorkTaskEntity> = taskDao.forDate(date)
     /** D-60: hero calls count at any time of the day — there is no 14:00 cutoff any more. */
     suspend fun attemptsBeforeCutoff(date: LocalDate): Int = outreachDao.countFor(date)
@@ -51,6 +57,7 @@ class WorkRepository @Inject constructor(
     suspend fun markTasksDoneLate(date: LocalDate, count: Int) {
         taskDao.forDate(date).filter { it.status == TaskStatus.OPEN }.sortedBy { it.slot }.take(count).forEach {
             taskDao.update(it.copy(status = TaskStatus.DONE, closedAt = clock.nowEpochMillis()))
+            items.onTaskClosed(it)
         }
     }
     fun observeOutreach(date: LocalDate): Flow<List<OutreachLogEntity>> = outreachDao.observeForDate(date)
@@ -72,11 +79,15 @@ class WorkRepository @Inject constructor(
     suspend fun savePlan(date: LocalDate, drafts: List<TaskDraft>, intention: String?, shootDay: Boolean) {
         require(planIsValid(drafts, shootDay))
         val now = clock.nowEpochMillis()
+        var removedItems: Set<Long> = emptySet()
         db.withTransaction {
             val before = taskDao.forDate(date)
+            removedItems = before.mapNotNull { it.itemId }.toSet()
             val existing = before.associateBy { it.slot }
             // A removed slot shifts the ones after it: keep each task's status by its title first.
             val byTitle = before.associateBy { it.title }
+            // An item stays with its slot only when the screen says so or the title is the same (not by slot number).
+            val claimed = drafts.mapNotNull { it.itemId }.toSet()
             val plan = dayPlanDao.get(date) ?: DayPlanEntity(logicalDate = date)
             dayPlanDao.upsert(plan.copy(intention = intention, savedAt = plan.savedAt ?: now, shootDay = shootDay))
             taskDao.deleteForDate(date)
@@ -84,6 +95,7 @@ class WorkRepository @Inject constructor(
                 drafts.map { d ->
                     val old = existing[d.slot]?.takeIf { it.title == d.title.trim() } ?: byTitle[d.title.trim()] ?: existing[d.slot]
                     WorkTaskEntity(
+                        itemId = d.itemId ?: old?.takeIf { it.title == d.title.trim() }?.itemId?.takeIf { it !in claimed },
                         id = old?.id ?: 0, logicalDate = date, slot = d.slot, type = d.type, title = d.title.trim(),
                         projectId = d.projectId, status = old?.status ?: TaskStatus.OPEN, checklistJson = old?.checklistJson,
                         closedAt = old?.closedAt, followUpContact = d.followUpContact?.trim(), createdAt = old?.createdAt ?: now,
@@ -93,6 +105,10 @@ class WorkRepository @Inject constructor(
                 },
             )
         }
+        // D-64: removed slots send their items back to the inbox; every slot gets an item (its card).
+        val kept = taskDao.forDate(date).mapNotNull { it.itemId }.toSet()
+        items.onRemovedFromPlan(removedItems - kept)
+        taskDao.forDate(date).forEach { t -> val id = items.itemFor(t); items.get(id)?.let { if (it.title != t.title || it.type != t.type) items.update(it.copy(title = t.title, type = t.type)) } }
         // Counted when saved before 12:30 (section 4).
         val plannedBy = profiles.get().workStart.plusMinutes(30)
         // Counted for its day when saved before workStart + 30 — including the evening before (D-34).
@@ -129,11 +145,28 @@ class WorkRepository @Inject constructor(
     suspend fun closeTask(task: WorkTaskEntity, checklist: List<Boolean>) {
         val status = if (checklist.size == 4 && checklist.all { it }) TaskStatus.DONE else TaskStatus.DONE_WITH_DEBT
         taskDao.update(task.copy(status = status, checklistJson = checklist.joinToString(",", "[", "]"), closedAt = clock.nowEpochMillis()))
+        items.onTaskClosed(task)
         checkLastStone(task.logicalDate)
+    }
+
+    /**
+     * D-64: «Готово» on a work item — its open slot of today's plan is closed as a full
+     * last-stone check (so the plan and the last stone follow), or the item alone when unplanned.
+     */
+    suspend fun completeItem(itemId: Long) {
+        val slot = taskDao.forDate(clock.logicalToday()).firstOrNull { it.itemId == itemId && it.status == TaskStatus.OPEN }
+        if (slot != null) closeTask(slot, List(CHECKLIST_ITEMS) { true }) else items.complete(itemId)
+    }
+
+    /** Back to work: a closed slot of today's plan reopens with it. */
+    suspend fun reopenItem(itemId: Long) {
+        val slot = taskDao.forDate(clock.logicalToday()).firstOrNull { it.itemId == itemId && it.status != TaskStatus.OPEN }
+        if (slot != null) reopenTask(slot) else items.reopen(itemId)
     }
 
     suspend fun moveTask(task: WorkTaskEntity) {
         taskDao.update(task.copy(status = TaskStatus.MOVED, closedAt = clock.nowEpochMillis()))
+        items.onTaskMoved(task)
         checkLastStone(task.logicalDate)
     }
 
@@ -147,7 +180,10 @@ class WorkRepository @Inject constructor(
         tasks.forEachIndexed { i, t -> if (t.slot != i + 1) taskDao.update(t.copy(slot = i + 1)) }
     }
 
-    suspend fun reopenTask(task: WorkTaskEntity) = taskDao.update(task.copy(status = TaskStatus.OPEN, closedAt = null, checklistJson = null))
+    suspend fun reopenTask(task: WorkTaskEntity) {
+        taskDao.update(task.copy(status = TaskStatus.OPEN, closedAt = null, checklistJson = null))
+        items.onTaskReopened(task)
+    }
 
     private suspend fun checkLastStone(date: LocalDate) {
         val tasks = taskDao.forDate(date)

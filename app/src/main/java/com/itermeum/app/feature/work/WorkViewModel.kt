@@ -7,7 +7,9 @@ import com.itermeum.app.core.common.Clock
 import com.itermeum.app.core.content.NormCatalog
 import com.itermeum.app.core.data.NormRepository
 import com.itermeum.app.core.data.PrayerRepository
+import com.itermeum.app.core.data.WorkItemRepository
 import com.itermeum.app.core.data.WorkRepository
+import com.itermeum.app.core.database.entity.WorkItemEntity
 import com.itermeum.app.core.database.entity.DayPlanEntity
 import com.itermeum.app.core.database.entity.OutreachKind
 import com.itermeum.app.core.database.entity.OutreachLogEntity
@@ -22,6 +24,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -48,6 +52,8 @@ class WorkViewModel @Inject constructor(
     private val widget: com.itermeum.app.sync.widget.WidgetUpdater,
     private val clock: Clock,
     private val assets: com.itermeum.app.core.content.ContentAssets,
+    private val items: WorkItemRepository,
+    private val focus: FocusLauncher,
 ) : ViewModel() {
 
     val date: LocalDate = clock.logicalToday()
@@ -58,7 +64,13 @@ class WorkViewModel @Inject constructor(
     /** Null until loaded; the plan norm counts only when saved before it. */
     val planDeadline = MutableStateFlow<java.time.LocalTime?>(null)
 
-    init { viewModelScope.launch { target.value = work.targetFor(date); cutoff.value = work.cutoffFor(); planDeadline.value = work.planDeadline() } }
+    init {
+        viewModelScope.launch {
+            // D-64: what is due today (moved yesterday, written «на завтра») joins today's plan by itself.
+            runCatching { items.ensureDuePlanned(date) }
+            target.value = work.targetFor(date); cutoff.value = work.cutoffFor(); planDeadline.value = work.planDeadline()
+        }
+    }
 
     fun planTooLate(): Boolean = planDeadline.value?.let { !clock.now().isBefore(date.atTime(it)) } ?: false
 
@@ -73,6 +85,40 @@ class WorkViewModel @Inject constructor(
             workStarted = !clock.localTime().isBefore(java.time.LocalTime.of(12, 0)),
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), WorkUi(date))
+
+    // ── D-64: inbox, quick capture, search, focus ─────────────────────────────
+
+    /** Open items not in today's plan: the dated ones first, then the undated inbox. */
+    val inbox: StateFlow<List<WorkItemEntity>> = combine(items.observeOpen(), work.observeTasks(date)) { open, tasks ->
+        val planned = tasks.mapNotNull { it.itemId }.toSet()
+        open.filter { it.id !in planned }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    private val _query = MutableStateFlow("")
+    val query: StateFlow<String> = _query
+    fun setQuery(q: String) { _query.value = q }
+
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    val results: StateFlow<List<WorkItemEntity>> = _query.flatMapLatest { q -> if (q.isBlank()) flowOf(emptyList()) else items.search(q) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    val focusToday: StateFlow<Long> = items.observeFocusMs(date, date).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0L)
+    val session = focus.session
+
+    fun capture(title: String, due: WorkItemRepository.Due) {
+        if (title.isBlank()) return
+        viewModelScope.launch { items.capture(title, due); widget.requestUpdate() }
+    }
+    fun planToday(id: Long) = viewModelScope.launch { items.planToday(id); widget.requestUpdate() }
+
+    /** The card of a plan slot: a slot typed into the plan gets its item first. */
+    fun openTask(task: WorkTaskEntity, onOpen: (Long) -> Unit) = viewModelScope.launch { onOpen(items.itemFor(task)) }
+
+    /** False → another timer runs (the screen says so). */
+    fun startFocus(task: WorkTaskEntity, onResult: (Boolean) -> Unit) = viewModelScope.launch { onResult(focus.start(items.itemFor(task))) }
+    fun pauseFocus() = viewModelScope.launch { focus.pause() }
+    fun doneFocus() = viewModelScope.launch { focus.done() }
+    fun now() = clock.nowEpochMillis()
 
     /** Section 5.5: «Поработал над сценарием» before work (moved here from Today, D-33). */
     val activeScript: StateFlow<com.itermeum.app.core.database.entity.ScriptSessionEntity?> =

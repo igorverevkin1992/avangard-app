@@ -43,6 +43,20 @@ fun LastStoneScreen(onBack: () -> Unit, viewModel: WorkViewModel = hiltViewModel
         ImHeader(stringResource(R.string.work_last_stone), onBack = onBack)
         Text(stringResource(R.string.last_stone_hint), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         if (ui.tasks.isEmpty()) Text(stringResource(R.string.work_plan_empty), style = MaterialTheme.typography.bodyLarge)
+        else {
+            // D-64: the day in one line.
+            val focusMs by viewModel.focusToday.collectAsState()
+            ImPanel {
+                Text(
+                    stringResource(
+                        R.string.last_stone_summary, ui.tasks.count { it.status == TaskStatus.DONE || it.status == TaskStatus.DONE_WITH_DEBT }, ui.tasks.size,
+                        ui.tasks.count { it.status == TaskStatus.MOVED }, durationText(focusMs),
+                    ),
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+                Text(stringResource(R.string.last_stone_move_hint), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
         ui.tasks.forEach { task -> TaskCard(task, viewModel) }
     }
 }

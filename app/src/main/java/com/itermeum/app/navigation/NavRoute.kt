@@ -21,6 +21,7 @@ sealed class NavRoute(val route: String) {
     data object WorkProjects : NavRoute("work/projects")
     data object WorkProject : NavRoute("work/project/{id}") { fun of(id: Long) = "work/project/$id" }
     data object WorkStudio : NavRoute("work/studio")
+    data object WorkItem : NavRoute("work/item/{id}") { fun of(id: Long) = "work/item/$id" }
     data object Ritual : NavRoute("ritual")
     data object PrayerBook : NavRoute("prayer/book")
     data object PrayerItem : NavRoute("prayer/item/{id}") { fun of(id: String) = "prayer/item/$id" }
@@ -55,6 +56,7 @@ sealed class NavRoute(val route: String) {
                 "work" -> Work.route
                 "outreach" -> WorkOutreach.route
                 "laststone" -> WorkLastStone.route
+                "item" -> uri.lastPathSegment?.toLongOrNull()?.let { WorkItem.of(it) } ?: Work.route
                 "ritual" -> Ritual.route
                 "prayer" -> Prayer.route
                 "angelus" -> PrayerAngelus.route

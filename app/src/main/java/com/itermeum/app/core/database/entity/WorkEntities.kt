@@ -41,6 +41,43 @@ data class WorkTaskEntity(
     val createdAt: Long,
     /** Section 5.2: edits after 14:00 are flagged as «перенос». */
     val movedAfterCutoff: Boolean = false,
+    /** D-64: the work item this slot of the day's plan carries out (its notes, checklist, contact). */
+    val itemId: Long? = null,
+)
+
+/** D-64: a work item — the inbox and every task, with or without a day: the master record of a task. */
+enum class ItemStatus { OPEN, DONE, DROPPED }
+
+@Serializable
+@Entity(tableName = "work_item", indices = [Index("status"), Index("dueDate")])
+data class WorkItemEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val title: String,
+    val type: TaskType = TaskType.OPS,
+    val status: ItemStatus = ItemStatus.OPEN,
+    /** Null — in the inbox, no day yet. */
+    @Contextual val dueDate: LocalDate? = null,
+    val projectId: Long? = null,
+    val notes: String? = null,
+    val contactName: String? = null,
+    val contactPhone: String? = null,
+    val link: String? = null,
+    /** JSON array of {"t": text, "d": done}. */
+    val checklistJson: String? = null,
+    /** Time spent in focus on this item, all days together. */
+    val spentMs: Long = 0,
+    val createdAt: Long,
+    val doneAt: Long? = null,
+)
+
+/** D-64: one focus session on an item — for the day's and the week's totals. */
+@Serializable
+@Entity(tableName = "focus_log", indices = [Index("logicalDate")])
+data class FocusLogEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    @Contextual val logicalDate: LocalDate,
+    val itemId: Long,
+    val ms: Long,
 )
 
 enum class OutreachKind { CALL, MESSAGE }

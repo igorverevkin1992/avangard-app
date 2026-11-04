@@ -16,10 +16,14 @@ import kotlinx.coroutines.flow.asStateFlow
 @Singleton
 class TimerController @Inject constructor(private val clock: Clock) {
 
-    enum class Kind { MENTAL_PRAYER, READING }
+    /** FOCUS (D-64): work on one item; [Session.refId] is the item, [Session.label] its title. */
+    enum class Kind { MENTAL_PRAYER, READING, FOCUS }
 
     /** [priorMs] — reading already done today before this session (D-59): the clock continues from it. */
-    data class Session(val kind: Kind, val startedAt: Long, val durationMs: Long, val bookId: String? = null, val priorMs: Long = 0) {
+    data class Session(
+        val kind: Kind, val startedAt: Long, val durationMs: Long, val bookId: String? = null, val priorMs: Long = 0,
+        val refId: Long? = null, val label: String? = null,
+    ) {
         fun elapsed(now: Long) = (now - startedAt).coerceAtLeast(0)
         fun fraction(now: Long) = (elapsed(now).toDouble() / durationMs).coerceIn(0.0, 1.0)
     }
@@ -27,8 +31,8 @@ class TimerController @Inject constructor(private val clock: Clock) {
     private val _session = MutableStateFlow<Session?>(null)
     val session: StateFlow<Session?> = _session.asStateFlow()
 
-    fun start(kind: Kind, durationMs: Long, bookId: String? = null, priorMs: Long = 0): Session {
-        val s = Session(kind, clock.nowEpochMillis() - priorMs, durationMs, bookId, priorMs)
+    fun start(kind: Kind, durationMs: Long, bookId: String? = null, priorMs: Long = 0, refId: Long? = null, label: String? = null): Session {
+        val s = Session(kind, clock.nowEpochMillis() - priorMs, durationMs, bookId, priorMs, refId, label)
         _session.value = s
         return s
     }

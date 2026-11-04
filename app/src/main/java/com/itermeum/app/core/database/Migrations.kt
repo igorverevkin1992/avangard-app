@@ -38,5 +38,24 @@ object Migrations {
         "`notificationTone` TEXT NOT NULL, `travelAuto` INTEGER NOT NULL, `confessionEveryDays` INTEGER NOT NULL, " +
         "`examenPinEnabled` INTEGER NOT NULL, PRIMARY KEY(`id`))"
 
-    val ALL: Array<Migration> get() = arrayOf(MIGRATION_1_2)
+    /** v3 (D-64): work items (inbox, details of every task), focus log, `work_task.itemId`. */
+    val MIGRATION_2_3 = object : Migration(2, 3) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `work_item` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `title` TEXT NOT NULL, " +
+                    "`type` TEXT NOT NULL, `status` TEXT NOT NULL, `dueDate` TEXT, `projectId` INTEGER, `notes` TEXT, `contactName` TEXT, " +
+                    "`contactPhone` TEXT, `link` TEXT, `checklistJson` TEXT, `spentMs` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL, `doneAt` INTEGER)",
+            )
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_work_item_status` ON `work_item` (`status`)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_work_item_dueDate` ON `work_item` (`dueDate`)")
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `focus_log` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `logicalDate` TEXT NOT NULL, " +
+                    "`itemId` INTEGER NOT NULL, `ms` INTEGER NOT NULL)",
+            )
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_focus_log_logicalDate` ON `focus_log` (`logicalDate`)")
+            db.execSQL("ALTER TABLE `work_task` ADD COLUMN `itemId` INTEGER")
+        }
+    }
+
+    val ALL: Array<Migration> get() = arrayOf(MIGRATION_1_2, MIGRATION_2_3)
 }

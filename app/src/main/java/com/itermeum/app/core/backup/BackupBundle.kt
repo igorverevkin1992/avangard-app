@@ -27,6 +27,8 @@ import com.itermeum.app.core.database.entity.TravelPeriodEntity
 import com.itermeum.app.core.database.entity.VanityCheckEntity
 import com.itermeum.app.core.database.entity.WeeklyReviewEntity
 import com.itermeum.app.core.database.entity.WorkTaskEntity
+import com.itermeum.app.core.database.entity.WorkItemEntity
+import com.itermeum.app.core.database.entity.FocusLogEntity
 import kotlinx.serialization.Serializable
 
 /** Section 8 backup v1. `*Enc` fields are decrypted in memory before export and re-encrypted on import. */
@@ -70,6 +72,9 @@ data class BackupBundle(
         val travelPeriod: List<TravelPeriodEntity>,
         val morningState: List<MorningStateEntity>,
         val monthlySummaryView: List<MonthlySummaryViewEntity>,
+        // D-64 (schema 3); empty in older copies.
+        val workItem: List<WorkItemEntity> = emptyList(),
+        val focusLog: List<FocusLogEntity> = emptyList(),
     )
 
     companion object {

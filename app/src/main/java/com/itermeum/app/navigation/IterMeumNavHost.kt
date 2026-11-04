@@ -40,6 +40,7 @@ import com.itermeum.app.feature.work.ProjectDetailScreen
 import com.itermeum.app.feature.work.ProjectsScreen
 import com.itermeum.app.feature.work.StudioScreen
 import com.itermeum.app.feature.work.TransitionRitualScreen
+import com.itermeum.app.feature.work.WorkItemScreen
 import com.itermeum.app.feature.work.WorkScreen
 
 @Composable
@@ -67,6 +68,7 @@ fun IterMeumNavHost(navController: NavHostController, startDestination: String) 
                 onStudio = { navController.navigate(NavRoute.WorkStudio.route) },
                 onRitual = { navController.navigate(NavRoute.Ritual.route) },
                 onOpenPrayer = { navController.navigate(NavRoute.PrayerItem.of(it)) },
+                onOpenItem = { navController.navigate(NavRoute.WorkItem.of(it)) },
             )
         }
         composable(NavRoute.WorkPlan.route) { DayPlanScreen(onBack = { navController.popBackStack() }) }
@@ -76,7 +78,10 @@ fun IterMeumNavHost(navController: NavHostController, startDestination: String) 
             ProjectsScreen(onBack = { navController.popBackStack() }, onOpen = { navController.navigate(NavRoute.WorkProject.of(it)) })
         }
         composable(NavRoute.WorkProject.route, arguments = listOf(navArgument("id") { type = NavType.LongType })) { entry ->
-            ProjectDetailScreen(id = entry.arguments?.getLong("id") ?: 0L, onBack = { navController.popBackStack() })
+            ProjectDetailScreen(id = entry.arguments?.getLong("id") ?: 0L, onBack = { navController.popBackStack() }, onOpenItem = { navController.navigate(NavRoute.WorkItem.of(it)) })
+        }
+        composable(NavRoute.WorkItem.route, arguments = listOf(navArgument("id") { type = NavType.LongType })) {
+            WorkItemScreen(onBack = { navController.popBackStack() })
         }
         composable(NavRoute.WorkStudio.route) { StudioScreen(onBack = { navController.popBackStack() }) }
         composable(NavRoute.Ritual.route) { TransitionRitualScreen(onDone = { navController.popBackStack() }) }

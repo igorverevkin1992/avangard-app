@@ -39,6 +39,8 @@ interface BackupDao {
     @Query("SELECT * FROM norm_completion") suspend fun completions(): List<NormCompletionEntity>
     @Query("SELECT * FROM day_plan") suspend fun dayPlans(): List<DayPlanEntity>
     @Query("SELECT * FROM work_task") suspend fun tasks(): List<WorkTaskEntity>
+    @Query("SELECT * FROM work_item") suspend fun workItems(): List<com.itermeum.app.core.database.entity.WorkItemEntity>
+    @Query("SELECT * FROM focus_log") suspend fun focusLogs(): List<com.itermeum.app.core.database.entity.FocusLogEntity>
     @Query("SELECT * FROM outreach_log") suspend fun outreach(): List<OutreachLogEntity>
     @Query("SELECT * FROM script_session") suspend fun scripts(): List<ScriptSessionEntity>
     @Query("SELECT * FROM transition_ritual") suspend fun rituals(): List<TransitionRitualEntity>
@@ -66,6 +68,8 @@ interface BackupDao {
     @Query("DELETE FROM norm_completion") suspend fun wipeCompletions()
     @Query("DELETE FROM day_plan") suspend fun wipeDayPlans()
     @Query("DELETE FROM work_task") suspend fun wipeTasks()
+    @Query("DELETE FROM work_item") suspend fun wipeWorkItems()
+    @Query("DELETE FROM focus_log") suspend fun wipeFocusLogs()
     @Query("DELETE FROM outreach_log") suspend fun wipeOutreach()
     @Query("DELETE FROM script_session") suspend fun wipeScripts()
     @Query("DELETE FROM transition_ritual") suspend fun wipeRituals()
@@ -95,6 +99,8 @@ interface BackupDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertCompletions(x: List<NormCompletionEntity>)
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertDayPlans(x: List<DayPlanEntity>)
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertTasks(x: List<WorkTaskEntity>)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertWorkItems(x: List<com.itermeum.app.core.database.entity.WorkItemEntity>)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertFocusLogs(x: List<com.itermeum.app.core.database.entity.FocusLogEntity>)
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertOutreach(x: List<OutreachLogEntity>)
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertScripts(x: List<ScriptSessionEntity>)
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertRituals(x: List<TransitionRitualEntity>)

@@ -62,11 +62,14 @@ fun DayPlanScreen(onBack: () -> Unit, viewModel: WorkViewModel = hiltViewModel()
     val titles = remember { mutableStateListOf("", "", "") }
     val types = remember { mutableStateListOf(TaskType.OUTREACH, TaskType.OPS, TaskType.OPS) }
     val followUps = remember { mutableStateListOf("", "", "") }
-    fun addSlot() { titles += ""; types += TaskType.OPS; followUps += "" }
+    // D-64: the work item each slot carries (from the inbox or an earlier save).
+    val itemIds = remember { mutableStateListOf<Long?>(null, null, null) }
+    fun addSlot() { titles += ""; types += TaskType.OPS; followUps += ""; itemIds += null }
     fun swap(a: Int, b: Int) {
         titles[a] = titles[b].also { titles[b] = titles[a] }
         types[a] = types[b].also { types[b] = types[a] }
         followUps[a] = followUps[b].also { followUps[b] = followUps[a] }
+        itemIds[a] = itemIds[b].also { itemIds[b] = itemIds[a] }
     }
     var intention by remember { mutableStateOf("") }
     var shootDay by remember { mutableStateOf(false) }
@@ -74,7 +77,7 @@ fun DayPlanScreen(onBack: () -> Unit, viewModel: WorkViewModel = hiltViewModel()
     LaunchedEffect(ui.tasks, ui.plan) {
         if (!seeded && (ui.tasks.isNotEmpty() || ui.plan != null)) {
             while (titles.size < (ui.tasks.maxOfOrNull { it.slot } ?: 0)) addSlot()
-            ui.tasks.forEach { t -> if (t.slot >= 1) { titles[t.slot - 1] = t.title; types[t.slot - 1] = t.type; followUps[t.slot - 1] = t.followUpContact ?: "" } }
+            ui.tasks.forEach { t -> if (t.slot >= 1) { titles[t.slot - 1] = t.title; types[t.slot - 1] = t.type; followUps[t.slot - 1] = t.followUpContact ?: ""; itemIds[t.slot - 1] = t.itemId } }
             intention = ui.plan?.intention ?: ""
             shootDay = ui.plan?.shootDay ?: false
             seeded = true
@@ -82,7 +85,7 @@ fun DayPlanScreen(onBack: () -> Unit, viewModel: WorkViewModel = hiltViewModel()
     }
     // Empty slots are skipped (D-51): two tasks are a plan too.
     val drafts = titles.indices.filter { titles[it].isNotBlank() }.mapIndexed { n, i ->
-        WorkRepository.TaskDraft(n + 1, types[i], titles[i], followUpContact = followUps[i].takeIf { types[i] == TaskType.SHOOT })
+        WorkRepository.TaskDraft(n + 1, types[i], titles[i], followUpContact = followUps[i].takeIf { types[i] == TaskType.SHOOT }, itemId = itemIds[i])
     }
     val valid = viewModel.planIsValid(drafts, shootDay)
     val upLabel = stringResource(R.string.plan_move_up)
@@ -116,7 +119,7 @@ fun DayPlanScreen(onBack: () -> Unit, viewModel: WorkViewModel = hiltViewModel()
                 }
                 // The first three are the plan itself; added slots can go again.
                 if (i >= MIN_SLOTS) {
-                    TextButton(onClick = { titles.removeAt(i); types.removeAt(i); followUps.removeAt(i) }) { Text(stringResource(R.string.plan_remove_slot)) }
+                    TextButton(onClick = { titles.removeAt(i); types.removeAt(i); followUps.removeAt(i); itemIds.removeAt(i) }) { Text(stringResource(R.string.plan_remove_slot)) }
                 }
             }
         }

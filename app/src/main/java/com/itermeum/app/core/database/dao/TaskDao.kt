@@ -31,4 +31,10 @@ interface TaskDao {
 
     @Query("SELECT * FROM work_task WHERE logicalDate BETWEEN :from AND :to")
     suspend fun between(from: LocalDate, to: LocalDate): List<WorkTaskEntity>
+
+    @Query("SELECT * FROM work_task WHERE logicalDate BETWEEN :from AND :to")
+    fun observeBetween(from: LocalDate, to: LocalDate): kotlinx.coroutines.flow.Flow<List<WorkTaskEntity>>
+
+    @Insert
+    suspend fun insert(task: WorkTaskEntity): Long
 }

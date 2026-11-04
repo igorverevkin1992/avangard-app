@@ -122,7 +122,7 @@ class BookReaderViewModel @Inject constructor(
 fun BookReaderScreen(onBack: () -> Unit, viewModel: BookReaderViewModel = hiltViewModel(), timers: TimerViewModel = hiltViewModel()) {
     val session by timers.session.collectAsState()
     var now by remember { mutableLongStateOf(timers.now()) }
-    LaunchedEffect(Unit) { if (timers.session.value == null) timers.startReading(viewModel.bookId) }
+    LaunchedEffect(Unit) { if (timers.session.value.let { it == null || it.kind == TimerController.Kind.FOCUS }) timers.startReading(viewModel.bookId) }
     // D-58: leaving the book stops its reading timer and records the minutes.
     DisposableEffect(Unit) {
         onDispose {

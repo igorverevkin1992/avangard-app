@@ -6,6 +6,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.app.RemoteInput
 import com.itermeum.app.MainActivity
 import com.itermeum.app.R
 import com.itermeum.app.core.common.Clock
@@ -39,6 +40,7 @@ import kotlinx.coroutines.sync.withLock
 class WorkCard @Inject constructor(
     @ApplicationContext private val context: Context,
     private val work: WorkRepository,
+    private val items: com.itermeum.app.core.data.WorkItemRepository,
     private val norms: NormRepository,
     private val channels: NotificationChannels,
     private val clock: Clock,
@@ -69,7 +71,11 @@ class WorkCard @Inject constructor(
         if (now.isBefore(start) || !now.isBefore(end)) return null
         val done = norms.observeDoneIds(date).first()
         if (NormCatalog.LAST_STONE in done) return null
+        // D-64: items due today join the plan before the card reads it.
+        runCatching { items.ensureDuePlanned(date) }
         val tasks = work.tasksFor(date)
+        // Items can fill the plan by themselves: until it is saved (and while it still counts) the step is the plan.
+        val planOpen = work.observePlan(date).first() == null && now.isBefore(date.atTime(work.planDeadline()))
         val target = work.targetFor(date)
         val attempts = work.attemptsBeforeCutoff(date)
         val open = tasks.filter { it.status == TaskStatus.OPEN }.sortedBy { it.slot }
@@ -77,7 +83,7 @@ class WorkCard @Inject constructor(
         fun count(o: OutreachOutcome) = outreach.count { it.outcome == o }
         val tally = s(R.string.work_card_tally, count(OutreachOutcome.AGREEMENT), count(OutreachOutcome.CALLBACK), count(OutreachOutcome.REJECTION))
         return when {
-            tasks.isEmpty() -> State(Step.PLAN, s(R.string.work_card_plan_title), s(R.string.work_card_plan_text), "itermeum://work")
+            tasks.isEmpty() || planOpen -> State(Step.PLAN, s(R.string.work_card_plan_title), s(R.string.work_card_plan_text), "itermeum://work")
             // Only when the optional hero-calls norm is on (D-35).
             NormCatalog.FROG in items && NormCatalog.FROG !in done -> State(
                 Step.HEROES, s(R.string.work_card_heroes_title, attempts, target),
@@ -120,10 +126,13 @@ class WorkCard @Inject constructor(
             .setContentIntent(open(st.deepLink))
         st.progress?.let { (done, target) -> b.setProgress(target.coerceAtLeast(1), done.coerceAtMost(target), false) }
         when (st.step) {
-            Step.PLAN -> b.addAction(0, s(R.string.work_card_open_plan), open("itermeum://work"))
+            Step.PLAN -> { b.addAction(0, s(R.string.work_card_open_plan), open("itermeum://work")); b.addAction(captureAction()) }
             Step.HEROES -> heroActions(b)
             // Android shows at most three buttons: the hero task closes from «Труд» (tap on the card).
-            Step.TASKS -> if (st.heroTask) heroActions(b) else b.addAction(0, s(R.string.work_card_task_done), action(WorkCardReceiver.ACTION_TASK_DONE))
+            Step.TASKS -> if (st.heroTask) heroActions(b) else {
+                b.addAction(0, s(R.string.work_card_task_done), action(WorkCardReceiver.ACTION_TASK_DONE))
+                b.addAction(captureAction())
+            }
             Step.LAST_STONE -> b.addAction(0, s(R.string.work_card_open_stone), open("itermeum://laststone"))
         }
         try {
@@ -157,6 +166,17 @@ class WorkCard @Inject constructor(
         b.addAction(0, s(R.string.work_card_agreement), action(WorkCardReceiver.ACTION_AGREEMENT))
         b.addAction(0, s(R.string.work_card_callback), action(WorkCardReceiver.ACTION_CALLBACK))
         b.addAction(0, s(R.string.work_card_rejection), action(WorkCardReceiver.ACTION_REJECTION))
+    }
+
+    /** D-64: «+ задача» typed right in the shade — it goes to today's plan. */
+    private fun captureAction(): NotificationCompat.Action {
+        val input = RemoteInput.Builder(WorkCardReceiver.KEY_CAPTURE).setLabel(s(R.string.work_card_capture_label)).build()
+        // Mutable: the system adds the typed text to the intent.
+        val pi = PendingIntent.getBroadcast(
+            context, WorkCardReceiver.ACTION_CAPTURE.hashCode(), Intent(context, WorkCardReceiver::class.java).setAction(WorkCardReceiver.ACTION_CAPTURE),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE,
+        )
+        return NotificationCompat.Action.Builder(0, s(R.string.work_card_capture), pi).addRemoteInput(input).setAllowGeneratedReplies(false).build()
     }
 
     private fun action(action: String): PendingIntent = PendingIntent.getBroadcast(

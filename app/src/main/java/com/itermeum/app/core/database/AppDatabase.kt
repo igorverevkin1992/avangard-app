@@ -53,9 +53,12 @@ import com.itermeum.app.core.database.entity.TravelPeriodEntity
 import com.itermeum.app.core.database.entity.VanityCheckEntity
 import com.itermeum.app.core.database.entity.WeeklyReviewEntity
 import com.itermeum.app.core.database.entity.WorkTaskEntity
+import com.itermeum.app.core.database.entity.WorkItemEntity
+import com.itermeum.app.core.database.entity.FocusLogEntity
+import com.itermeum.app.core.database.dao.WorkItemDao
 
 /**
- * Section 8: schema version 2, exported. `fallbackToDestructiveMigration`
+ * Section 8: schema version 3 (D-64: work items, focus log), exported. `fallbackToDestructiveMigration`
  * is forbidden — every later version ships a Migration (see [Migrations]).
  */
 @Database(
@@ -73,8 +76,9 @@ import com.itermeum.app.core.database.entity.WorkTaskEntity
         ProjectEntity::class, QuarterGoalEntity::class, QuarterIncomeEntity::class, VanityCheckEntity::class,
         WeeklyReviewEntity::class, MortificationLogEntity::class, TravelPeriodEntity::class,
         MorningStateEntity::class, MonthlySummaryViewEntity::class,
+        WorkItemEntity::class, FocusLogEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -97,10 +101,11 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun reviewDao(): ReviewDao
     abstract fun morningDao(): MorningDao
     abstract fun backupDao(): BackupDao
+    abstract fun workItemDao(): WorkItemDao
 
     companion object {
         const val DB_NAME = "itermeum.db"
         /** Keep equal to `@Database(version)`; written into backups. */
-        const val SCHEMA_VERSION = 2
+        const val SCHEMA_VERSION = 3
     }
 }

@@ -58,7 +58,17 @@ fun ProjectStage.label(): String = stringResource(
 )
 
 @HiltViewModel
-class ProjectsViewModel @Inject constructor(private val repo: ProjectRepository) : ViewModel() {
+class ProjectsViewModel @Inject constructor(
+    private val repo: ProjectRepository,
+    private val items: com.itermeum.app.core.data.WorkItemRepository,
+    private val widget: com.itermeum.app.sync.widget.WidgetUpdater,
+    clock: com.itermeum.app.core.common.Clock,
+) : ViewModel() {
+    val today: java.time.LocalDate = clock.logicalToday()
+    /** D-64: the project's tasks, open first. */
+    fun itemsOf(projectId: Long) = items.observeForProject(projectId)
+    fun addItem(projectId: Long, title: String, due: com.itermeum.app.core.data.WorkItemRepository.Due) =
+        viewModelScope.launch { items.capture(title, due, projectId); widget.requestUpdate() }
     val projects = repo.observeProjects().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
     fun observe(id: Long) = repo.observeProject(id)
     fun ethics(p: ProjectEntity) = repo.ethics(p)
@@ -110,8 +120,9 @@ fun ProjectsScreen(onBack: () -> Unit, onOpen: (Long) -> Unit, viewModel: Projec
 }
 
 @Composable
-fun ProjectDetailScreen(id: Long, onBack: () -> Unit, viewModel: ProjectsViewModel = hiltViewModel()) {
+fun ProjectDetailScreen(id: Long, onBack: () -> Unit, onOpenItem: (Long) -> Unit = {}, viewModel: ProjectsViewModel = hiltViewModel()) {
     val project by viewModel.observe(id).collectAsState(initial = null)
+    val tasks by remember(id) { viewModel.itemsOf(id) }.collectAsState(initial = emptyList())
     val p = project ?: return
     val ethics = viewModel.ethics(p)
     var reflection by remember(p.id) { mutableStateOf(viewModel.reflection(p) ?: "") }
@@ -123,6 +134,13 @@ fun ProjectDetailScreen(id: Long, onBack: () -> Unit, viewModel: ProjectsViewMod
         Text("${p.market.name} · ${p.format}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         ImSectionLabel(stringResource(R.string.project_dedication))
         ImPanel { Text(p.dedication, style = MaterialTheme.typography.bodyLarge) }
+
+        // D-64: what is to be done for this project.
+        ImSectionLabel(stringResource(R.string.project_tasks))
+        ImPanel {
+            CaptureBar(onAdd = { title, due -> viewModel.addItem(p.id, title, due) }, hint = stringResource(R.string.project_task_add))
+            tasks.forEach { item -> ItemRow(item, viewModel.today, onClick = { onOpenItem(item.id) }) }
+        }
 
         ImSectionLabel(stringResource(R.string.project_stage))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(ImSpacing.tight)) {

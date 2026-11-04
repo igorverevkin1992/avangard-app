@@ -3,6 +3,7 @@ package com.itermeum.app.core.database
 import androidx.room.testing.MigrationTestHelper
 import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -59,4 +60,19 @@ class MigrationsTest {
     }
 
     private companion object { const val DB = "migration-test" }
+
+    @Test
+    fun `2 to 3 adds work items and keeps tasks`() {
+        helper.createDatabase(DB, 2).apply {
+            execSQL("INSERT INTO work_task (id, logicalDate, slot, type, title, status, createdAt, movedAfterCutoff) VALUES (1, '2026-11-02', 1, 'OPS', 'Смета', 'OPEN', 1, 0)")
+            close()
+        }
+        val db = helper.runMigrationsAndValidate(DB, 3, true, Migrations.MIGRATION_2_3)
+        db.query("SELECT title, itemId FROM work_task").use { c ->
+            assertTrue(c.moveToFirst())
+            assertEquals("Смета", c.getString(0))
+            assertTrue(c.isNull(1))
+        }
+        db.query("SELECT COUNT(*) FROM work_item").use { c -> c.moveToFirst(); assertEquals(0, c.getInt(0)) }
+    }
 }

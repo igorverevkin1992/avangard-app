@@ -3,6 +3,7 @@ package com.itermeum.app.sync.work
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import androidx.core.app.RemoteInput
 import com.itermeum.app.core.common.Clock
 import com.itermeum.app.core.data.WorkRepository
 import com.itermeum.app.core.database.entity.OutreachKind
@@ -20,6 +21,7 @@ class WorkCardReceiver : BroadcastReceiver() {
     @Inject lateinit var work: WorkRepository
     @Inject lateinit var card: WorkCard
     @Inject lateinit var clock: Clock
+    @Inject lateinit var items: com.itermeum.app.core.data.WorkItemRepository
 
     override fun onReceive(context: Context, intent: Intent) {
         val action = intent.action ?: return
@@ -32,6 +34,9 @@ class WorkCardReceiver : BroadcastReceiver() {
                 action == ACTION_REJECTION -> hero(date, OutreachOutcome.REJECTION)
                 action == ACTION_TASK_DONE -> work.tasksFor(date).filter { it.status == TaskStatus.OPEN }.minByOrNull { it.slot }
                     ?.let { work.closeTask(it, listOf(true, true, true, true)) }
+                // D-64: a task typed in the shade joins today's plan.
+                action == ACTION_CAPTURE -> RemoteInput.getResultsFromIntent(intent)?.getCharSequence(KEY_CAPTURE)?.toString()?.trim()
+                    ?.takeIf { it.isNotEmpty() }?.let { items.capture(it, com.itermeum.app.core.data.WorkItemRepository.Due.TODAY) }
                 action.startsWith(ACTION_TICK) -> Unit
             }
             card.refresh()
@@ -48,6 +53,8 @@ class WorkCardReceiver : BroadcastReceiver() {
         const val ACTION_REJECTION = "com.itermeum.app.work.REJECTION"
         const val ACTION_TASK_DONE = "com.itermeum.app.work.TASK_DONE"
         const val ACTION_TICK = "com.itermeum.app.work.TICK"
+        const val ACTION_CAPTURE = "com.itermeum.app.work.CAPTURE"
+        const val KEY_CAPTURE = "capture"
         const val HERO_LABEL = "герой (из шторки)"
     }
 }

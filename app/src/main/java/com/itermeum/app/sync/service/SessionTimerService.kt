@@ -41,6 +41,7 @@ class SessionTimerService : Service() {
     @Inject lateinit var presenter: NotificationPresenter
     @Inject lateinit var channels: NotificationChannels
     @Inject lateinit var clock: Clock
+    @Inject lateinit var workCard: com.itermeum.app.sync.work.WorkCard
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private var ticker: Job? = null
@@ -49,10 +50,14 @@ class SessionTimerService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent?.action == ACTION_FINISH) {
+        if (intent?.action == ACTION_FINISH || intent?.action == ACTION_DONE) {
             // The session lives in memory: after a process restart there is nothing to finish.
             if (timers.current() == null) { stopForeground(STOP_FOREGROUND_REMOVE); stopSelf() }
-            else scope.launch { finisher.finish() } // the session flow turns null → the card goes
+            else scope.launch {
+                // The session flow turns null → the card goes. A finished focus may change the work card's step.
+                val s = finisher.finish(complete = intent?.action == ACTION_DONE)
+                if (s?.kind == TimerController.Kind.FOCUS) runCatching { workCard.refresh() }
+            }
             return START_NOT_STICKY
         }
         val session = timers.current()
@@ -84,6 +89,7 @@ class SessionTimerService : Service() {
     }
 
     private fun build(s: TimerController.Session, alert: Boolean): Notification {
+        if (s.kind == TimerController.Kind.FOCUS) return buildFocus(s)
         val mental = s.kind == TimerController.Kind.MENTAL_PRAYER
         val elapsed = clock.nowEpochMillis() - s.startedAt
         val left = finisher.countsAfterMs(s) - elapsed
@@ -110,6 +116,30 @@ class SessionTimerService : Service() {
             .build()
     }
 
+    /** D-64: focus on one item — the clock shows all the time spent on it; «Пауза» keeps it open, «Готово» closes it. */
+    private fun buildFocus(s: TimerController.Session): Notification {
+        fun svc(code: Int, action: String) = PendingIntent.getService(
+            this, code, Intent(this, SessionTimerService::class.java).setAction(action),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        return NotificationCompat.Builder(this, NotificationChannels.TIMER_CARD)
+            .setSmallIcon(R.drawable.ic_stat_itermeum)
+            .setContentTitle(getString(R.string.focus_card_title, s.label.orEmpty()))
+            .setContentText(getString(R.string.focus_card_text))
+            .setUsesChronometer(true)
+            .setWhen(s.startedAt)
+            .setShowWhen(true)
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setSilent(true)
+            .setCategory(NotificationCompat.CATEGORY_STOPWATCH)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setContentIntent(presenter.deepLinkIntent(s.refId?.let { "itermeum://item/$it" } ?: "itermeum://work", NOTIFICATION_ID))
+            .addAction(0, getString(R.string.focus_pause), svc(1, ACTION_FINISH))
+            .addAction(0, getString(R.string.focus_done), svc(2, ACTION_DONE))
+            .build()
+    }
+
     private fun notify(n: Notification) {
         try {
             NotificationManagerCompat.from(this).notify(NOTIFICATION_ID, n)
@@ -123,6 +153,7 @@ class SessionTimerService : Service() {
     companion object {
         const val NOTIFICATION_ID = 3002
         private const val ACTION_FINISH = "com.itermeum.app.timer.FINISH"
+        private const val ACTION_DONE = "com.itermeum.app.timer.DONE"
         private const val TICK_MS = 15_000L
         fun start(context: Context) = context.startForegroundService(Intent(context, SessionTimerService::class.java))
     }

@@ -103,6 +103,12 @@ fun WeeklyReviewScreen(onBack: () -> Unit, viewModel: PathViewModel = hiltViewMo
             Stat(stringResource(R.string.stat_agreements), week.agreements)
             Stat(stringResource(R.string.stat_fidelity_days), week.fidelityDays)
         }
+        ImSectionLabel(stringResource(R.string.review_work))
+        ImPanel {
+            Stat(stringResource(R.string.stat_tasks_closed), week.tasksClosed)
+            Stat(stringResource(R.string.stat_tasks_moved), week.tasksMoved)
+            Stat(stringResource(R.string.stat_focus_minutes), week.focusMinutes)
+        }
         ImSectionLabel(stringResource(R.string.review_plan))
         plan.forEachIndexed { i, s -> OutlinedTextField(value = s, onValueChange = { plan[i] = it }, label = { Text("${i + 1}") }, singleLine = true, modifier = Modifier.fillMaxWidth()) }
         ImSectionLabel(stringResource(R.string.review_virtue))
