@@ -84,7 +84,7 @@ class NormReminderReceiver : BroadcastReceiver() {
                 else assets.notificationText("streak_threat", 3)?.format(missing, facts.completedNorms, facts.activeNorms) ?: return
             }
             NormCatalog.FROG -> {
-                val attempts = outreachDao.countBeforeCutoff(date)
+                val attempts = outreachDao.countFor(date)
                 val target = work.targetFor(date)
                 val lvl = effectiveLevel(level, profile.notificationTone)
                 assets.notificationText("frog", lvl)?.let { if (lvl == 3) it.format(attempts, target) else it } ?: return

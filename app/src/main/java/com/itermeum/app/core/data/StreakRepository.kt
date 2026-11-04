@@ -76,7 +76,7 @@ class StreakRepository @Inject constructor(
             heroesActive = NormCatalog.FROG in active,
             examenDone = NormCatalog.EXAMEN in done,
             weekday = weekday,
-            outreachBeforeCutoff = outreachDao.countBeforeCutoff(date),
+            outreachBeforeCutoff = outreachDao.countFor(date), // D-60: the whole day counts
             outreachTarget = target,
         )
     }

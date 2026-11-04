@@ -55,7 +55,7 @@ object NormCatalog {
         norm(ANGELUS, "Ангел Господень", NormCategory.PRAYER, t(12, 0), 2, days = ALL_DAYS, follows = false, order = 9),
         norm(DAY_PLAN, "План дня: три задачи", NormCategory.WORK, t(12, 0), 5, days = WEEKDAYS, follows = false, order = 10),
         // D-35: not an Opus Dei practice — off by default, not core; hero calls are task 1 of the day plan.
-        norm(FROG, "Обзвон героев до 14:00", NormCategory.WORK, t(12, 5), 30, days = WEEKDAYS, follows = false, order = 11, enabled = false),
+        norm(FROG, "Обзвон героев", NormCategory.WORK, t(12, 5), 30, days = WEEKDAYS, follows = false, order = 11, enabled = false),
         norm(JACULATORIA, "Молитвы-стрелы", NormCategory.PRAYER, null, 0, days = ALL_DAYS, follows = false, order = 12),
         norm(LAST_STONE, "Последний камень", NormCategory.WORK, t(19, 30), 15, days = WEEKDAYS, follows = false, order = 13),
         norm(ROSARY, "Розарий", NormCategory.PRAYER, t(20, 15), 20, days = ALL_DAYS, follows = false, order = 14),

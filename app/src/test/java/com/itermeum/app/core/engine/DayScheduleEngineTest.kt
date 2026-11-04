@@ -110,7 +110,7 @@ class DayScheduleEngineTest {
     @Test
     fun `windows follow section 4`() {
         val items = DayScheduleEngine.schedule(input())
-        assertEquals(monday.atTime(14, 0), items.of(NormCatalog.FROG).windowEnd)
+        assertEquals(monday.atTime(20, 0), items.of(NormCatalog.FROG).windowEnd) // D-60: all working day
         assertEquals(monday.atTime(12, 30), items.of(NormCatalog.DAY_PLAN).windowEnd)
         assertEquals(monday.atTime(21, 0), items.of(NormCatalog.LAST_STONE).windowEnd)
         assertEquals(monday.plusDays(1).atTime(3, 0), items.of(NormCatalog.EXAMEN).windowEnd)

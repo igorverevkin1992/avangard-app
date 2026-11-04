@@ -31,7 +31,7 @@ import kotlinx.coroutines.sync.withLock
 /**
  * D-34: one ongoing «рабочая карточка» in the shade and on the lock screen
  * during working hours. It always shows the one current step of the day —
- * plan → heroes until the cutoff → tasks → last stone — with one-tap actions,
+ * plan → heroes (any time of the day, D-60) → tasks → last stone — with one-tap actions,
  * so the order is visible without opening the app. It vibrates once when the
  * step changes and is silent otherwise.
  */
@@ -70,7 +70,6 @@ class WorkCard @Inject constructor(
         val done = norms.observeDoneIds(date).first()
         if (NormCatalog.LAST_STONE in done) return null
         val tasks = work.tasksFor(date)
-        val cutoff = date.atTime(DayScheduleEngine.frogCutoff(p))
         val target = work.targetFor(date)
         val attempts = work.attemptsBeforeCutoff(date)
         val open = tasks.filter { it.status == TaskStatus.OPEN }.sortedBy { it.slot }
@@ -80,9 +79,9 @@ class WorkCard @Inject constructor(
         return when {
             tasks.isEmpty() -> State(Step.PLAN, s(R.string.work_card_plan_title), s(R.string.work_card_plan_text), "itermeum://work")
             // Only when the optional hero-calls norm is on (D-35).
-            NormCatalog.FROG in items && NormCatalog.FROG !in done && now.isBefore(cutoff) -> State(
+            NormCatalog.FROG in items && NormCatalog.FROG !in done -> State(
                 Step.HEROES, s(R.string.work_card_heroes_title, attempts, target),
-                s(R.string.work_card_heroes_text, cutoff.toLocalTime().toString()) + "\n" + tally, "itermeum://outreach", attempts to target,
+                s(R.string.work_card_heroes_text) + "\n" + tally, "itermeum://outreach", attempts to target,
             )
             open.isEmpty() || !now.isBefore(date.atTime(LAST_STONE_AT)) -> State(Step.LAST_STONE, s(R.string.work_card_stone_title), s(R.string.work_card_stone_text), "itermeum://laststone")
             open.first().type == TaskType.OUTREACH -> State(

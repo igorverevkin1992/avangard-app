@@ -148,7 +148,7 @@ object DayScheduleEngine {
                 NormCatalog.QUARANTINE -> (at ?: dayStart).let { it to it.plusMinutes(35) }
                 NormCatalog.ANGELUS -> date.atTime(11, 30) to date.atTime(14, 0)
                 NormCatalog.DAY_PLAN -> dayStart to date.atTime(p.workStart).plusMinutes(30)
-                NormCatalog.FROG -> date.atTime(p.workStart) to date.atTime(frogCutoff(p))
+                NormCatalog.FROG -> date.atTime(p.workStart) to date.atTime(p.workEnd) // D-60: all working day
                 NormCatalog.LAST_STONE -> date.atTime(p.workStart) to date.atTime(21, 0)
                 NormCatalog.EXAMEN -> date.atTime(20, 0) to dayEnd
                 NormCatalog.CATECHESIS -> date.atTime(16, 0) to dayEnd

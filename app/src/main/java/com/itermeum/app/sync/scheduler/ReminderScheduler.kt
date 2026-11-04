@@ -88,8 +88,9 @@ class ReminderScheduler @Inject constructor(
             when (item.normId) {
                 NormCatalog.DAY_PLAN -> planned += Triple(date.atTime(input.profile.workStart).plusMinutes(25), item.normId, 2)
                 NormCatalog.FROG -> {
-                    val cutoff = date.atTime(DayScheduleEngine.frogCutoff(input.profile))
-                    planned += Triple(cutoff.minusMinutes(60), item.normId, 2); planned += Triple(cutoff.minusMinutes(20), item.normId, 3)
+                    // D-60: calls count all day — remind before the end of work, not before 14:00.
+                    val end = date.atTime(input.profile.workEnd)
+                    planned += Triple(end.minusMinutes(120), item.normId, 2); planned += Triple(end.minusMinutes(45), item.normId, 3)
                 }
                 NormCatalog.LAST_STONE -> planned += Triple(date.atTime(20, 30), item.normId, 2)
                 NormCatalog.EXAMEN -> planned += Triple(date.atTime(23, 10), item.normId, 2)

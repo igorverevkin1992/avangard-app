@@ -41,4 +41,8 @@ interface NormDao {
     /** D-35, once per install: the former core «frog» norm becomes optional and off (later user choices stay). */
     @Query("UPDATE norm SET enabled = 0, isCore = 0 WHERE id = 'frog' AND isCore = 1")
     suspend fun retireFrog()
+
+    /** D-60: the norm no longer ends at 14:00 — its stored title follows. */
+    @Query("UPDATE norm SET title = 'Обзвон героев' WHERE id = 'frog' AND title = 'Обзвон героев до 14:00'")
+    suspend fun renameFrog()
 }

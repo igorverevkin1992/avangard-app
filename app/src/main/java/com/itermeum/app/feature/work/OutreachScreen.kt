@@ -72,9 +72,8 @@ fun OutreachScreen(onBack: () -> Unit, viewModel: WorkViewModel = hiltViewModel(
         ImHeader(stringResource(R.string.work_outreach), onBack = onBack)
         ImPanel {
             Text(stringResource(R.string.outreach_counter, ui.attempts, ui.agreements), style = MaterialTheme.typography.headlineMedium)
-            Text(stringResource(R.string.outreach_target_line, ui.outreach.count { it.beforeCutoff }, ui.target),
+            Text(stringResource(R.string.outreach_target_line, ui.outreach.size, ui.target),
                 style = MaterialTheme.typography.labelMedium, color = if (viewModel.frogDone()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
-            if (!ui.beforeCutoff) Text(stringResource(R.string.outreach_after_cutoff), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         afterRejection?.let {
             ImPanel { Text(it, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary) }
@@ -125,7 +124,7 @@ fun OutreachScreen(onBack: () -> Unit, viewModel: WorkViewModel = hiltViewModel(
         ui.outreach.asReversed().forEach { o ->
             ImPanel {
                 Text("${o.personLabel}${o.role?.let { " · $it" } ?: ""}", style = MaterialTheme.typography.bodyLarge)
-                Text(o.outcome.label() + if (!o.beforeCutoff) stringResource(R.string.outreach_after_cutoff_short) else "", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(o.outcome.label(), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }

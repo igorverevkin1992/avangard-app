@@ -41,7 +41,8 @@ class WorkRepository @Inject constructor(
     fun observePlan(date: LocalDate): Flow<DayPlanEntity?> = dayPlanDao.observe(date)
     fun observeTasks(date: LocalDate): Flow<List<WorkTaskEntity>> = taskDao.observeForDate(date)
     suspend fun tasksFor(date: LocalDate): List<WorkTaskEntity> = taskDao.forDate(date)
-    suspend fun attemptsBeforeCutoff(date: LocalDate): Int = outreachDao.countBeforeCutoff(date)
+    /** D-60: hero calls count at any time of the day — there is no 14:00 cutoff any more. */
+    suspend fun attemptsBeforeCutoff(date: LocalDate): Int = outreachDao.countFor(date)
 
     /**
      * Evening catch-up (D-34): tasks done during a chaotic day are recorded as
@@ -101,13 +102,14 @@ class WorkRepository @Inject constructor(
     /** Section 5.3: an attempt = call or message with a concrete request; rejection counts too. */
     suspend fun logOutreach(date: LocalDate, person: String, role: String?, projectId: Long?, kind: OutreachKind, outcome: OutreachOutcome, agreementDate: LocalDate?) {
         // Measured on the logical day: at 00:30 the calendar date is already tomorrow.
-        val before = clock.logicalToday() == date && clock.now().isBefore(date.atTime(cutoffFor()))
+        // D-60: every attempt of the day counts (the field keeps its name in the schema).
+        val before = clock.logicalToday() == date
         outreachDao.insert(
             OutreachLogEntity(logicalDate = date, at = clock.nowEpochMillis(), personLabel = person.trim(), role = role?.trim(),
                 projectId = projectId, kind = kind, outcome = outcome, agreementDate = agreementDate, beforeCutoff = before),
         )
         val target = targetFor(date)
-        if (outreachDao.countBeforeCutoff(date) >= target && !norms.isDone(NormCatalog.FROG, date)) norms.markDone(NormCatalog.FROG, date)
+        if (outreachDao.countFor(date) >= target && !norms.isDone(NormCatalog.FROG, date)) norms.markDone(NormCatalog.FROG, date)
     }
 
     /** Outreach cutoff for the current profile (14:00, later for a late `workStart`). */
