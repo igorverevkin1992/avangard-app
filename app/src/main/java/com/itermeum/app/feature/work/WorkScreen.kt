@@ -44,6 +44,7 @@ fun WorkScreen(
     onProjects: () -> Unit,
     onStudio: () -> Unit,
     onRitual: () -> Unit,
+    onOpenPrayer: (String) -> Unit = {},
     viewModel: WorkViewModel = hiltViewModel(),
 ) {
     val ui by viewModel.ui.collectAsState()
@@ -52,6 +53,7 @@ fun WorkScreen(
         verticalArrangement = Arrangement.spacedBy(ImSpacing.grid),
     ) {
         ImHeader(stringResource(R.string.nav_work))
+        ImNavRow(stringResource(R.string.work_prayer_before), { onOpenPrayer("before_work") }, subtitle = stringResource(R.string.work_prayer_before_sub))
         ScriptCard(viewModel)
 
         val open = ui.tasks.count { it.status == TaskStatus.OPEN }

@@ -52,6 +52,8 @@ data class ExamenUi(
     val proposito: String = "",
     val propositoError: ExamenValidator.Reason? = null,
     val aveText: String = "",
+    /** D-56: the night prayer closes the Examen. */
+    val nightText: String = "",
     val aveCount: Int = 0,
     val needsWhatBroke: Boolean = false,
     val whatBroke: String = "",
@@ -100,6 +102,7 @@ class ExamenViewModel @Inject constructor(
             val presence = prayers.get("presence")?.let { prayers.displayText(it) } ?: ""
             val contrition = prayers.get("contrition_short")?.let { prayers.displayText(it) } ?: ""
             val ave = prayers.get("hail_mary")?.let { prayers.displayText(it) } ?: ""
+            val night = prayers.get("night_prayer")?.let { prayers.displayText(it) } ?: ""
             val previous = examen.previousProposito(date)
             // Set by the day close when yesterday's fidelity was frozen or broken.
             val needsWhatBroke = flags.whatBroke(date.minusDays(1))
@@ -113,7 +116,7 @@ class ExamenViewModel @Inject constructor(
             val target = work.targetFor(tomorrow)
             _ui.update {
                 it.copy(
-                    date = date, questions = questions, presenceText = presence, contritionText = contrition, aveText = ave, previous = previous,
+                    date = date, questions = questions, presenceText = presence, contritionText = contrition, aveText = ave, nightText = night, previous = previous,
                     hints = hintsFor(date), needsWhatBroke = needsWhatBroke, alreadyDone = existing?.completedAt != null,
                     audit = questions.map { ExamenRepository.Audit(ExamenRepository.Answer.PARTLY, "") },
                     // Yesterday's resolution is asked first (section 5.12: «Исполнил? Да/Нет»).

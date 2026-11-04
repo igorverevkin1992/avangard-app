@@ -66,6 +66,7 @@ fun IterMeumNavHost(navController: NavHostController, startDestination: String) 
                 onProjects = { navController.navigate(NavRoute.WorkProjects.route) },
                 onStudio = { navController.navigate(NavRoute.WorkStudio.route) },
                 onRitual = { navController.navigate(NavRoute.Ritual.route) },
+                onOpenPrayer = { navController.navigate(NavRoute.PrayerItem.of(it)) },
             )
         }
         composable(NavRoute.WorkPlan.route) { DayPlanScreen(onBack = { navController.popBackStack() }) }
@@ -93,6 +94,7 @@ fun IterMeumNavHost(navController: NavHostController, startDestination: String) 
                 onMass = { navController.navigate(NavRoute.PrayerMass.route) },
                 onMarian = { navController.navigate(NavRoute.PrayerMarian.route) },
                 onYear = { navController.navigate(NavRoute.PrayerYear.route) },
+                onOpenPrayer = { navController.navigate(NavRoute.PrayerItem.of(it)) },
             )
         }
         composable(NavRoute.PrayerBook.route) { PrayerBookScreen(onBack = { navController.popBackStack() }, onOpen = { navController.navigate(NavRoute.PrayerItem.of(it)) }) }

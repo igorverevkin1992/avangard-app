@@ -156,6 +156,10 @@ fun ExamenScreen(onBack: () -> Unit, viewModel: ExamenViewModel = hiltViewModel(
                 Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(ImSpacing.grid), modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.examen_done_title), style = MaterialTheme.typography.headlineMedium, textAlign = TextAlign.Center)
                     Text(stringResource(R.string.examen_done_text), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
+                    if (ui.nightText.isNotEmpty()) {
+                        ImSectionLabel(stringResource(R.string.hub_night_prayer))
+                        ImPanel { Text(ui.nightText, style = MaterialTheme.typography.bodyLarge) }
+                    }
                     ImSecondaryButton(stringResource(R.string.done), onClick = onBack)
                 }
             }
