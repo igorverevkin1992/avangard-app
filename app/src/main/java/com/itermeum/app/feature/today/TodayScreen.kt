@@ -335,6 +335,7 @@ private fun NormRow(
 /** Where a norm is done in the app; null → the row toggles or explains. */
 internal fun normRoute(normId: String): String? = when (normId) {
     NormCatalog.MENTAL_PRAYER -> NavRoute.PrayerMental.route
+    NormCatalog.MORNING_PRAYER, NormCatalog.WORK_PRAYER, NormCatalog.NIGHT_PRAYER -> NavRoute.PrayerItem.of(NormCatalog.prayerTextOf(normId)!!)
     NormCatalog.GOSPEL, NormCatalog.READING -> NavRoute.PrayerGospel.route
     NormCatalog.SRS -> NavRoute.PrayerSrs.route
     NormCatalog.ANGELUS -> NavRoute.PrayerAngelus.route

@@ -53,7 +53,7 @@ fun WorkScreen(
         verticalArrangement = Arrangement.spacedBy(ImSpacing.grid),
     ) {
         ImHeader(stringResource(R.string.nav_work))
-        ImNavRow(stringResource(R.string.work_prayer_before), { onOpenPrayer("before_work") }, subtitle = stringResource(R.string.work_prayer_before_sub))
+        ImNavRow(stringResource(R.string.work_prayer_before), { onOpenPrayer("before_work") }, subtitle = stringResource(R.string.work_prayer_before_sub), done = NormCatalog.WORK_PRAYER in ui.done)
         ScriptCard(viewModel)
 
         val open = ui.tasks.count { it.status == TaskStatus.OPEN }

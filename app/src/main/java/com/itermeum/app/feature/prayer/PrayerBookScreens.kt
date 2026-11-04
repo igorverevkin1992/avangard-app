@@ -69,6 +69,14 @@ fun PrayerItemScreen(id: String, onBack: () -> Unit, viewModel: PrayerHubViewMod
             ImPanel { Text(viewModel.displayText(p), style = MaterialTheme.typography.bodyLarge) }
             ImSecondaryButton(stringResource(R.string.prayer_edit), onClick = { editing = true })
         }
+        // D-62: a prayer that is a norm today (morning, before work, night) is marked here.
+        com.itermeum.app.core.content.NormCatalog.normOfPrayerText(p.id)?.let { normId ->
+            val done by viewModel.done.collectAsState()
+            ImPrimaryButton(
+                if (normId in done) stringResource(R.string.marked) else stringResource(R.string.angelus_mark),
+                onClick = { viewModel.markNorm(normId); onBack() },
+            )
+        }
         ImSectionLabel(stringResource(R.string.prayer_source))
         Text("${p.source} · ${p.status}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text(p.legal, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)

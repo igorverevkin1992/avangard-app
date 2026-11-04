@@ -31,12 +31,24 @@ object NormCatalog {
     const val MONTHLY_SUMMARY = "monthly_summary"
     const val QUARTER_CHECK = "quarter_check"
     const val CONFESSION = "confession"
+    // D-62: the daily prayers whose texts the parish gave.
+    const val MORNING_PRAYER = "morning_prayer"
+    const val WORK_PRAYER = "work_prayer"
+    const val NIGHT_PRAYER = "night_prayer"
 
     const val ALL_DAYS = 0b1111111
     const val WEEKDAYS = 0b0011111
     val SAT = bit(DayOfWeek.SATURDAY)
     val SUN = bit(DayOfWeek.SUNDAY)
     val FRI = bit(DayOfWeek.FRIDAY)
+
+    /** D-62: the prayer text a prayer norm opens; null for other norms. */
+    fun prayerTextOf(normId: String): String? = when (normId) {
+        MORNING_PRAYER -> "morning_prayer"; WORK_PRAYER -> "before_work"; NIGHT_PRAYER -> "night_prayer"; else -> null
+    }
+    fun normOfPrayerText(prayerId: String): String? = when (prayerId) {
+        "morning_prayer" -> MORNING_PRAYER; "before_work" -> WORK_PRAYER; "night_prayer" -> NIGHT_PRAYER; else -> null
+    }
 
     fun bit(day: DayOfWeek): Int = 1 shl (day.value - 1)
     fun Int.includes(day: DayOfWeek): Boolean = this and bit(day) != 0
@@ -67,6 +79,9 @@ object NormCatalog {
         norm(WEEKLY_REVIEW, "Обзор недели", NormCategory.PATH, t(18, 0), 20, days = SUN, follows = false, order = 20, freq = NormFrequency.WEEKLY),
         norm(MONTHLY_SUMMARY, "Итог месяца", NormCategory.PATH, null, 5, days = ALL_DAYS, follows = false, order = 21, freq = NormFrequency.MONTHLY),
         norm(QUARTER_CHECK, "Вехи к студии + 4 вопроса", NormCategory.PATH, null, 20, days = SUN, follows = false, order = 22, freq = NormFrequency.QUARTERLY),
+        norm(MORNING_PRAYER, "Утренняя молитва", NormCategory.PRAYER, t(6, 35), 3, days = ALL_DAYS, follows = true, order = 24),
+        norm(WORK_PRAYER, "Молитва перед работой", NormCategory.WORK, t(11, 58), 1, days = WEEKDAYS, follows = false, order = 25),
+        norm(NIGHT_PRAYER, "Молитва перед сном", NormCategory.PRAYER, t(22, 50), 1, days = ALL_DAYS, follows = false, order = 26),
         norm(CONFESSION, "Исповедь", NormCategory.PRAYER, null, 30, days = ALL_DAYS, follows = false, order = 23, freq = NormFrequency.MONTHLY, baptism = true),
     )
 

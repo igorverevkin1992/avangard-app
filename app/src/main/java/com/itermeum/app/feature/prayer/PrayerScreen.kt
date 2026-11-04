@@ -47,7 +47,7 @@ fun PrayerScreen(
         Text(viewModel.liturgical.title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
 
         ImSectionLabel(stringResource(R.string.prayer_today))
-        ImNavRow(stringResource(R.string.hub_morning_prayer), { onOpenPrayer("morning_prayer") }, subtitle = stringResource(R.string.hub_morning_prayer_sub))
+        ImNavRow(stringResource(R.string.hub_morning_prayer), { onOpenPrayer("morning_prayer") }, subtitle = stringResource(R.string.hub_morning_prayer_sub), done = NormCatalog.MORNING_PRAYER in done)
         ImNavRow(stringResource(R.string.hub_mental), onMental, subtitle = stringResource(R.string.prayer_mental_sub), done = NormCatalog.MENTAL_PRAYER in done)
         ImNavRow(stringResource(R.string.hub_gospel), onGospel, subtitle = stringResource(R.string.prayer_gospel_sub), done = NormCatalog.GOSPEL in done && NormCatalog.READING in done)
         ImNavRow(if (regina) stringResource(R.string.hub_regina) else stringResource(R.string.hub_angelus), onAngelus, subtitle = stringResource(R.string.angelus_window), done = NormCatalog.ANGELUS in done)
@@ -60,7 +60,7 @@ fun PrayerScreen(
             ImNavRow(stringResource(R.string.hub_marian), onMarian, subtitle = stringResource(R.string.marian_saturday_sub), done = NormCatalog.MARIAN_SATURDAY in done)
         }
         ImNavRow(stringResource(R.string.hub_examen), onExamen, subtitle = stringResource(R.string.prayer_examen_sub), done = NormCatalog.EXAMEN in done)
-        ImNavRow(stringResource(R.string.hub_night_prayer), { onOpenPrayer("night_prayer") }, subtitle = stringResource(R.string.hub_night_prayer_sub))
+        ImNavRow(stringResource(R.string.hub_night_prayer), { onOpenPrayer("night_prayer") }, subtitle = stringResource(R.string.hub_night_prayer_sub), done = NormCatalog.NIGHT_PRAYER in done)
 
         ImCollapsible(title = stringResource(R.string.prayer_library), summary = if (due > 0) stringResource(R.string.prayer_due, due) else null, initiallyExpanded = due > 0) {
             ImNavRow(stringResource(R.string.hub_srs), onSrs, subtitle = if (due > 0) stringResource(R.string.prayer_due, due) else null, done = NormCatalog.SRS in done)

@@ -184,8 +184,9 @@ object DayScheduleEngine {
         val live = open.filter { !now.isBefore(startOf(it)) && now.isBefore(it.windowEnd) }
         live.filter { it.windowEnd.isBefore(dayEnd) }.minByOrNull { it.windowEnd }?.let { return it }
         open.filter { !startOf(it).isBefore(now) }.minByOrNull { startOf(it) }?.let { return it }
-        // Late evening, nothing upcoming: the most recently due open norm (e.g. Examen at 23:00).
-        return live.maxByOrNull { startOf(it) }
+        // Late evening, nothing upcoming: the most recently due open norm — a core one first
+        // (Examen before the night prayer that follows it, D-62).
+        return live.filter { it.isCore }.maxByOrNull { startOf(it) } ?: live.maxByOrNull { startOf(it) }
     }
 
     fun isLastSundayOfQuarter(date: LocalDate): Boolean {

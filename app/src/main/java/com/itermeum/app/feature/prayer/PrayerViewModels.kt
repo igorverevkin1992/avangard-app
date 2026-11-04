@@ -73,6 +73,7 @@ class PrayerHubViewModel @Inject constructor(
     }
 
     fun markMarianSaturday() = viewModelScope.launch { norms.markDone(NormCatalog.MARIAN_SATURDAY, date) }
+    fun markNorm(normId: String) = viewModelScope.launch { norms.markDone(normId, date) }
 
     /** Long press = «произнёс»; the third mark of the day completes the norm. */
     fun said(item: JaculatoriaEntity) = viewModelScope.launch {
