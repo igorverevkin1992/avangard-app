@@ -38,7 +38,7 @@ class ContentSeederTest {
     @Test
     fun `seeding fills every content table`() = runBlocking {
         seeder.seedIfNeeded()
-        assertEquals(23, db.normDao().count())
+        assertEquals(NormCatalog.all.size, db.normDao().count())
         assertEquals(assets.prayers.items.size, db.prayerDao().count())
         assertEquals(48, db.prayerDao().allJaculatoria().size)
         assertEquals(18, db.prayerDao().asceticCount())
