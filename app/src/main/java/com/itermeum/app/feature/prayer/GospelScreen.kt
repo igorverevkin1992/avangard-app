@@ -1,7 +1,5 @@
 package com.itermeum.app.feature.prayer
 
-import android.content.Intent
-import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -28,7 +26,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
@@ -78,7 +75,6 @@ fun GospelScreen(onBack: () -> Unit, onOpenBook: (String) -> Unit = {}, viewMode
     }
     val pick: (String) -> Unit = { id -> pendingBook = id; picker.launch(arrayOf("*/*")) }
     val session by timers.session.collectAsState()
-    val context = LocalContext.current
     var phrase by remember(ui.focus) { mutableStateOf(ui.focus ?: "") }
     var now by remember { mutableLongStateOf(timers.now()) }
     LaunchedEffect(session) {
@@ -123,12 +119,6 @@ fun GospelScreen(onBack: () -> Unit, onOpenBook: (String) -> Unit = {}, viewMode
                 Text(item.sectionLabel, style = MaterialTheme.typography.bodyMedium)
                 BookFileActions(books[item.bookId], importing == item.bookId, importMessage?.takeIf { it.first == item.bookId }?.second, onRead = { onOpenBook(item.bookId) }, onLoad = { pick(item.bookId) })
                 Row(horizontalArrangement = Arrangement.spacedBy(ImSpacing.grid)) {
-                    item.url?.let { url ->
-                        ImSecondaryButton(stringResource(R.string.reading_open_site), {
-                            runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
-                            if (session == null) timers.startReading(item.bookId)
-                        }, Modifier.weight(1f))
-                    }
                     ImSecondaryButton(stringResource(R.string.reading_paper), {
                         if (session == null) timers.startReading(item.bookId)
                     }, Modifier.weight(1f))

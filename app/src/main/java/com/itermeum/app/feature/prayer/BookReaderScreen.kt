@@ -109,6 +109,13 @@ fun BookReaderScreen(onBack: () -> Unit, viewModel: BookReaderViewModel = hiltVi
     val session by timers.session.collectAsState()
     var now by remember { mutableLongStateOf(timers.now()) }
     LaunchedEffect(Unit) { if (timers.session.value == null) timers.startReading(viewModel.bookId) }
+    // D-58: leaving the book stops its reading timer and records the minutes.
+    DisposableEffect(Unit) {
+        onDispose {
+            val s = timers.session.value
+            if (s != null && s.kind == TimerController.Kind.READING && s.bookId == viewModel.bookId) timers.stop()
+        }
+    }
     LaunchedEffect(session) { while (session != null) { delay(1_000); now = timers.now() } }
 
     Column(Modifier.fillMaxSize().padding(horizontal = ImSpacing.screen)) {

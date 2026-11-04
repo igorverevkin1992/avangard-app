@@ -99,10 +99,18 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           cp app/build/outputs/apk/debug/app-debug.apk itermeum.apk
-          gh release delete latest --yes --cleanup-tag || true
-          gh release create latest itermeum.apk --prerelease --target "$GITHUB_SHA" \
-            --title "Iter Meum — последняя сборка" \
-            --notes "Сборка ${GITHUB_SHA::7}. Ставить поверх установленного приложения — данные сохранятся."
+          # GitHub's API answers 502 now and then: retry, so the link is never left empty.
+          for attempt in 1 2 3 4 5; do
+            gh release delete latest --yes --cleanup-tag 2>/dev/null || true
+            sleep 3
+            if gh release create latest itermeum.apk --prerelease --target "$GITHUB_SHA" \
+                --title "Iter Meum — последняя сборка" \
+                --notes "Сборка ${GITHUB_SHA::7}. Ставить поверх установленного приложения — данные сохранятся."; then
+              exit 0
+            fi
+            echo "attempt $attempt failed, retrying"; sleep $((attempt * 10))
+          done
+          exit 1
 
       - name: Upload release APK and R8 mapping
         uses: actions/upload-artifact@v4

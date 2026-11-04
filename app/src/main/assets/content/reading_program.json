@@ -8,13 +8,13 @@
      "bookId": "camino",
      "title": "«Путь»",
      "section": "главы «Характер», «Воля», «Учёба и труд», «Порядок», «Мелочи», «Чистота намерения»",
-     "url": "https://escriva.org/ru/camino/"
+     "url": null
     },
     {
      "bookId": "conversaciones",
      "title": "«Беседы»",
      "section": "гомилия «Страстно любить мир» (№ 113–123)",
-     "url": "https://escriva.org/ru/conversaciones/"
+     "url": null
     }
    ]
   },
@@ -25,13 +25,13 @@
      "bookId": "havard_vl",
      "title": "А. Хавард, «Нравственное лидерство»",
      "section": "целиком",
-     "url": "https://alexhavard.ru/"
+     "url": null
     },
     {
      "bookId": "havard_cfg",
      "title": "А. Хавард, «Сотворены для величия»",
      "section": "целиком",
-     "url": "https://alexhavard.ru/"
+     "url": null
     }
    ]
   },
@@ -42,7 +42,7 @@
      "bookId": "es_cristo",
      "title": "«Христос проходит рядом»",
      "section": "«В мастерской Иосифа» (№ 39–56), «Христос Царь» (№ 179–187)",
-     "url": "https://escriva.org/ru/es-cristo-que-pasa/"
+     "url": null
     }
    ]
   },
@@ -53,7 +53,7 @@
      "bookId": "amigos",
      "title": "«Друзья Божии»",
      "section": "«Человеческие добродетели», «Величие обычной жизни», «Чтобы не пропадало время»",
-     "url": "https://escriva.org/ru/amigos-de-dios/"
+     "url": null
     }
    ]
   },
@@ -64,23 +64,12 @@
      "bookId": "surco",
      "title": "«Борозда»",
      "section": "главы «Труд», «Дисциплина»",
-     "url": "https://escriva.org/ru/surco/"
+     "url": null
     },
     {
      "bookId": "forja",
      "title": "«Кузня»",
      "section": "выборочно",
-     "url": "https://escriva.org/ru/forja/"
-    }
-   ]
-  },
-  {
-   "month": 6,
-   "items": [
-    {
-     "bookId": "allen",
-     "title": "Джон Аллен, «Opus Dei: An Objective Look…»",
-     "section": "целиком",
      "url": null
     }
    ]
@@ -101,7 +90,19 @@
   {
    "bookId": "bible",
    "title": "Библия",
-   "section": "всегда под рукой: Евангелие дня, псалмы, книги по плану катехизации",
+   "section": "Евангелие дня, псалмы, книги по плану катехизации",
+   "url": null
+  },
+  {
+   "bookId": "compendium",
+   "title": "Катехизис Католической Церкви",
+   "section": "по темам катехизации: читать статьи к теме ближайшего занятия",
+   "url": null
+  },
+  {
+   "bookId": "conversaciones",
+   "title": "«Беседы»",
+   "section": "св. Хосемария; начать с гомилии «Страстно любить мир» (№ 113–123)",
    "url": null
   }
  ],
@@ -110,14 +111,14 @@
    "bookId": "via_crucis",
    "title": "«Крестный путь»",
    "section": "Великий пост: одна станция в день, медленно",
-   "url": "https://escriva.org/ru/via-crucis/",
+   "url": null,
    "when": "LENT"
   },
   {
    "bookId": "santo_rosario",
    "title": "«Святой Розарий»",
    "section": "Октябрь — месяц Розария: тайна дня перед вечерним Розарием",
-   "url": "https://escriva.org/ru/santo-rosario/",
+   "url": null,
    "when": "OCTOBER"
   }
  ]

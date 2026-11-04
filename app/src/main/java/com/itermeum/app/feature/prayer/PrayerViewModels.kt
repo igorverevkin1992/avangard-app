@@ -104,7 +104,8 @@ class TimerViewModel @Inject constructor(
     fun startReading(bookId: String) { timers.start(TimerController.Kind.READING, READING_MS, bookId); SessionTimerService.start(context) }
 
     /** Mental prayer counts at ≥80 % of the time; reading logs its minutes (≥8 counts) — see [TimerFinisher]. */
-    fun stop() { viewModelScope.launch { finisher.finish() } }
+    // Its own scope: the reader calls this while leaving, when this ViewModel is about to be cleared.
+    fun stop() { kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.Main.immediate).launch { finisher.finish() } }
 
     fun now() = clock.nowEpochMillis()
 
@@ -146,7 +147,10 @@ class GospelViewModel @Inject constructor(
         }.map { ReadingPlanItemEntity(id = "seasonal_${it.bookId}", month = 0, bookId = it.bookId, title = it.title, sectionLabel = it.section, url = it.url) }
     }
 
-    /** The Bible and other always-present books, shown with each month's reading. */
+    /**
+     * D-58: «Духовное чтение» shows the Bible, the Catechism and «Беседы» every day
+     * (plus the seasonal books); the rest of the programme is in «Все книги программы».
+     */
     private val always: List<ReadingPlanItemEntity> = assets.reading.always.map {
         ReadingPlanItemEntity(id = "always_${it.bookId}", month = 0, bookId = it.bookId, title = it.title, sectionLabel = it.section, url = it.url)
     }
@@ -176,7 +180,7 @@ class GospelViewModel @Inject constructor(
         val day = calendar.day(date)
         _ui.update {
             it.copy(passage = reading.gospel(date), title = day.title, focus = reading.focusPhrase(date),
-                read = norms.isDone(NormCatalog.GOSPEL, date), plan = always + seasonal(date) + reading.readingFor(date), readingDone = norms.isDone(NormCatalog.READING, date))
+                read = norms.isDone(NormCatalog.GOSPEL, date), plan = always + seasonal(date), readingDone = norms.isDone(NormCatalog.READING, date))
         }
     }
 
