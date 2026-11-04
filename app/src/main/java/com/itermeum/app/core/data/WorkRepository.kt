@@ -72,7 +72,6 @@ class WorkRepository @Inject constructor(
     suspend fun savePlan(date: LocalDate, drafts: List<TaskDraft>, intention: String?, shootDay: Boolean) {
         require(planIsValid(drafts, shootDay))
         val now = clock.nowEpochMillis()
-        val afterCutoff = !clock.now().isBefore(date.atTime(cutoffFor()))
         db.withTransaction {
             val before = taskDao.forDate(date)
             val existing = before.associateBy { it.slot }
@@ -88,7 +87,8 @@ class WorkRepository @Inject constructor(
                         id = old?.id ?: 0, logicalDate = date, slot = d.slot, type = d.type, title = d.title.trim(),
                         projectId = d.projectId, status = old?.status ?: TaskStatus.OPEN, checklistJson = old?.checklistJson,
                         closedAt = old?.closedAt, followUpContact = d.followUpContact?.trim(), createdAt = old?.createdAt ?: now,
-                        movedAfterCutoff = (old?.movedAfterCutoff ?: false) || (afterCutoff && old != null && old.title != d.title.trim()),
+                        // D-61: editing the plan later in the day is no longer marked as «перенос».
+                        movedAfterCutoff = false,
                     )
                 },
             )

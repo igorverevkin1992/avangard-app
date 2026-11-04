@@ -142,7 +142,8 @@ class ExamenViewModel @Inject constructor(
     private suspend fun hintsFor(date: LocalDate): Map<Int, String> {
         val tasks = taskDao.forDate(date)
         val debt = tasks.count { it.status == TaskStatus.DONE_WITH_DEBT }
-        val moved = tasks.count { it.status == TaskStatus.MOVED || it.movedAfterCutoff }
+        // Only tasks honestly moved at the last stone (D-61: plan edits after 14:00 no longer count).
+        val moved = tasks.count { it.status == TaskStatus.MOVED }
         val open = tasks.count { it.status == TaskStatus.OPEN }
         val attempts = outreachDao.countFor(date)
         val target = work.targetFor(date)

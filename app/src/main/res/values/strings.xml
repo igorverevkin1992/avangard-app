@@ -342,7 +342,7 @@
     <string name="work_projects">Проекты и студия</string>
     <string name="projects_open">Проекты-приношения</string>
     <string name="studio_open">Карта к студии</string>
-    <string name="plan_hint">В плане — обзвон героев (в день съёмок — съёмка и кому позвонить после). Порядок меняется стрелками ↑ ↓ в любой момент дня; задач больше трёх — «Добавить слот». План считается до 12:30; правки после 14:00 помечаются как перенос.</string>
+    <string name="plan_hint">В плане — обзвон героев (в день съёмок — съёмка и кому позвонить после). Порядок меняется стрелками ↑ ↓ в любой момент дня; задач больше трёх — «Добавить слот». План считается до 12:30.</string>
     <string name="plan_shoot_day">День съёмок</string>
     <string name="plan_slot">Слот %1$d</string>
     <string name="work_queue_now">Сейчас: %1$s</string>
@@ -357,7 +357,6 @@
     <string name="plan_task_title">Задача</string>
     <string name="plan_follow_up">Кому позвонить после съёмки</string>
     <string name="plan_intention">Намерение дня (необязательно)</string>
-    <string name="plan_after_cutoff">После 14:00: изменения будут видны в испытании совести как перенос.</string>
     <string name="outreach_counter">Попыток %1$d / Договорённостей %2$d</string>
     <string name="outreach_target_line">Сегодня: %1$d из %2$d</string>
     <string name="outreach_until_cutoff">Первое рабочее дело. Звонки засчитываются в любое время дня.</string>

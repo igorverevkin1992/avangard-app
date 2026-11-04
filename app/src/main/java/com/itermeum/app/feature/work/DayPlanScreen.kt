@@ -122,9 +122,6 @@ fun DayPlanScreen(onBack: () -> Unit, viewModel: WorkViewModel = hiltViewModel()
         }
         if (titles.size < MAX_SLOTS) ImSecondaryButton(stringResource(R.string.plan_add_slot), { addSlot() }, Modifier.fillMaxWidth())
         OutlinedTextField(value = intention, onValueChange = { intention = it }, label = { Text(stringResource(R.string.plan_intention)) }, modifier = Modifier.fillMaxWidth())
-        if (!ui.beforeCutoff && ui.tasks.isNotEmpty()) {
-            Text(stringResource(R.string.plan_after_cutoff), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
         if (drafts.none { it.type == TaskType.OUTREACH || it.type == TaskType.SHOOT }) {
             Text(stringResource(R.string.plan_no_calls), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
