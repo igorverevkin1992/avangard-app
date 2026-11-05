@@ -30,8 +30,9 @@ import kotlinx.coroutines.launch
 
 /**
  * Section 5.6/5.9 + D-50: the prayer/reading timer card — in the shade and on
- * the lock screen like the work card: running time, a bar to the end, «засчитается
- * через N мин», «Закончить»; one short buzz when the session starts to count.
+ * the lock screen like the work card: running time, «засчитается в HH:mm», «Закончить»;
+ * one short buzz when the session starts to count. D-65: posted once, updated only at
+ * that moment — every re-post wakes the lock screen on HyperOS.
  */
 @AndroidEntryPoint
 class SessionTimerService : Service() {
@@ -70,15 +71,15 @@ class SessionTimerService : Service() {
             startForeground(NOTIFICATION_ID, first)
         }
         ticker?.cancel()
-        ticker = scope.launch {
-            var counted = clock.nowEpochMillis() - session.startedAt >= finisher.countsAfterMs(session)
-            while (true) {
-                delay(TICK_MS)
-                val s = timers.current() ?: break
-                val nowCounts = clock.nowEpochMillis() - s.startedAt >= finisher.countsAfterMs(s)
-                // Buzz once, at the moment the session starts to count.
-                notify(build(s, alert = nowCounts && !counted))
-                counted = nowCounts
+        // D-65: the card is never re-posted to tick — HyperOS lights the lock screen on every update.
+        // The system chronometer counts by itself; the one update is the moment the session starts
+        // to count (with its buzz). Focus has no such moment: posted once, left alone.
+        val countsAt = session.startedAt + finisher.countsAfterMs(session)
+        if (session.kind != TimerController.Kind.FOCUS && clock.nowEpochMillis() < countsAt) {
+            ticker = scope.launch {
+                delay(countsAt - clock.nowEpochMillis())
+                val s = timers.current()?.takeIf { it.startedAt == session.startedAt && it.kind == session.kind } ?: return@launch
+                notify(build(s, alert = true))
             }
         }
         watcher?.cancel()
@@ -91,9 +92,11 @@ class SessionTimerService : Service() {
     private fun build(s: TimerController.Session, alert: Boolean): Notification {
         if (s.kind == TimerController.Kind.FOCUS) return buildFocus(s)
         val mental = s.kind == TimerController.Kind.MENTAL_PRAYER
-        val elapsed = clock.nowEpochMillis() - s.startedAt
-        val left = finisher.countsAfterMs(s) - elapsed
-        val text = if (left > 0) getString(R.string.timer_counts_in, ((left + 59_999) / 60_000).toInt()) else getString(R.string.timer_counted)
+        // A fixed time, not a countdown: the text stays true without updates.
+        val countsAt = s.startedAt + finisher.countsAfterMs(s)
+        val text = if (clock.nowEpochMillis() < countsAt) {
+            getString(R.string.timer_counts_at, java.time.Instant.ofEpochMilli(countsAt).atZone(clock.zone()).toLocalTime().format(HH_MM))
+        } else getString(R.string.timer_counted)
         val finish = PendingIntent.getService(
             this, 1, Intent(this, SessionTimerService::class.java).setAction(ACTION_FINISH),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
@@ -105,7 +108,6 @@ class SessionTimerService : Service() {
             .setUsesChronometer(true)
             .setWhen(s.startedAt)
             .setShowWhen(true)
-            .setProgress(s.durationMs.toInt(), elapsed.coerceIn(0, s.durationMs).toInt(), false)
             .setOngoing(true)
             .setOnlyAlertOnce(!alert)
             .setSilent(!alert)
@@ -154,7 +156,7 @@ class SessionTimerService : Service() {
         const val NOTIFICATION_ID = 3002
         private const val ACTION_FINISH = "com.itermeum.app.timer.FINISH"
         private const val ACTION_DONE = "com.itermeum.app.timer.DONE"
-        private const val TICK_MS = 15_000L
+        private val HH_MM = java.time.format.DateTimeFormatter.ofPattern("HH:mm")
         fun start(context: Context) = context.startForegroundService(Intent(context, SessionTimerService::class.java))
     }
 }

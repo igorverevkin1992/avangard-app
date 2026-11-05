@@ -102,14 +102,23 @@ class WorkCard @Inject constructor(
         }
     }
 
-    /** Re-reads the day and posts, updates or removes the card. Safe to call often. */
-    suspend fun refresh() = mutex.withLock {
+    /** The card as last posted: an unchanged card is not posted again (D-65). */
+    @Volatile private var posted: State? = null
+
+    /**
+     * Re-reads the day and posts, updates or removes the card. Safe to call often: an unchanged
+     * card is left alone — HyperOS lights the lock screen on every re-post. [force] — a reply typed
+     * in the shade waits for the card to be posted again.
+     */
+    suspend fun refresh(force: Boolean = false) = mutex.withLock {
         val st = runCatching { state() }.getOrNull()
         if (st == null) {
             NotificationManagerCompat.from(context).cancel(NOTIFICATION_ID)
             prefs.edit().remove(KEY_STEP).apply()
+            posted = null
             return@withLock
         }
+        if (!force && st == posted && isShown()) return@withLock
         val changed = prefs.getString(KEY_STEP, null) != st.step.name
         prefs.edit().putString(KEY_STEP, st.step.name).apply()
         channels.ensureCreated()
@@ -137,10 +146,15 @@ class WorkCard @Inject constructor(
         }
         try {
             NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, b.build())
+            posted = st
         } catch (e: SecurityException) {
             // Notifications not granted: nothing to show.
         }
     }
+
+    private fun isShown(): Boolean = runCatching {
+        context.getSystemService(android.app.NotificationManager::class.java).activeNotifications.any { it.id == NOTIFICATION_ID }
+    }.getOrDefault(false)
 
     /** Block changes of today: start of work, the cutoff, 19:30 and one hour after work (removal). */
     fun scheduleTicks(workStart: LocalTime, cutoff: LocalTime, workEnd: LocalTime) {

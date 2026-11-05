@@ -39,7 +39,7 @@ class WorkCardReceiver : BroadcastReceiver() {
                     ?.takeIf { it.isNotEmpty() }?.let { items.capture(it, com.itermeum.app.core.data.WorkItemRepository.Due.TODAY) }
                 action.startsWith(ACTION_TICK) -> Unit
             }
-            card.refresh()
+            card.refresh(force = action == ACTION_CAPTURE)
             DayWidget.refresh(context)
         }
     }

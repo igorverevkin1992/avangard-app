@@ -476,7 +476,7 @@
     <string name="timer_mental_prayer">Ментальная молитва</string>
     <string name="timer_reading">Духовное чтение</string>
     <string name="channel_timer_card">Таймер молитвы и чтения</string>
-    <string name="timer_counts_in">Засчитается через %1$d мин</string>
+    <string name="timer_counts_at">Засчитается в %1$s</string>
     <string name="timer_counted">Засчитано — можно заканчивать</string>
     <string name="timer_finish">Закончить</string>
     <string name="mental_hint">Десять минут. Вхождение в присутствие — тема дня — решение и благодарение. Телефон лицом вниз.</string>
