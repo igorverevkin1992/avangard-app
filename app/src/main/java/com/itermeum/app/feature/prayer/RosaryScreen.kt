@@ -34,10 +34,10 @@ import com.itermeum.app.core.designsystem.ImSpacing
 /** One bead of the chaplet: a prayer said [times] times, a tap for each. */
 private data class Bead(val label: Int, val prayers: List<String>, val times: Int = 1)
 
-/** Вступление (D-56): крест и посвящение, Символ веры, Отче наш, 3 × Радуйся, Слава. */
+/** Вступление (D-56): крест и посвящение, Никейский Символ веры (D-66), Отче наш, 3 × Радуйся, Слава. */
 private val OPENING = listOf(
     Bead(R.string.rosary_bead_cross, listOf("sign_of_cross", "rosary_intro")),
-    Bead(R.string.rosary_bead_creed, listOf("creed_apostles")),
+    Bead(R.string.rosary_bead_creed, listOf("creed_nicene")),
     Bead(R.string.rosary_bead_our_father, listOf("our_father")),
     Bead(R.string.rosary_bead_three_aves, listOf("hail_mary"), times = 3),
     Bead(R.string.rosary_bead_glory, listOf("glory_be")),
