@@ -40,7 +40,7 @@ class ContentSeederTest {
         seeder.seedIfNeeded()
         assertEquals(NormCatalog.all.size, db.normDao().count())
         assertEquals(assets.prayers.items.size, db.prayerDao().count())
-        assertEquals(48, db.prayerDao().allJaculatoria().size)
+        assertEquals(assets.jaculatoria.items.size, db.prayerDao().allJaculatoria().size)
         assertEquals(18, db.prayerDao().asceticCount())
         assertEquals(14, db.srsDao().count())
         assertTrue(db.readingDao().planCount() >= 9)
@@ -54,7 +54,7 @@ class ContentSeederTest {
         assets.prayers.items.forEach { assertTrue(it.id, it.source.isNotBlank() && it.legal.isNotBlank()) }
         assets.jaculatoria.items.forEach { assertTrue(it.id, it.source.isNotBlank() && it.legal.isNotBlank()) }
         assets.ascetic.items.forEach { assertTrue(it.id, it.legal.isNotBlank()) }
-        assertEquals(13, assets.jaculatoria.situations.size)
+        assertEquals(assets.jaculatoria.items.map { it.situation }.toSet(), assets.jaculatoria.situations.map { it.id }.toSet())
         assertEquals(5, assets.examenQuestions.items.size)
         assertEquals(4, assets.rosary.sets.size)
         assets.rosary.sets.values.forEach { assertEquals(5, it.mysteries.size) }
