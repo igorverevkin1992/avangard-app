@@ -57,5 +57,19 @@ object Migrations {
         }
     }
 
-    val ALL: Array<Migration> get() = arrayOf(MIGRATION_1_2, MIGRATION_2_3)
+    /** v4 (D-67): the sobriety vow and its days. */
+    val MIGRATION_3_4 = object : Migration(3, 4) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `vow` (`id` TEXT NOT NULL, `startDate` TEXT NOT NULL, `intention` TEXT, `helperName` TEXT, " +
+                    "`helperPhone` TEXT, `declinePhrase` TEXT, `active` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+            )
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `vow_day` (`vowId` TEXT NOT NULL, `logicalDate` TEXT NOT NULL, `kept` INTEGER, `answeredAt` INTEGER, " +
+                    "`feastMinute` INTEGER, PRIMARY KEY(`vowId`, `logicalDate`))",
+            )
+        }
+    }
+
+    val ALL: Array<Migration> get() = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
 }

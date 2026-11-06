@@ -32,6 +32,7 @@ import java.time.DayOfWeek
 @Composable
 fun PathScreen(
     onCatechesis: (Long?) -> Unit, onReview: () -> Unit, onMonth: () -> Unit, onQuarter: () -> Unit, onChronicle: () -> Unit,
+    onVow: () -> Unit = {},
     viewModel: PathViewModel = hiltViewModel(),
 ) {
     val attended by viewModel.attended.collectAsState()
@@ -54,6 +55,16 @@ fun PathScreen(
                         Text(stringResource(R.string.streak_best, s?.best ?: 0), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
+            }
+        }
+
+        // D-67: the vow has its own count — a slip there does not touch the streaks above.
+        val vow by viewModel.vow.collectAsState()
+        vow?.takeIf { it.active }?.let { v ->
+            ImPanel(Modifier.fillMaxWidth().clickable(onClick = onVow)) {
+                Text(stringResource(R.string.vow_screen_title), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(v.stats.current.toString(), style = MaterialTheme.typography.headlineLarge.copy(fontFamily = ImMonoFamily))
+                Text(stringResource(R.string.vow_best_total, v.stats.best, v.stats.total), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
 

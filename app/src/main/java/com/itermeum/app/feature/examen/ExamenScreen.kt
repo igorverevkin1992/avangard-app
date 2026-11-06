@@ -121,6 +121,16 @@ fun ExamenScreen(onBack: () -> Unit, viewModel: ExamenViewModel = hiltViewModel(
                 OutlinedTextField(value = note, onValueChange = { note = it }, label = { Text(stringResource(R.string.examen_note)) }, modifier = Modifier.fillMaxWidth())
                 ImPrimaryButton(stringResource(R.string.next), onClick = { viewModel.setAudit(answer, note); viewModel.next() })
             }
+            ExamenStep.VOW -> {
+                // D-67: one question of the vow, between the examination and contrition.
+                ImSectionLabel(stringResource(R.string.vow_title))
+                if (ui.vowSlip) {
+                    com.itermeum.app.feature.vow.NuncCoepiPanel(null)
+                    ImPrimaryButton(stringResource(R.string.next), onClick = viewModel::next)
+                } else {
+                    ImPanel { com.itermeum.app.feature.vow.VowAnswerRow(stringResource(R.string.vow_question)) { viewModel.answerVow(it) } }
+                }
+            }
             ExamenStep.CONTRITION -> {
                 ImSectionLabel(stringResource(R.string.examen_contrition))
                 ImPanel { Text(ui.contritionText, style = MaterialTheme.typography.headlineMedium, textAlign = TextAlign.Center) }

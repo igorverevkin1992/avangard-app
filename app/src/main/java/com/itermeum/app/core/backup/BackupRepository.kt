@@ -60,6 +60,8 @@ class BackupRepository @Inject constructor(
                 workTask = b.tasks(),
                 workItem = b.workItems(),
                 focusLog = b.focusLogs(),
+                vow = b.vows(),
+                vowDay = b.vowDays(),
                 outreachLog = b.outreach(),
                 scriptSession = b.scripts(),
                 transitionRitual = b.rituals(),
@@ -113,7 +115,7 @@ class BackupRepository @Inject constructor(
         val t = bundle.tables
         db.withTransaction {
             val b = db.backupDao()
-            b.wipeCompletions(); b.wipeDayPlans(); b.wipeTasks(); b.wipeWorkItems(); b.wipeFocusLogs(); b.wipeOutreach(); b.wipeScripts(); b.wipeRituals(); b.wipeExamens()
+            b.wipeCompletions(); b.wipeDayPlans(); b.wipeTasks(); b.wipeWorkItems(); b.wipeFocusLogs(); b.wipeVows(); b.wipeVowDays(); b.wipeOutreach(); b.wipeScripts(); b.wipeRituals(); b.wipeExamens()
             b.wipePrayerEdits(); b.wipeMemorization(); b.wipeJaculatoriaLogs(); b.wipeReadingLogs(); b.wipeRosary(); b.wipeFormation()
             b.wipeNotes(); b.wipeStreaks(); b.wipeFreezes(); b.wipeMilestones(); b.wipeProjects(); b.wipeGoals(); b.wipeIncome()
             b.wipeVanity(); b.wipeReviews(); b.wipeMortifications(); b.wipeTravel(); b.wipeMornings(); b.wipeMonthViews()
@@ -127,6 +129,8 @@ class BackupRepository @Inject constructor(
             b.insertTasks(t.workTask)
             b.insertWorkItems(t.workItem)
             b.insertFocusLogs(t.focusLog)
+            b.insertVows(t.vow)
+            b.insertVowDays(t.vowDay)
             b.insertOutreach(t.outreachLog)
             b.insertScripts(t.scriptSession)
             b.insertRituals(t.transitionRitual)

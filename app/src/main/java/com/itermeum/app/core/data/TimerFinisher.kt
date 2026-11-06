@@ -38,6 +38,7 @@ class TimerFinisher @Inject constructor(
                 items.addFocus(id, s.elapsed(now) - s.priorMs)
                 if (complete) work.get().completeItem(id)
             }
+            TimerController.Kind.CRAVING -> Unit
         }
         return s
     }
@@ -57,5 +58,6 @@ class TimerFinisher @Inject constructor(
         TimerController.Kind.MENTAL_PRAYER -> (s.durationMs * 0.8).toLong()
         TimerController.Kind.READING -> ReadingRepository.READING_MIN_MINUTES * 60_000L
         TimerController.Kind.FOCUS -> 0L
+        TimerController.Kind.CRAVING -> s.durationMs
     }
 }

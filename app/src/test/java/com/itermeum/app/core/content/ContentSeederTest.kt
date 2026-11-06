@@ -54,7 +54,7 @@ class ContentSeederTest {
         assets.prayers.items.forEach { assertTrue(it.id, it.source.isNotBlank() && it.legal.isNotBlank()) }
         assets.jaculatoria.items.forEach { assertTrue(it.id, it.source.isNotBlank() && it.legal.isNotBlank()) }
         assets.ascetic.items.forEach { assertTrue(it.id, it.legal.isNotBlank()) }
-        assertEquals(12, assets.jaculatoria.situations.size)
+        assertEquals(13, assets.jaculatoria.situations.size)
         assertEquals(5, assets.examenQuestions.items.size)
         assertEquals(4, assets.rosary.sets.size)
         assets.rosary.sets.values.forEach { assertEquals(5, it.mysteries.size) }

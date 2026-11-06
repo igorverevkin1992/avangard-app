@@ -95,6 +95,7 @@
         <receiver android:name=".sync.alarm.AlarmHealthReceiver" android:exported="false" />
         <receiver android:name=".sync.scheduler.NormReminderReceiver" android:exported="false" />
         <receiver android:name=".sync.work.WorkCardReceiver" android:exported="false" />
+        <receiver android:name=".sync.vow.VowReceiver" android:exported="false" />
 
         <receiver
             android:name=".sync.widget.DayWidgetReceiver"

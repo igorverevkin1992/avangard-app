@@ -91,6 +91,7 @@ class SessionTimerService : Service() {
 
     private fun build(s: TimerController.Session, alert: Boolean): Notification {
         if (s.kind == TimerController.Kind.FOCUS) return buildFocus(s)
+        if (s.kind == TimerController.Kind.CRAVING) return buildCraving(s)
         val mental = s.kind == TimerController.Kind.MENTAL_PRAYER
         // A fixed time, not a countdown: the text stays true without updates.
         val countsAt = s.startedAt + finisher.countsAfterMs(s)
@@ -139,6 +140,40 @@ class SessionTimerService : Service() {
             .setContentIntent(presenter.deepLinkIntent(s.refId?.let { "itermeum://item/$it" } ?: "itermeum://work", NOTIFICATION_ID))
             .addAction(0, getString(R.string.focus_pause), svc(1, ACTION_FINISH))
             .addAction(0, getString(R.string.focus_done), svc(2, ACTION_DONE))
+            .build()
+    }
+
+    /**
+     * D-67: ten minutes to wait out the wish to drink — a countdown, then one buzz.
+     * On the lock screen only «Iter Meum»: what the vow is about is not shown there.
+     */
+    private fun buildCraving(s: TimerController.Session): Notification {
+        val end = s.startedAt + s.durationMs
+        val over = clock.nowEpochMillis() >= end
+        val finish = PendingIntent.getService(
+            this, 1, Intent(this, SessionTimerService::class.java).setAction(ACTION_FINISH),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val public = NotificationCompat.Builder(this, NotificationChannels.TIMER_CARD)
+            .setSmallIcon(R.drawable.ic_stat_itermeum)
+            .setContentTitle(getString(R.string.app_name))
+            .build()
+        return NotificationCompat.Builder(this, NotificationChannels.TIMER_CARD)
+            .setSmallIcon(R.drawable.ic_stat_itermeum)
+            .setContentTitle(getString(if (over) R.string.craving_card_over else R.string.craving_card_title))
+            .setContentText(getString(if (over) R.string.craving_card_over_text else R.string.craving_card_text))
+            .setUsesChronometer(!over)
+            .setChronometerCountDown(true)
+            .setWhen(end)
+            .setShowWhen(!over)
+            .setOngoing(!over)
+            .setOnlyAlertOnce(!over)
+            .setSilent(!over)
+            .setCategory(NotificationCompat.CATEGORY_STOPWATCH)
+            .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+            .setPublicVersion(public)
+            .setContentIntent(presenter.deepLinkIntent("itermeum://vow", NOTIFICATION_ID))
+            .addAction(0, getString(R.string.timer_finish), finish)
             .build()
     }
 

@@ -56,6 +56,9 @@ import com.itermeum.app.core.database.entity.WorkTaskEntity
 import com.itermeum.app.core.database.entity.WorkItemEntity
 import com.itermeum.app.core.database.entity.FocusLogEntity
 import com.itermeum.app.core.database.dao.WorkItemDao
+import com.itermeum.app.core.database.dao.VowDao
+import com.itermeum.app.core.database.entity.VowDayEntity
+import com.itermeum.app.core.database.entity.VowEntity
 
 /**
  * Section 8: schema version 3 (D-64: work items, focus log), exported. `fallbackToDestructiveMigration`
@@ -76,9 +79,9 @@ import com.itermeum.app.core.database.dao.WorkItemDao
         ProjectEntity::class, QuarterGoalEntity::class, QuarterIncomeEntity::class, VanityCheckEntity::class,
         WeeklyReviewEntity::class, MortificationLogEntity::class, TravelPeriodEntity::class,
         MorningStateEntity::class, MonthlySummaryViewEntity::class,
-        WorkItemEntity::class, FocusLogEntity::class,
+        WorkItemEntity::class, FocusLogEntity::class, VowEntity::class, VowDayEntity::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -102,10 +105,11 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun morningDao(): MorningDao
     abstract fun backupDao(): BackupDao
     abstract fun workItemDao(): WorkItemDao
+    abstract fun vowDao(): VowDao
 
     companion object {
         const val DB_NAME = "itermeum.db"
         /** Keep equal to `@Database(version)`; written into backups. */
-        const val SCHEMA_VERSION = 3
+        const val SCHEMA_VERSION = 4
     }
 }

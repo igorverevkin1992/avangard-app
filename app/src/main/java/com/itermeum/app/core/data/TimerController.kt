@@ -17,7 +17,8 @@ import kotlinx.coroutines.flow.asStateFlow
 class TimerController @Inject constructor(private val clock: Clock) {
 
     /** FOCUS (D-64): work on one item; [Session.refId] is the item, [Session.label] its title. */
-    enum class Kind { MENTAL_PRAYER, READING, FOCUS }
+    /** CRAVING (D-67): ten minutes to wait out the wish to drink; nothing is recorded. */
+    enum class Kind { MENTAL_PRAYER, READING, FOCUS, CRAVING }
 
     /** [priorMs] — reading already done today before this session (D-59): the clock continues from it. */
     data class Session(

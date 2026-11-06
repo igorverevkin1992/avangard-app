@@ -37,6 +37,7 @@ class ReminderScheduler @Inject constructor(
     private val norms: NormRepository,
     private val wake: WakeAlarmScheduler,
     private val workCard: com.itermeum.app.sync.work.WorkCard,
+    private val vowReminders: com.itermeum.app.sync.vow.VowReminders,
     private val clock: Clock,
 ) {
     private val alarms = ExactAlarms(context)
@@ -53,6 +54,7 @@ class ReminderScheduler @Inject constructor(
         scheduleNormReminders()
         workCard.scheduleTicks(profile.workStart, DayScheduleEngine.frogCutoff(profile), profile.workEnd)
         workCard.refresh()
+        runCatching { vowReminders.schedule() }
     }
 
     /**

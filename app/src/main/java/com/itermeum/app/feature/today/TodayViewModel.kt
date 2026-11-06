@@ -73,6 +73,7 @@ class TodayViewModel @Inject constructor(
     private val reminders: ReminderScheduler,
     private val widget: com.itermeum.app.sync.widget.WidgetUpdater,
     private val clock: Clock,
+    private val vows: com.itermeum.app.core.data.VowRepository,
 ) : ViewModel() {
 
     private val date: LocalDate = clock.logicalToday()
@@ -126,9 +127,18 @@ class TodayViewModel @Inject constructor(
     val focusPhrase: StateFlow<String?> = reading.observeLogs(date).mapLatest { reading.focusPhrase(date) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
+    /** D-67: the sobriety vow — its count on Today and yesterday's question in the morning. */
+    val vow: StateFlow<com.itermeum.app.core.data.VowRepository.State?> = vows.observe().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+    val yesterday: LocalDate = date.minusDays(1)
+    private val _vowSlip = MutableStateFlow(false)
+    val vowSlip: StateFlow<Boolean> = _vowSlip
+    fun answerVow(day: LocalDate, kept: Boolean) = viewModelScope.launch { vows.answer(day, kept); if (!kept) _vowSlip.value = true }
+    fun dismissVowSlip() { _vowSlip.value = false }
+
     /** Section 3.4/7.8: Friday — choose a small mortification in the morning, mark it in the evening. */
     val mortification: StateFlow<MortificationLogEntity?> = path.observeMortification(date).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
-    val mortificationOptions: List<String> get() = assets.mortifications.items
+    // D-67: while the sobriety vow holds, «без алкоголя» is not offered as a Friday mortification — it is given already.
+    val mortificationOptions: List<String> get() = assets.mortifications.items.filter { vow.value?.active != true || !it.contains("алкогол", ignoreCase = true) }
     val isFriday: Boolean get() = date.dayOfWeek == java.time.DayOfWeek.FRIDAY
     fun chooseMortification(item: String) = viewModelScope.launch { path.chooseMortification(date, item) }
     fun completeMortification() = viewModelScope.launch { path.completeMortification(date) }

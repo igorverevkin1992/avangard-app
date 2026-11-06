@@ -75,4 +75,13 @@ class MigrationsTest {
         }
         db.query("SELECT COUNT(*) FROM work_item").use { c -> c.moveToFirst(); assertEquals(0, c.getInt(0)) }
     }
+
+    @Test
+    fun `3 to 4 adds the vow tables`() {
+        helper.createDatabase(DB, 3).close()
+        val db = helper.runMigrationsAndValidate(DB, 4, true, Migrations.MIGRATION_3_4)
+        db.execSQL("INSERT INTO vow (id, startDate, active, createdAt) VALUES ('sobriety', '2026-11-06', 1, 1)")
+        db.execSQL("INSERT INTO vow_day (vowId, logicalDate, kept) VALUES ('sobriety', '2026-11-06', 1)")
+        db.query("SELECT kept FROM vow_day").use { c -> assertTrue(c.moveToFirst()); assertEquals(1, c.getInt(0)) }
+    }
 }

@@ -48,6 +48,10 @@
   {
    "id": "BEFORE_SHOOT",
    "title": "Перед съёмкой"
+  },
+  {
+   "id": "TEMPTATION",
+   "title": "Искушение"
   }
  ],
  "items": [
@@ -481,6 +485,51 @@
    "source": "текст приложения",
    "sourceKind": "app",
    "legal": "собственный текст",
+   "verify": false
+  },
+  {
+   "id": "temptation_1",
+   "situation": "TEMPTATION",
+   "text": "Господи! спаси меня.",
+   "source": "Мф 14:30",
+   "sourceKind": "scripture",
+   "legal": "текст Писания / традиции",
+   "verify": false
+  },
+  {
+   "id": "temptation_2",
+   "situation": "TEMPTATION",
+   "text": "Не введи нас во искушение, но избавь нас от лукавого.",
+   "source": "Мф 6:13",
+   "sourceKind": "scripture",
+   "legal": "текст Писания / традиции",
+   "verify": false
+  },
+  {
+   "id": "temptation_3",
+   "situation": "TEMPTATION",
+   "text": "Господи! Ты всё знаешь; Ты знаешь, что я люблю Тебя.",
+   "source": "Ин 21:17",
+   "sourceKind": "scripture",
+   "legal": "текст Писания / традиции",
+   "verify": false
+  },
+  {
+   "id": "temptation_4",
+   "situation": "TEMPTATION",
+   "text": "Иисус, Мария, Иосиф, помогите мне.",
+   "source": "традиционная молитва-стрела",
+   "sourceKind": "trad",
+   "legal": "текст Писания / традиции",
+   "verify": false
+  },
+  {
+   "id": "temptation_5",
+   "situation": "TEMPTATION",
+   "text": "Nunc coepi — сейчас начинаю.",
+   "source": "Пс 76:11 (Вульгата); св. Хосемария",
+   "sourceKind": "scripture",
+   "legal": "текст Писания / традиции",
    "verify": false
   }
  ],

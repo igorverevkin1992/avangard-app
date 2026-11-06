@@ -114,6 +114,7 @@ fun TodayScreen(
                 onSickToday = { viewModel.setSick(!ui.sick) },
                 onSickTomorrow = { viewModel.setSickTomorrow(!sickTomorrow) },
                 onLowerBar = viewModel::offerPause,
+                onVow = { onOpenRoute(NavRoute.Vow.route) },
             )
         }
         Row(
@@ -127,6 +128,16 @@ fun TodayScreen(
                 Text(stringResource(R.string.today_fidelity_days, fidelity), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
+        // D-67: the vow's count, one line; a tap opens it.
+        val vow by viewModel.vow.collectAsState()
+        val vowSlip by viewModel.vowSlip.collectAsState()
+        vow?.takeIf { it.active }?.let { v ->
+            Text(
+                if (v.stats.current == 0 && v.stats.slips > 0) stringResource(R.string.vow_today_line_restart) else stringResource(R.string.vow_today_line, v.stats.current),
+                style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.clickable { onOpenRoute(NavRoute.Vow.route) },
+            )
+        }
         ImRule()
 
         // ── Warnings only when something is wrong ──────────────────────────
@@ -137,6 +148,14 @@ fun TodayScreen(
         }
         banner?.let { ImPanel { Text(it, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.primary) } }
         lowerBar?.let { bar -> LowerBarCard(bar, ui, viewModel) }
+
+        // D-67: yesterday's answer of the vow, when the Examen did not ask it.
+        if (vowSlip) com.itermeum.app.feature.vow.NuncCoepiPanel(viewModel::dismissVowSlip)
+        vow?.takeIf { it.active && viewModel.yesterday in it.pending }?.let {
+            ImPanel {
+                com.itermeum.app.feature.vow.VowAnswerRow(stringResource(R.string.vow_question_yesterday)) { kept -> viewModel.answerVow(viewModel.yesterday, kept) }
+            }
+        }
 
         // ── «Сейчас»: one card, one action ─────────────────────────────────
         ImSectionLabel(stringResource(R.string.today_now))
@@ -165,6 +184,7 @@ fun TodayScreen(
 private fun TodayMenu(
     sick: Boolean, canSickToday: Boolean, sickTomorrow: Boolean,
     onSettings: () -> Unit, onPractices: () -> Unit, onSickToday: () -> Unit, onSickTomorrow: () -> Unit, onLowerBar: () -> Unit,
+    onVow: () -> Unit = {},
 ) {
     var open by remember { mutableStateOf(false) }
     val menuLabel = stringResource(R.string.today_menu)
@@ -175,6 +195,7 @@ private fun TodayMenu(
         DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
             DropdownMenuItem(text = { Text(stringResource(R.string.practices_title)) }, onClick = { open = false; onPractices() })
             DropdownMenuItem(text = { Text(stringResource(R.string.settings_title)) }, onClick = { open = false; onSettings() })
+            DropdownMenuItem(text = { Text(stringResource(R.string.vow_menu)) }, onClick = { open = false; onVow() })
             // Section 4: sick is set before 06:00 or for tomorrow; switching off is always possible.
             if (sick || canSickToday) {
                 DropdownMenuItem(text = { Text(stringResource(if (sick) R.string.today_sick_off else R.string.today_sick)) }, onClick = { open = false; onSickToday() })

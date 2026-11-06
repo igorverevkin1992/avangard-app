@@ -33,7 +33,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-enum class ExamenStep { CLOSED, CATCH_UP, FOLLOW_UP, PRESENCE, GRATITUDE, AUDIT, CONTRITION, PROPOSITO, PLAN_TOMORROW, AVE, WHAT_BROKE, DONE }
+enum class ExamenStep { CLOSED, CATCH_UP, FOLLOW_UP, PRESENCE, GRATITUDE, AUDIT, VOW, CONTRITION, PROPOSITO, PLAN_TOMORROW, AVE, WHAT_BROKE, DONE }
 
 data class ExamenUi(
     val date: LocalDate? = null,
@@ -71,6 +71,10 @@ data class ExamenUi(
     /** D-34: tomorrow is a working day without a plan yet. */
     val planTomorrow: Boolean = false,
     val tomorrowTitles: List<String> = listOf("", "", ""),
+    /** D-67: the sobriety vow asks about this day (after the five questions). */
+    val vowAsk: Boolean = false,
+    /** «Нет» was answered: Nunc coepi before contrition. */
+    val vowSlip: Boolean = false,
 )
 
 /** Section 5.12 wizard: [FOLLOW_UP of yesterday's resolution] → PRESENCE → GRATITUDE → AUDIT(1..5) → CONTRITION → PROPOSITO → AVE(3) → [WHAT_BROKE] → DONE. */
@@ -88,6 +92,7 @@ class ExamenViewModel @Inject constructor(
     private val flags: DayFlags,
     private val profiles: ProfileRepository,
     private val clock: Clock,
+    private val vows: com.itermeum.app.core.data.VowRepository,
 ) : ViewModel() {
 
     private val _ui = MutableStateFlow(ExamenUi())
@@ -131,6 +136,7 @@ class ExamenViewModel @Inject constructor(
                     heroesLogged = heroes0, agreementsLogged = agreements0, tasksDoneLogged = tasksDone0, tasksTotal = tasks.size,
                     heroes = heroes0, agreements = agreements0, tasksDone = tasksDone0,
                     planTomorrow = planTomorrow,
+                    vowAsk = vows.needsAnswer(date),
                     tomorrowTitles = listOf(context.getString(R.string.examen_tomorrow_heroes, target), "", ""),
                 )
             }
@@ -178,7 +184,12 @@ class ExamenViewModel @Inject constructor(
             ExamenStep.FOLLOW_UP -> if (s.previousAnswer != null) s.copy(step = ExamenStep.PRESENCE) else s
             ExamenStep.PRESENCE -> s.copy(step = ExamenStep.GRATITUDE)
             ExamenStep.GRATITUDE -> s.copy(step = ExamenStep.AUDIT, auditIndex = 0)
-            ExamenStep.AUDIT -> if (s.auditIndex + 1 < s.questions.size) s.copy(auditIndex = s.auditIndex + 1) else s.copy(step = ExamenStep.CONTRITION)
+            ExamenStep.AUDIT -> when {
+                s.auditIndex + 1 < s.questions.size -> s.copy(auditIndex = s.auditIndex + 1)
+                s.vowAsk -> s.copy(step = ExamenStep.VOW)
+                else -> s.copy(step = ExamenStep.CONTRITION)
+            }
+            ExamenStep.VOW -> if (!s.vowAsk) s.copy(step = ExamenStep.CONTRITION) else s
             ExamenStep.CONTRITION -> s.copy(step = ExamenStep.PROPOSITO, contritionSaid = true)
             ExamenStep.PROPOSITO -> s
             ExamenStep.AVE -> s
@@ -188,6 +199,13 @@ class ExamenViewModel @Inject constructor(
     }.also {
         persistDraft()
         if (_ui.value.step == ExamenStep.PRESENCE && _ui.value.presenceSecondsLeft == 30) startPresenceCountdown()
+    }
+
+    /** D-67: «Сохранил ли трезвость?» — «да» goes on, «нет» shows Nunc coepi first. */
+    fun answerVow(kept: Boolean) = viewModelScope.launch {
+        val date = _ui.value.date ?: return@launch
+        vows.answer(date, kept)
+        _ui.update { it.copy(vowAsk = false, vowSlip = !kept, step = if (kept) ExamenStep.CONTRITION else it.step) }
     }
 
     fun setGratitude(i: Int, v: String) = _ui.update { it.copy(gratitude = it.gratitude.toMutableList().also { l -> l[i] = v }) }

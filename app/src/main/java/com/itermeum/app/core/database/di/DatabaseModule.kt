@@ -26,6 +26,7 @@ object DatabaseModule {
     @Provides fun dayPlanDao(db: AppDatabase) = db.dayPlanDao()
     @Provides fun taskDao(db: AppDatabase) = db.taskDao()
     @Provides fun workItemDao(db: AppDatabase) = db.workItemDao()
+    @Provides fun vowDao(db: AppDatabase) = db.vowDao()
     @Provides fun outreachDao(db: AppDatabase) = db.outreachDao()
     @Provides fun scriptDao(db: AppDatabase) = db.scriptDao()
     @Provides fun examenDao(db: AppDatabase) = db.examenDao()
