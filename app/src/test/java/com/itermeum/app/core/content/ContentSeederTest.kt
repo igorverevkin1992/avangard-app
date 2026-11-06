@@ -41,11 +41,11 @@ class ContentSeederTest {
         assertEquals(NormCatalog.all.size, db.normDao().count())
         assertEquals(assets.prayers.items.size, db.prayerDao().count())
         assertEquals(assets.jaculatoria.items.size, db.prayerDao().allJaculatoria().size)
-        assertEquals(18, db.prayerDao().asceticCount())
-        assertEquals(14, db.srsDao().count())
+        assertEquals(assets.ascetic.items.size, db.prayerDao().asceticCount())
+        assertEquals(assets.memorizationOrder.order.size, db.srsDao().count())
         assertTrue(db.readingDao().planCount() >= 9)
         assertEquals(3, db.streakDao().all().size)
-        assertEquals(16, db.streakDao().milestoneCount())
+        assertEquals(assets.milestones.items.size, db.streakDao().milestoneCount())
         assertEquals(assets.prayers.contentPackVersion, db.profileDao().get()!!.contentPackVersion)
     }
 
