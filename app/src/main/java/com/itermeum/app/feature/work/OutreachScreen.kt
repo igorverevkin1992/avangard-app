@@ -1,5 +1,6 @@
 package com.itermeum.app.feature.work
 
+import com.itermeum.app.core.designsystem.ImTextField
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
@@ -80,9 +81,9 @@ fun OutreachScreen(onBack: () -> Unit, viewModel: WorkViewModel = hiltViewModel(
         }
 
         ImSectionLabel(stringResource(R.string.outreach_new))
-        OutlinedTextField(value = person, onValueChange = { person = it }, label = { Text(stringResource(R.string.outreach_person)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(value = role, onValueChange = { role = it }, label = { Text(stringResource(R.string.outreach_role)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(value = phone, onValueChange = { phone = it }, label = { Text(stringResource(R.string.outreach_phone)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+        ImTextField(value = person, onValueChange = { person = it }, label = { Text(stringResource(R.string.outreach_person)) }, singleLine = true, keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(capitalization = androidx.compose.ui.text.input.KeyboardCapitalization.Words), modifier = Modifier.fillMaxWidth())
+        ImTextField(value = role, onValueChange = { role = it }, label = { Text(stringResource(R.string.outreach_role)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(value = phone, onValueChange = { phone = it }, label = { Text(stringResource(R.string.outreach_phone)) }, singleLine = true, keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Phone), modifier = Modifier.fillMaxWidth())
         Row(horizontalArrangement = Arrangement.spacedBy(ImSpacing.grid)) {
             FilterChip(selected = kind == OutreachKind.CALL, onClick = { kind = OutreachKind.CALL }, label = { Text(stringResource(R.string.outreach_call)) })
             FilterChip(selected = kind == OutreachKind.MESSAGE, onClick = { kind = OutreachKind.MESSAGE }, label = { Text(stringResource(R.string.outreach_message)) })

@@ -1,5 +1,7 @@
 package com.itermeum.app.feature.path
 
+import com.itermeum.app.core.designsystem.ImNoteField
+import com.itermeum.app.core.designsystem.ImTextField
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -67,10 +69,10 @@ fun CatechesisScreen(noteId: Long?, onBack: () -> Unit, viewModel: PathViewModel
         ImHeader(stringResource(R.string.path_catechesis), onBack = onBack)
         Text(stringResource(R.string.catechesis_place), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         ImSectionLabel(stringResource(R.string.catechesis_note_for, date.toString()))
-        OutlinedTextField(value = topic, onValueChange = { topic = it }, label = { Text(stringResource(R.string.catechesis_topic)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(value = theses, onValueChange = { theses = it }, label = { Text(stringResource(R.string.catechesis_theses)) }, minLines = 3, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(value = question, onValueChange = { question = it }, label = { Text(stringResource(R.string.catechesis_question)) }, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(value = homework, onValueChange = { homework = it }, label = { Text(stringResource(R.string.catechesis_homework)) }, modifier = Modifier.fillMaxWidth())
+        ImTextField(value = topic, onValueChange = { topic = it }, label = { Text(stringResource(R.string.catechesis_topic)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+        ImNoteField(value = theses, onValueChange = { theses = it }, label = { Text(stringResource(R.string.catechesis_theses)) }, minLines = 3, modifier = Modifier.fillMaxWidth())
+        ImTextField(value = question, onValueChange = { question = it }, label = { Text(stringResource(R.string.catechesis_question)) }, modifier = Modifier.fillMaxWidth())
+        ImTextField(value = homework, onValueChange = { homework = it }, label = { Text(stringResource(R.string.catechesis_homework)) }, modifier = Modifier.fillMaxWidth())
         ImPrimaryButton(stringResource(R.string.save), enabled = topic.isNotBlank(), onClick = { viewModel.saveNote(date, topic, theses, question, homework, existingId, onBack) })
         ImSecondaryButton(stringResource(R.string.catechesis_missed_travel), onClick = { viewModel.missedForTravel(date); onBack() })
 
@@ -110,7 +112,7 @@ fun WeeklyReviewScreen(onBack: () -> Unit, viewModel: PathViewModel = hiltViewMo
             Stat(stringResource(R.string.stat_focus_minutes), week.focusMinutes)
         }
         ImSectionLabel(stringResource(R.string.review_plan))
-        plan.forEachIndexed { i, s -> OutlinedTextField(value = s, onValueChange = { plan[i] = it }, label = { Text("${i + 1}") }, singleLine = true, modifier = Modifier.fillMaxWidth()) }
+        plan.forEachIndexed { i, s -> ImTextField(value = s, onValueChange = { plan[i] = it }, label = { Text("${i + 1}") }, singleLine = true, modifier = Modifier.fillMaxWidth()) }
         ImSectionLabel(stringResource(R.string.review_virtue))
         FlowRowCompat { viewModel.virtues.forEach { v -> FilterChip(selected = virtue == v, onClick = { virtue = v }, label = { Text(v) }) } }
         ImPrimaryButton(stringResource(R.string.save), enabled = virtue.isNotBlank() && plan.any { it.isNotBlank() }, onClick = { viewModel.saveWeekly(plan.toList(), virtue, onBack) })
@@ -166,7 +168,7 @@ fun QuarterScreen(onBack: () -> Unit, viewModel: PathViewModel = hiltViewModel()
         }
         ImSectionLabel(stringResource(R.string.quarter_vanity))
         questions.forEachIndexed { i, q ->
-            OutlinedTextField(value = answers[i], onValueChange = { answers[i] = it }, label = { Text(q) }, modifier = Modifier.fillMaxWidth())
+            ImTextField(value = answers[i], onValueChange = { answers[i] = it }, label = { Text(q) }, modifier = Modifier.fillMaxWidth())
         }
         OutlinedTextField(value = income, onValueChange = { income = it.filter(Char::isDigit) }, label = { Text(stringResource(R.string.studio_income_quarter, viewModel.quarter)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
         ImPrimaryButton(stringResource(R.string.save), enabled = answers.all { it.isNotBlank() }, onClick = { viewModel.saveQuarter(answers.toList(), income.toLongOrNull(), onBack) })

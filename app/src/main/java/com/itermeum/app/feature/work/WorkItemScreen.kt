@@ -224,11 +224,9 @@ fun WorkItemScreen(onBack: () -> Unit, viewModel: WorkItemViewModel = hiltViewMo
         ImSectionLabel(stringResource(R.string.item_checklist))
         Checklist(viewModel.checklist(d), viewModel::setChecklist)
 
-        OutlinedTextField(
+        com.itermeum.app.core.designsystem.ImNoteField(
             value = d.notes.orEmpty(), onValueChange = { v -> viewModel.edit { it.copy(notes = v) } },
-            label = { Text(stringResource(R.string.item_notes)) }, minLines = 3,
-            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-            modifier = Modifier.fillMaxWidth(),
+            label = { Text(stringResource(R.string.item_notes)) }, modifier = Modifier.fillMaxWidth(),
         )
 
         ImSectionLabel(stringResource(R.string.item_contact))

@@ -1,5 +1,6 @@
 package com.itermeum.app.feature.onboarding
 
+import com.itermeum.app.core.designsystem.ImTextField
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -81,7 +82,7 @@ private fun StepSplash() {
 @Composable
 private fun StepName(ui: OnboardingUi, vm: OnboardingViewModel) {
     Text(stringResource(R.string.onboarding_name_title), style = MaterialTheme.typography.headlineMedium)
-    OutlinedTextField(value = ui.name, onValueChange = vm::setName, label = { Text(stringResource(R.string.onboarding_name_label)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+    ImTextField(value = ui.name, onValueChange = vm::setName, label = { Text(stringResource(R.string.onboarding_name_label)) }, singleLine = true, keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(capitalization = androidx.compose.ui.text.input.KeyboardCapitalization.Words), modifier = Modifier.fillMaxWidth())
 }
 
 @Composable

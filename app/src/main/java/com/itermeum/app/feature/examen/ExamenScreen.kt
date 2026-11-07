@@ -1,5 +1,7 @@
 package com.itermeum.app.feature.examen
 
+import com.itermeum.app.core.designsystem.ImNoteField
+import com.itermeum.app.core.designsystem.ImTextField
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -76,7 +78,7 @@ fun ExamenScreen(onBack: () -> Unit, viewModel: ExamenViewModel = hiltViewModel(
                 ImSectionLabel(stringResource(R.string.examen_tomorrow_title))
                 Text(stringResource(R.string.examen_tomorrow_hint), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 ui.tomorrowTitles.forEachIndexed { i, t ->
-                    OutlinedTextField(value = t, onValueChange = { viewModel.setTomorrowTitle(i, it) }, label = { Text("${i + 1}") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                    ImTextField(value = t, onValueChange = { viewModel.setTomorrowTitle(i, it) }, label = { Text("${i + 1}") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 }
                 ImPrimaryButton(stringResource(R.string.save), enabled = ui.tomorrowTitles.first().isNotBlank(), onClick = { viewModel.saveTomorrowPlan() })
                 TextButton(onClick = viewModel::skipTomorrowPlan) { Text(stringResource(R.string.examen_tomorrow_skip)) }
@@ -101,7 +103,7 @@ fun ExamenScreen(onBack: () -> Unit, viewModel: ExamenViewModel = hiltViewModel(
                 ImSectionLabel(stringResource(R.string.examen_gratitude))
                 Text(stringResource(R.string.examen_gratitude_hint), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 ui.gratitude.forEachIndexed { i, g ->
-                    OutlinedTextField(value = g, onValueChange = { viewModel.setGratitude(i, it) }, label = { Text("${i + 1}") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                    ImTextField(value = g, onValueChange = { viewModel.setGratitude(i, it) }, label = { Text("${i + 1}") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 }
                 ImPrimaryButton(stringResource(R.string.next), enabled = ui.gratitude.count { it.isNotBlank() } >= 2, onClick = viewModel::next)
             }
@@ -118,7 +120,7 @@ fun ExamenScreen(onBack: () -> Unit, viewModel: ExamenViewModel = hiltViewModel(
                     FilterChip(selected = answer == ExamenRepository.Answer.PARTLY, onClick = { answer = ExamenRepository.Answer.PARTLY }, label = { Text(stringResource(R.string.partly)) })
                     FilterChip(selected = answer == ExamenRepository.Answer.NO, onClick = { answer = ExamenRepository.Answer.NO }, label = { Text(stringResource(R.string.no)) })
                 }
-                OutlinedTextField(value = note, onValueChange = { note = it }, label = { Text(stringResource(R.string.examen_note)) }, modifier = Modifier.fillMaxWidth())
+                ImNoteField(value = note, onValueChange = { note = it }, label = { Text(stringResource(R.string.examen_note)) }, modifier = Modifier.fillMaxWidth())
                 ImPrimaryButton(stringResource(R.string.next), onClick = { viewModel.setAudit(answer, note); viewModel.next() })
             }
             ExamenStep.VOW -> {
@@ -140,7 +142,7 @@ fun ExamenScreen(onBack: () -> Unit, viewModel: ExamenViewModel = hiltViewModel(
             ExamenStep.PROPOSITO -> {
                 ImSectionLabel(stringResource(R.string.examen_proposito))
                 Text(stringResource(R.string.examen_proposito_hint, ExamenValidator.TEMPLATE), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                OutlinedTextField(value = ui.proposito, onValueChange = viewModel::setProposito, modifier = Modifier.fillMaxWidth(), isError = ui.propositoError != null,
+                ImTextField(value = ui.proposito, onValueChange = viewModel::setProposito, modifier = Modifier.fillMaxWidth(), isError = ui.propositoError != null,
                     supportingText = { ui.propositoError?.let { Text(when (it) {
                         ExamenValidator.Reason.TOO_SHORT -> stringResource(R.string.examen_err_short)
                         ExamenValidator.Reason.TOO_LONG -> stringResource(R.string.examen_err_long)
@@ -159,7 +161,7 @@ fun ExamenScreen(onBack: () -> Unit, viewModel: ExamenViewModel = hiltViewModel(
             ExamenStep.WHAT_BROKE -> {
                 ImSectionLabel(stringResource(R.string.examen_what_broke))
                 Text(stringResource(R.string.examen_what_broke_hint), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                OutlinedTextField(value = ui.whatBroke, onValueChange = viewModel::setWhatBroke, modifier = Modifier.fillMaxWidth())
+                ImNoteField(value = ui.whatBroke, onValueChange = viewModel::setWhatBroke, modifier = Modifier.fillMaxWidth())
                 ImPrimaryButton(stringResource(R.string.done), enabled = ui.whatBroke.isNotBlank(), onClick = viewModel::finishWhatBroke)
             }
             ExamenStep.DONE -> {

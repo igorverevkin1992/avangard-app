@@ -1,5 +1,6 @@
 package com.itermeum.app.feature.work
 
+import com.itermeum.app.core.designsystem.ImTextField
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -113,9 +114,9 @@ fun DayPlanScreen(onBack: () -> Unit, viewModel: WorkViewModel = hiltViewModel()
                 FlowRowCompat {
                     TaskType.entries.forEach { t -> FilterChip(selected = types[i] == t, onClick = { types[i] = t }, label = { Text(t.label()) }) }
                 }
-                OutlinedTextField(value = titles[i], onValueChange = { titles[i] = it }, label = { Text(stringResource(R.string.plan_task_title)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                ImTextField(value = titles[i], onValueChange = { titles[i] = it }, label = { Text(stringResource(R.string.plan_task_title)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 if (types[i] == TaskType.SHOOT && shootDay) {
-                    OutlinedTextField(value = followUps[i], onValueChange = { followUps[i] = it }, label = { Text(stringResource(R.string.plan_follow_up)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                    ImTextField(value = followUps[i], onValueChange = { followUps[i] = it }, label = { Text(stringResource(R.string.plan_follow_up)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 }
                 // The first three are the plan itself; added slots can go again.
                 if (i >= MIN_SLOTS) {
@@ -124,7 +125,7 @@ fun DayPlanScreen(onBack: () -> Unit, viewModel: WorkViewModel = hiltViewModel()
             }
         }
         if (titles.size < MAX_SLOTS) ImSecondaryButton(stringResource(R.string.plan_add_slot), { addSlot() }, Modifier.fillMaxWidth())
-        OutlinedTextField(value = intention, onValueChange = { intention = it }, label = { Text(stringResource(R.string.plan_intention)) }, modifier = Modifier.fillMaxWidth())
+        ImTextField(value = intention, onValueChange = { intention = it }, label = { Text(stringResource(R.string.plan_intention)) }, modifier = Modifier.fillMaxWidth())
         if (drafts.none { it.type == TaskType.OUTREACH || it.type == TaskType.SHOOT }) {
             Text(stringResource(R.string.plan_no_calls), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }

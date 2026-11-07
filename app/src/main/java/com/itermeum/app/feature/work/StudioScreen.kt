@@ -1,5 +1,6 @@
 package com.itermeum.app.feature.work
 
+import com.itermeum.app.core.designsystem.ImTextField
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -121,7 +122,7 @@ fun StudioScreen(onBack: () -> Unit, viewModel: StudioViewModel = hiltViewModel(
             }
         }
         if (goals.size < 4) {
-            OutlinedTextField(value = newGoal, onValueChange = { newGoal = it }, label = { Text(stringResource(R.string.studio_goal_new)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+            ImTextField(value = newGoal, onValueChange = { newGoal = it }, label = { Text(stringResource(R.string.studio_goal_new)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
             ImSecondaryButton(stringResource(R.string.studio_goal_add), enabled = newGoal.isNotBlank(), onClick = { viewModel.addGoal(newGoal); newGoal = "" })
         }
     }

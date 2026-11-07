@@ -1,5 +1,6 @@
 package com.itermeum.app.feature.prayer
 
+import com.itermeum.app.core.designsystem.ImTextField
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -62,7 +63,7 @@ fun PrayerItemScreen(id: String, onBack: () -> Unit, viewModel: PrayerHubViewMod
         ImHeader(p.title, onBack = onBack)
         VerifyBadge(p)
         if (editing) {
-            OutlinedTextField(value = text, onValueChange = { text = it }, modifier = Modifier.fillMaxWidth(), minLines = 6)
+            ImTextField(value = text, onValueChange = { text = it }, modifier = Modifier.fillMaxWidth(), minLines = 6)
             ImSecondaryButton(stringResource(R.string.save), onClick = { viewModel.saveUserText(p.id, text); editing = false })
             ImSecondaryButton(stringResource(R.string.prayer_reset), onClick = { viewModel.saveUserText(p.id, null); editing = false })
         } else {

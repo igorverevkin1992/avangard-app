@@ -1,5 +1,6 @@
 package com.itermeum.app.feature.prayer
 
+import com.itermeum.app.core.designsystem.ImTextField
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -111,7 +112,7 @@ fun GospelScreen(onBack: () -> Unit, onOpenBook: (String) -> Unit = {}, viewMode
             }
             Text(stringResource(R.string.gospel_legal), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         } ?: Text(stringResource(R.string.gospel_missing), style = MaterialTheme.typography.bodyMedium)
-        OutlinedTextField(value = phrase, onValueChange = { phrase = it }, label = { Text(stringResource(R.string.gospel_focus)) }, modifier = Modifier.fillMaxWidth())
+        ImTextField(value = phrase, onValueChange = { phrase = it }, label = { Text(stringResource(R.string.gospel_focus)) }, modifier = Modifier.fillMaxWidth())
         ImPrimaryButton(if (ui.read) stringResource(R.string.gospel_read_again) else stringResource(R.string.gospel_read), onClick = { viewModel.markRead(phrase) })
 
         ImSectionLabel(stringResource(R.string.reading_title))

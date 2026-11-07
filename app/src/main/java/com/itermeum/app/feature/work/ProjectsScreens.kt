@@ -1,5 +1,7 @@
 package com.itermeum.app.feature.work
 
+import com.itermeum.app.core.designsystem.ImNoteField
+import com.itermeum.app.core.designsystem.ImTextField
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -96,12 +98,12 @@ fun ProjectsScreen(onBack: () -> Unit, onOpen: (Long) -> Unit, viewModel: Projec
             var dedication by remember { mutableStateOf("") }
             var market by remember { mutableStateOf(Market.RU) }
             ImPanel {
-                OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text(stringResource(R.string.project_title)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                ImTextField(value = title, onValueChange = { title = it }, label = { Text(stringResource(R.string.project_title)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 Row(horizontalArrangement = Arrangement.spacedBy(ImSpacing.tight)) {
                     Market.entries.forEach { m -> FilterChip(selected = market == m, onClick = { market = m }, label = { Text(m.name) }) }
                 }
-                OutlinedTextField(value = format, onValueChange = { format = it }, label = { Text(stringResource(R.string.project_format)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(value = dedication, onValueChange = { dedication = it }, label = { Text(stringResource(R.string.project_dedication)) }, modifier = Modifier.fillMaxWidth())
+                ImTextField(value = format, onValueChange = { format = it }, label = { Text(stringResource(R.string.project_format)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                ImTextField(value = dedication, onValueChange = { dedication = it }, label = { Text(stringResource(R.string.project_dedication)) }, modifier = Modifier.fillMaxWidth())
                 ImPrimaryButton(stringResource(R.string.save), enabled = title.isNotBlank() && dedication.isNotBlank(), onClick = {
                     viewModel.create(title, market, format, dedication) { creating = false; onOpen(it) }
                 })
@@ -163,7 +165,7 @@ fun ProjectDetailScreen(id: Long, onBack: () -> Unit, onOpenItem: (Long) -> Unit
 
         if (p.stage == ProjectStage.RELEASED || p.stage == ProjectStage.ARCHIVED) {
             ImSectionLabel(stringResource(R.string.project_reflection))
-            OutlinedTextField(value = reflection, onValueChange = { reflection = it }, modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.project_reflection_hint)) })
+            ImNoteField(value = reflection, onValueChange = { reflection = it }, modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.project_reflection_hint)) })
             ImSecondaryButton(stringResource(R.string.save), onClick = { viewModel.setReflection(p, reflection) })
         }
     }
