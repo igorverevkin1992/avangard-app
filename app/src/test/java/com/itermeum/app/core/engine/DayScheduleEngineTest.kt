@@ -157,6 +157,14 @@ class DayScheduleEngineTest {
     }
 
     @Test
+    fun `sunday as the mass day leaves saturday free`() {
+        val sunday = saturday.plusDays(1)
+        val profile = ProfileEntity(massDay = 7, massTimeSaturday = LocalTime.of(18, 0), massTimeSunday = LocalTime.of(11, 30))
+        assertNull(DayScheduleEngine.schedule(input(date = saturday, profile = profile)).firstOrNull { it.normId == NormCatalog.MASS })
+        assertEquals(LocalTime.of(11, 30), DayScheduleEngine.schedule(input(date = sunday, profile = profile)).of(NormCatalog.MASS).time)
+    }
+
+    @Test
     fun `confession is active only when due`() {
         val baptized = ProfileEntity(baptized = true, confessionEveryDays = 30)
         fun on(last: java.time.LocalDate?) = DayScheduleEngine.schedule(

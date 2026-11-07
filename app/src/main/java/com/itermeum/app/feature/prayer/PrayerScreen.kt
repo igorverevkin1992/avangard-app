@@ -41,7 +41,6 @@ fun PrayerScreen(
     val due by viewModel.dueCards.collectAsState()
     val profile by viewModel.profile.collectAsState()
     val regina = viewModel.liturgical.reginaCaeli
-    val weekend = viewModel.date.dayOfWeek == DayOfWeek.SATURDAY || viewModel.date.dayOfWeek == DayOfWeek.SUNDAY
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(ImSpacing.screen), verticalArrangement = Arrangement.spacedBy(ImSpacing.grid)) {
         ImHeader(stringResource(R.string.nav_prayer))
         Text(viewModel.liturgical.title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
@@ -53,7 +52,8 @@ fun PrayerScreen(
         ImNavRow(if (regina) stringResource(R.string.hub_regina) else stringResource(R.string.hub_angelus), onAngelus, subtitle = stringResource(R.string.angelus_window), done = NormCatalog.ANGELUS in done)
         ImNavRow(stringResource(R.string.hub_jaculatory), onJaculatory, subtitle = stringResource(R.string.prayer_arrows_sub, arrows), done = NormCatalog.JACULATORIA in done)
         ImNavRow(stringResource(R.string.hub_rosary), onRosary, done = NormCatalog.ROSARY in done)
-        if (weekend) {
+        val massToday by viewModel.massToday.collectAsState()
+        if (massToday || NormCatalog.MASS in done) {
             ImNavRow(if (profile.baptized) stringResource(R.string.hub_mass_baptized) else stringResource(R.string.hub_mass), onMass, done = NormCatalog.MASS in done)
         }
         if (viewModel.date.dayOfWeek == DayOfWeek.SATURDAY) {
@@ -67,7 +67,7 @@ fun PrayerScreen(
             ImNavRow(stringResource(R.string.hub_book), onBook)
             ImNavRow(stringResource(R.string.year_title), onYear, subtitle = stringResource(R.string.year_row_sub))
             ImNavRow(stringResource(R.string.hub_calendar), onCalendar)
-            if (!weekend) ImNavRow(if (profile.baptized) stringResource(R.string.hub_mass_baptized) else stringResource(R.string.hub_mass), onMass)
+            if (!massToday && NormCatalog.MASS !in done) ImNavRow(if (profile.baptized) stringResource(R.string.hub_mass_baptized) else stringResource(R.string.hub_mass), onMass)
         }
     }
 }

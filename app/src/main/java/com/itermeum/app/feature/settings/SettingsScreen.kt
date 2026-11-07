@@ -104,15 +104,12 @@ fun SettingsScreen(onBack: () -> Unit, onOpenAbout: () -> Unit, viewModel: Setti
 
         ImCollapsible(stringResource(R.string.settings_group_church)) {
             ImSectionLabel(stringResource(R.string.settings_mass_time))
-            Row(horizontalArrangement = Arrangement.spacedBy(ImSpacing.grid)) {
-                ImTimeField(stringResource(R.string.mass_time_saturday), p.massTimeSaturday, { t -> viewModel.update { it.copy(massTimeSaturday = t) } }, Modifier.weight(1f))
-                ImTimeField(stringResource(R.string.mass_time_sunday), p.massTimeSunday, { t -> viewModel.update { it.copy(massTimeSunday = t) } }, Modifier.weight(1f))
-            }
-            Text(stringResource(R.string.mass_usual_day), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Row(horizontalArrangement = Arrangement.spacedBy(ImSpacing.grid)) {
-                ImSecondaryButton(stringResource(R.string.mass_saturday), { viewModel.update { it.copy(massDay = 6) } }, Modifier.weight(1f), enabled = p.massDay != 6)
-                ImSecondaryButton(stringResource(R.string.mass_sunday), { viewModel.update { it.copy(massDay = 7) } }, Modifier.weight(1f), enabled = p.massDay != 7)
-            }
+            MassDayPicker(
+                p.massDay, p.massTimeSaturday, p.massTimeSunday,
+                onDay = { d -> viewModel.update { it.copy(massDay = d) } },
+                onSaturday = { t -> viewModel.update { it.copy(massTimeSaturday = t) } },
+                onSunday = { t -> viewModel.update { it.copy(massTimeSunday = t) } },
+            )
 
             ImSectionLabel(stringResource(R.string.settings_baptized))
             if (p.baptized) {

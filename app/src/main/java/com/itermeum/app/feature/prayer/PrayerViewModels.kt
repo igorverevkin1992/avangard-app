@@ -35,6 +35,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -57,6 +58,10 @@ class PrayerHubViewModel @Inject constructor(
     val jaculatoriaToday: StateFlow<Int> = prayers.observeJaculatoriaCount(date).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
     val dueCards: StateFlow<Int> = srs.observeDueCount(date).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
     val profile: StateFlow<ProfileEntity> = profiles.flow.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ProfileEntity())
+    /** D-70: Mass stands on the chosen day of the weekend only (or where it was marked) — as on «Сегодня». */
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    val massToday: StateFlow<Boolean> = profiles.flow.mapLatest { norms.scheduleFor(date).any { it.normId == NormCatalog.MASS } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
     val situations = assets.jaculatoria.situations
 
     fun displayText(p: PrayerEntity) = prayers.displayText(p)

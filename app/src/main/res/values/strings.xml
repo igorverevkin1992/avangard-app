@@ -321,9 +321,8 @@
     <string name="today_plan_before_work_button">Составить план</string>
     <string name="work_outreach_today">Сегодня попыток %1$d · договорённостей %2$d</string>
     <string name="motto_serviam">Serviam · Ora et labora</string>
-    <string name="mass_time_saturday">Суббота</string>
-    <string name="mass_time_sunday">Воскресенье</string>
-    <string name="mass_usual_day">Обычный день Мессы (напоминание и тихое окно ±90 мин):</string>
+    <string name="mass_day_choice">В какой день вы ходите на Мессу — она будет стоять только в этот день:</string>
+    <string name="mass_time_label">Время Мессы</string>
     <string name="mass_saturday">Суббота вечером</string>
     <string name="mass_sunday">Воскресенье утром</string>
     <string name="settings_hyperos">Чеклист HyperOS</string>
