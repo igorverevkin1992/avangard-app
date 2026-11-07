@@ -140,4 +140,45 @@ class BookParserTest {
         assertTrue("<p>Стих</p>" in stripped)
         assertEquals(listOf("Стих"), BookParser.parse(fb2, "x").chapters.single().paragraphs)
     }
+
+    @Test fun `fb2 bible keeps the books above the chapters`() {
+        val fb2 = """<?xml version="1.0" encoding="utf-8"?><FictionBook><description><title-info><book-title>Библия</book-title></title-info></description><body>
+            <section><title><p>Ветхий Завет</p></title>
+              <section><title><p>Бытие</p></title>
+                <section><title><p>Глава 1</p></title><p>В начале сотворил Бог небо и землю.</p></section>
+                <section><title><p>Глава 2</p></title><p>Так совершены небо и земля.</p></section>
+              </section>
+              <section><title><p>Исход</p></title>
+                <section><title><p>Глава 1</p></title><p>Вот имена сынов Израилевых.</p></section>
+              </section>
+            </section>
+            <section><title><p>Новый Завет</p></title>
+              <section><title><p>От Матфея</p></title>
+                <section><title><p>Глава 1</p></title><p>Родословие Иисуса Христа.</p></section>
+              </section>
+            </section></body></FictionBook>""".toByteArray()
+        val book = BookParser.parse(fb2, "x")
+        assertEquals(4, book.chapters.size)
+        assertEquals(listOf("Глава 1", "Глава 2", "Глава 1", "Глава 1"), book.chapters.map { it.title })
+        assertEquals(
+            listOf("Ветхий Завет · Бытие", "Ветхий Завет · Бытие", "Ветхий Завет · Исход", "Новый Завет · От Матфея"),
+            book.chapters.map { it.part },
+        )
+        val groups = BookToc.groups(book.chapters)
+        assertEquals(listOf("Бытие", "Исход", "От Матфея"), groups.map { it.book })
+        assertEquals(listOf("Ветхий Завет", "Ветхий Завет", "Новый Завет"), groups.map { it.section })
+        assertEquals(listOf(listOf(0, 1), listOf(2), listOf(3)), groups.map { it.chapters })
+        assertEquals("Бытие 2", BookToc.where(book.chapters[1]))
+        assertTrue(BookToc.grouped(book.chapters))
+    }
+
+    @Test fun `flat books stay one group, chapter numbers are short`() {
+        val chapters = listOf(BookChapter("Характер", listOf("a")), BookChapter("Воля", listOf("b")))
+        assertFalse(BookToc.grouped(chapters))
+        assertEquals(1, BookToc.groups(chapters).size)
+        assertEquals("Воля", BookToc.where(chapters[1]))
+        assertEquals("12", BookToc.shortTitle("Глава 12"))
+        assertEquals("23", BookToc.shortTitle("Псалом 23"))
+        assertEquals("Пролог", BookToc.shortTitle("Пролог"))
+    }
 }

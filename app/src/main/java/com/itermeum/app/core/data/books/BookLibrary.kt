@@ -92,7 +92,14 @@ class BookLibrary @Inject constructor(
                 book = runCatching { BookParser.parse(bytes, fileTitle) }.getOrElse { throw BookImportException(BookImportException.Reason.FORMAT) }
             }
             _progress.value = Progress(Progress.Stage.SAVING)
+            // D-68: the same book loaded again (e.g. to get its contents by books) keeps the place
+            // where reading stopped — when its chapters are the same in number.
+            val oldChapters = if (book != null) runCatching { load(bookId)?.chapters?.size }.getOrNull() else null
+            val place = Triple(prefs.getInt("$bookId.chapter", 0), prefs.getInt("$bookId.item", 0), prefs.getInt("$bookId.offset", 0))
             remove(bookId)
+            if (book != null && oldChapters == book.chapters.size) {
+                prefs.edit().putInt("$bookId.chapter", place.first).putInt("$bookId.item", place.second).putInt("$bookId.offset", place.third).apply()
+            }
             val title: String
             if (book != null) {
                 File(dir, "$bookId.json").writeText(json.encodeToString(ParsedBook.serializer(), book))

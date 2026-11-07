@@ -9,7 +9,8 @@ import java.nio.charset.CodingErrorAction
 import java.util.zip.ZipInputStream
 import kotlinx.serialization.Serializable
 
-@Serializable data class BookChapter(val title: String, val paragraphs: List<String>)
+/** [part] — the enclosing sections, outermost first, joined with « · » (D-68): «Ветхий Завет · Бытие». */
+@Serializable data class BookChapter(val title: String, val paragraphs: List<String>, val part: String? = null)
 @Serializable data class ParsedBook(val title: String, val chapters: List<BookChapter>)
 
 class BookFormatException(message: String) : Exception(message)
@@ -125,8 +126,12 @@ object BookParser {
         var inBody = false
         var skipBody = false
         var skip = 0
+        // D-68: titles of the open sections, outermost first — a Bible nests book → chapter,
+        // and the book's own section has no text of its own, so its title lives on here.
+        val sections = mutableListOf<String>()
+        fun part(): String? = sections.dropLast(1).filter { it.isNotBlank() }.joinToString(" · ").ifEmpty { null }
         fun endChapter() {
-            if (paragraphs.isNotEmpty() || title.isNotEmpty()) chapters += BookChapter(title.toString(), paragraphs)
+            if (paragraphs.isNotEmpty() || title.isNotEmpty()) chapters += BookChapter(title.toString(), paragraphs, part())
             title = StringBuilder(); paragraphs = mutableListOf()
         }
         fun flush() {
@@ -147,8 +152,14 @@ object BookParser {
                     "book-title" -> { flush(); inBookTitle = !tok.closing }
                     // Notes and comments live in a second <body name="notes">: not part of the reading.
                     "body" -> { flush(); inBody = !tok.closing; skipBody = inBody && tok.attrs["name"] != null }
-                    "section" -> if (!skipBody) { flush(); endChapter() }
-                    "title" -> if (!skipBody) { flush(); inTitle = !tok.closing }
+                    "section" -> if (!skipBody) {
+                        flush(); endChapter()
+                        if (tok.closing) sections.removeLastOrNull() else if (!tok.selfClosing) sections += ""
+                    }
+                    "title" -> if (!skipBody) {
+                        flush(); inTitle = !tok.closing
+                        if (tok.closing && sections.isNotEmpty()) sections[sections.lastIndex] = title.toString()
+                    }
                     "p", "v", "subtitle", "text-author", "empty-line", "stanza" -> flush()
                 }
             }

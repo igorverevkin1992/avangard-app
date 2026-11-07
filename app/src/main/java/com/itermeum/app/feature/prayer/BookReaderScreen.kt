@@ -48,7 +48,13 @@ import androidx.lifecycle.viewModelScope
 import com.itermeum.app.R
 import com.itermeum.app.core.data.TimerController
 import com.itermeum.app.core.data.books.BookLibrary
+import com.itermeum.app.core.data.books.BookToc
 import com.itermeum.app.core.data.books.ParsedBook
+import com.itermeum.app.feature.work.FlowRowCompat
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.FilterChip
+import androidx.compose.runtime.saveable.rememberSaveable
 import com.itermeum.app.core.designsystem.ImHeader
 import com.itermeum.app.core.designsystem.ImMonoFamily
 import com.itermeum.app.core.designsystem.ImPanel
@@ -159,20 +165,12 @@ private fun TextBook(viewModel: BookReaderViewModel) {
     val chapter by viewModel.chapter.collectAsState()
     val b = book ?: return
     var toc by remember { mutableStateOf(false) }
+    // D-68: «Оглавление · Бытие 3» — the book and the chapter, not just «Глава 3».
     TextButton(onClick = { toc = !toc }) {
-        Text(stringResource(R.string.book_toc) + " · " + b.chapters.getOrNull(chapter)?.title.orEmpty(), maxLines = 1)
+        Text(stringResource(R.string.book_toc) + " · " + b.chapters.getOrNull(chapter)?.let(BookToc::where).orEmpty(), maxLines = 1)
     }
     if (toc) {
-        LazyColumn(Modifier.fillMaxSize()) {
-            itemsIndexed(b.chapters) { i, c ->
-                Text(
-                    c.title,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = if (i == chapter) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.fillMaxWidth().clickable { viewModel.openChapter(i); toc = false }.padding(vertical = ImSpacing.grid),
-                )
-            }
-        }
+        Contents(b, chapter) { i -> viewModel.openChapter(i); toc = false }
         return
     }
     val c = b.chapters.getOrNull(chapter) ?: return
@@ -190,12 +188,70 @@ private fun TextBook(viewModel: BookReaderViewModel) {
                 .collect { (item, offset) -> viewModel.savePosition(item, offset) }
         }
         LazyColumn(state = state, modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(ImSpacing.card)) {
-            item { Text(c.title, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary) }
+            item {
+                Column {
+                    c.part?.let { Text(it, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                    Text(c.title, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+                }
+            }
             itemsIndexed(c.paragraphs) { _, p -> Text(p, style = style) }
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(ImSpacing.grid), modifier = Modifier.padding(vertical = ImSpacing.screen)) {
                     if (chapter > 0) ImSecondaryButton(stringResource(R.string.book_prev), { viewModel.openChapter(chapter - 1) }, Modifier.weight(1f))
                     if (chapter < b.chapters.lastIndex) ImSecondaryButton(stringResource(R.string.book_next), { viewModel.openChapter(chapter + 1) }, Modifier.weight(1f))
+                }
+            }
+        }
+    }
+}
+
+/**
+ * D-68: the contents. A book with parts (the Bible: testament → book → chapter) opens on
+ * its books — the current one marked — and a book opens on a grid of its chapter numbers;
+ * a flat book keeps the plain list of chapters.
+ */
+@Composable
+private fun Contents(b: ParsedBook, chapter: Int, onOpen: (Int) -> Unit) {
+    if (!BookToc.grouped(b.chapters)) {
+        LazyColumn(Modifier.fillMaxSize(), state = rememberLazyListState((chapter - 3).coerceAtLeast(0))) {
+            itemsIndexed(b.chapters) { i, c ->
+                Text(
+                    c.title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = if (i == chapter) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.fillMaxWidth().clickable { onOpen(i) }.padding(vertical = ImSpacing.grid),
+                )
+            }
+        }
+        return
+    }
+    val groups = remember(b) { BookToc.groups(b.chapters) }
+    val current = groups.indexOfFirst { chapter in it.chapters }.coerceAtLeast(0)
+    var open by rememberSaveable { mutableStateOf<Int?>(null) }
+    val g = open?.let { groups.getOrNull(it) }
+    if (g == null) {
+        LazyColumn(Modifier.fillMaxSize(), state = rememberLazyListState((current - 3).coerceAtLeast(0))) {
+            itemsIndexed(groups) { gi, group ->
+                if (group.section != null && group.section != groups.getOrNull(gi - 1)?.section) {
+                    Text(group.section, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.tertiary, modifier = Modifier.padding(top = ImSpacing.card))
+                }
+                Row(Modifier.fillMaxWidth().clickable { open = gi }.padding(vertical = ImSpacing.grid), verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        group.book.ifEmpty { b.title }, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f),
+                        color = if (gi == current) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                    )
+                    Text(group.chapters.size.toString(), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
+    } else {
+        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(ImSpacing.grid)) {
+            TextButton(onClick = { open = null }) { Text(stringResource(R.string.book_toc_books)) }
+            g.section?.let { Text(it, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+            Text(g.book.ifEmpty { b.title }, style = MaterialTheme.typography.titleLarge)
+            FlowRowCompat {
+                g.chapters.forEach { i ->
+                    FilterChip(selected = i == chapter, onClick = { onOpen(i) }, label = { Text(BookToc.shortTitle(b.chapters[i].title)) })
                 }
             }
         }
