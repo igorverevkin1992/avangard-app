@@ -181,4 +181,10 @@ class BookParserTest {
         assertEquals("23", BookToc.shortTitle("Псалом 23"))
         assertEquals("Пролог", BookToc.shortTitle("Пролог"))
     }
+
+    @Test fun `chapters of a saved book are counted without decoding it`() {
+        val saved = """{"title":"Б","chapters":[{"title":"1","paragraphs":["он сказал: \\"paragraphs\\": нет"]},{"title":"2","paragraphs":["x"],"part":"А"}]}"""
+        assertEquals(2, BookParser.countChapters(saved.byteInputStream()))
+        assertEquals(0, BookParser.countChapters("".byteInputStream()))
+    }
 }

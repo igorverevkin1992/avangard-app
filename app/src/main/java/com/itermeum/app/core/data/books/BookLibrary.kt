@@ -13,6 +13,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromStream
+import kotlinx.serialization.json.encodeToStream
 
 /** [asPages] — a scanned PDF without text, shown as page images. */
 /** Why a book file could not be loaded — shown to the user (D-57). */
@@ -28,6 +30,7 @@ data class BookInfo(val bookId: String, val title: String, val format: BookForma
  * or the content pack (the rights belong to their publishers), and they are
  * not part of the Drive backup — after a restore the files are loaded again.
  */
+@OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
 @Singleton
 class BookLibrary @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -92,39 +95,58 @@ class BookLibrary @Inject constructor(
                 book = runCatching { BookParser.parse(bytes, fileTitle) }.getOrElse { throw BookImportException(BookImportException.Reason.FORMAT) }
             }
             _progress.value = Progress(Progress.Stage.SAVING)
-            // D-68: the same book loaded again (e.g. to get its contents by books) keeps the place
-            // where reading stopped — when its chapters are the same in number.
-            val oldChapters = if (book != null) runCatching { load(bookId)?.chapters?.size }.getOrNull() else null
-            val place = Triple(prefs.getInt("$bookId.chapter", 0), prefs.getInt("$bookId.item", 0), prefs.getInt("$bookId.offset", 0))
-            remove(bookId)
-            if (book != null && oldChapters == book.chapters.size) {
-                prefs.edit().putInt("$bookId.chapter", place.first).putInt("$bookId.item", place.second).putInt("$bookId.offset", place.third).apply()
-            }
+            // D-72: the new copy is written in full first — streamed, never held as one big string —
+            // and only then replaces the old one: a failed save no longer loses the book already there.
             val title: String
+            val target = File(dir, if (book != null) "$bookId.json" else "$bookId.pdf")
+            val part = File(dir, target.name + PART)
             if (book != null) {
-                File(dir, "$bookId.json").writeText(json.encodeToString(ParsedBook.serializer(), book))
+                part.outputStream().buffered().use { json.encodeToStream(ParsedBook.serializer(), book, it) }
                 title = book.title
             } else {
-                tmp.copyTo(File(dir, "$bookId.pdf"), overwrite = true)
+                tmp.copyTo(part, overwrite = true)
                 title = fileTitle
             }
-            prefs.edit().putString("$bookId.title", title).putString("$bookId.format", format.name).putString("$bookId.file", name).apply()
+            // D-68: the same book loaded again keeps the place where reading stopped, when its chapters
+            // are as many — counted from the old file without reading it into memory.
+            val oldChapters = if (book != null) chapterCount(bookId) else null
+            val place = Triple(prefs.getInt("$bookId.chapter", 0), prefs.getInt("$bookId.item", 0), prefs.getInt("$bookId.offset", 0))
+            remove(bookId)
+            if (!part.renameTo(target)) { part.copyTo(target, overwrite = true); part.delete() }
+            val edit = prefs.edit().putString("$bookId.title", title).putString("$bookId.format", format.name).putString("$bookId.file", name)
+            if (book != null) {
+                edit.putInt("$bookId.chapters", book.chapters.size)
+                if (oldChapters == book.chapters.size) edit.putInt("$bookId.chapter", place.first).putInt("$bookId.item", place.second).putInt("$bookId.offset", place.third)
+            }
+            edit.apply()
             _books.value = scan()
             _books.value.getValue(bookId)
         }.recoverCatching { e ->
             throw if (e is OutOfMemoryError) BookImportException(BookImportException.Reason.MEMORY) else e
-        }.also { tmp.delete(); _progress.value = null }
+        }.also {
+            tmp.delete(); File(dir, "$bookId.json$PART").delete(); File(dir, "$bookId.pdf$PART").delete()
+            _progress.value = null
+        }
+    }
+
+    /** Chapters of the loaded book: remembered at saving, or counted in its file as a stream. */
+    private fun chapterCount(bookId: String): Int? {
+        prefs.getInt("$bookId.chapters", -1).takeIf { it >= 0 }?.let { return it }
+        val f = File(dir, "$bookId.json").takeIf { it.exists() } ?: return null
+        return runCatching { f.inputStream().buffered().use(BookParser::countChapters) }.getOrNull()
     }
 
     suspend fun load(bookId: String): ParsedBook? = withContext(Dispatchers.IO) {
-        File(dir, "$bookId.json").takeIf { it.exists() }?.let { f -> runCatching { json.decodeFromString(ParsedBook.serializer(), f.readText()) }.getOrNull() }
+        File(dir, "$bookId.json").takeIf { it.exists() }?.let { f ->
+            runCatching { f.inputStream().buffered().use { json.decodeFromStream(ParsedBook.serializer(), it) } }.getOrNull()
+        }
     }
 
     fun pdf(bookId: String): File? = File(dir, "$bookId.pdf").takeIf { it.exists() }
 
     fun remove(bookId: String) {
         File(dir, "$bookId.json").delete(); File(dir, "$bookId.pdf").delete()
-        prefs.edit().remove("$bookId.title").remove("$bookId.format").remove("$bookId.file").remove("$bookId.chapter").remove("$bookId.item").remove("$bookId.offset").apply()
+        prefs.edit().remove("$bookId.title").remove("$bookId.format").remove("$bookId.file").remove("$bookId.chapter").remove("$bookId.item").remove("$bookId.offset").remove("$bookId.chapters").apply()
         _books.value = scan()
     }
 
@@ -156,5 +178,6 @@ class BookLibrary @Inject constructor(
         private const val MAX_BYTES = 80L * 1024 * 1024
         private const val KEY_LAST = "last_book"
         private const val MAX_PDF_BYTES = 400L * 1024 * 1024
+        private const val PART = ".part"
     }
 }

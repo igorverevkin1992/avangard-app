@@ -40,6 +40,25 @@ object BookParser {
         else -> BookFormat.TXT
     }
 
+    /**
+     * D-72: chapters in a saved book file without decoding it — each chapter has one
+     * `"paragraphs":` key (inside a text the quotes are escaped, so it cannot match there).
+     */
+    fun countChapters(input: java.io.InputStream): Int {
+        val key = "\"paragraphs\":".toByteArray(Charsets.US_ASCII)
+        var matched = 0; var count = 0
+        while (true) {
+            val b = input.read()
+            if (b < 0) return count
+            matched = when {
+                b.toByte() == key[matched] -> matched + 1
+                b.toByte() == key[0] -> 1
+                else -> 0
+            }
+            if (matched == key.size) { count++; matched = 0 }
+        }
+    }
+
     /** [fallbackTitle] — the file name, used when the book carries no title. */
     fun parse(bytes: ByteArray, fallbackTitle: String): ParsedBook {
         val book = when (detect(bytes)) {
