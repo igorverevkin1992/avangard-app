@@ -12,13 +12,16 @@ object BookToc {
 
     /** Consecutive chapters with the same part, in order; one group with no part for a flat book. */
     fun groups(chapters: List<BookChapter>): List<Group> {
+        // One pass, no copying of growing lists (D-74): a book with thousands of chapters stays quick.
         val out = mutableListOf<Group>()
+        var current: MutableList<Int>? = null
         chapters.forEachIndexed { i, c ->
-            val last = out.lastOrNull()
-            if (last != null && last.part == c.part) out[out.lastIndex] = last.copy(chapters = last.chapters + i)
+            if (current != null && out.last().part == c.part) current!!.add(i)
             else {
                 val segs = c.part?.split(" · ")
-                out += Group(c.part, segs?.last().orEmpty(), segs?.dropLast(1)?.joinToString(" · ")?.ifEmpty { null }, listOf(i))
+                val list = mutableListOf(i)
+                current = list
+                out += Group(c.part, segs?.last().orEmpty(), segs?.dropLast(1)?.joinToString(" · ")?.ifEmpty { null }, list)
             }
         }
         return out

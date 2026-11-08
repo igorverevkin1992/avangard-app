@@ -187,4 +187,13 @@ class BookParserTest {
         assertEquals(2, BookParser.countChapters(saved.byteInputStream()))
         assertEquals(0, BookParser.countChapters("".byteInputStream()))
     }
+
+    @Test fun `sections never closed keep the part short`() {
+        val body = (1..400).joinToString("") { "<section><title><p>Раздел $it</p></title><p>Текст $it.</p>" }
+        val fb2 = """<?xml version="1.0" encoding="utf-8"?><FictionBook><body>$body</body></FictionBook>""".toByteArray()
+        val book = BookParser.parse(fb2, "x")
+        assertEquals(400, book.chapters.size)
+        assertEquals("Раздел 398 · Раздел 399", book.chapters.last().part)
+        assertTrue(book.chapters.all { (it.part?.split(" · ")?.size ?: 0) <= 2 })
+    }
 }

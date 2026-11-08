@@ -131,6 +131,9 @@ object BookParser {
 
     // ── FB2 ──────────────────────────────────────────────────────────────────
 
+    /** How many levels above a chapter are searched for its book and testament (D-74). */
+    private const val PART_LOOKUP = 8
+
     private fun fb2(bytes: ByteArray, fallbackTitle: String): ParsedBook {
         // D-63: embedded pictures (<binary>, base64) can be most of the file: cut them out
         // as bytes, before decoding, so a big illustrated FB2 does not flood the memory.
@@ -148,7 +151,16 @@ object BookParser {
         // D-68: titles of the open sections, outermost first — a Bible nests book → chapter,
         // and the book's own section has no text of its own, so its title lives on here.
         val sections = mutableListOf<String>()
-        fun part(): String? = sections.dropLast(1).filter { it.isNotBlank() }.joinToString(" · ").ifEmpty { null }
+        // D-74: at most the two nearest titled sections above the chapter (testament, book), looked
+        // for within a few levels — constant work per chapter even when a file never closes its
+        // sections (the stack then grows to thousands, and joining it all made minutes and a full memory).
+        fun part(): String? {
+            val found = ArrayList<String>(2)
+            var i = sections.size - 2
+            val stop = maxOf(-1, sections.size - 2 - PART_LOOKUP)
+            while (i > stop && found.size < 2) { sections[i].takeIf { it.isNotBlank() }?.let { found += it }; i-- }
+            return if (found.isEmpty()) null else found.asReversed().joinToString(" · ")
+        }
         fun endChapter() {
             if (paragraphs.isNotEmpty() || title.isNotEmpty()) chapters += BookChapter(title.toString(), paragraphs, part())
             title = StringBuilder(); paragraphs = mutableListOf()
