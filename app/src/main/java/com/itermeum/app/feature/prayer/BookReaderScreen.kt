@@ -101,11 +101,17 @@ class BookReaderViewModel @Inject constructor(
     var fontScale by mutableFloatStateOf(library.fontScale)
         private set
 
+    /** D-73: why the book did not open, instead of an empty screen. */
+    val loadError = MutableStateFlow<String?>(null)
+
     init {
         if (!asPages) viewModelScope.launch {
-            val b = library.load(bookId)
-            _book.value = b
-            if (b != null) _chapter.value = _chapter.value.coerceIn(0, b.chapters.lastIndex)
+            library.loadResult(bookId)
+                .onSuccess { b ->
+                    _book.value = b
+                    if (b != null && b.chapters.isNotEmpty()) _chapter.value = _chapter.value.coerceIn(0, b.chapters.lastIndex)
+                }
+                .onFailure { e -> loadError.value = (e.javaClass.simpleName + (e.message?.let { ": $it" } ?: "")).take(300) }
         }
     }
 
@@ -163,6 +169,14 @@ fun BookReaderScreen(onBack: () -> Unit, viewModel: BookReaderViewModel = hiltVi
 private fun TextBook(viewModel: BookReaderViewModel) {
     val book by viewModel.book.collectAsState()
     val chapter by viewModel.chapter.collectAsState()
+    val error by viewModel.loadError.collectAsState()
+    error?.let { e ->
+        ImPanel {
+            Text(stringResource(R.string.book_open_failed), style = MaterialTheme.typography.bodyLarge)
+            Text(e, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        return
+    }
     val b = book ?: return
     var toc by remember { mutableStateOf(false) }
     // D-68: «Оглавление · Бытие 3» — the book and the chapter, not just «Глава 3».

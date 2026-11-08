@@ -510,6 +510,10 @@
     <string name="book_pages">PDF, страницами</string>
     <string name="book_load_too_large">Файл слишком большой: PDF — до 400 МБ, остальные форматы — до 80 МБ.</string>
     <string name="book_load_memory">Телефону не хватило памяти на этот файл. Попробуйте FB2 или EPUB этой книги.</string>
+    <string name="book_stage_reading">Этап: чтение файла</string>
+    <string name="book_stage_parsing">Этап: разбор книги</string>
+    <string name="book_stage_saving">Этап: сохранение</string>
+    <string name="book_open_failed">Книга не открылась. Загрузите файл заново; если не поможет — пришлите этот текст:</string>
     <string name="book_load_unreadable">Файл не открылся: проверьте, что он скачан полностью и не защищён паролем.</string>
     <string name="book_load_failed">Не удалось прочитать файл. Подходят EPUB, FB2 (и FB2.ZIP), TXT и PDF.</string>
     <string name="books_all">Все книги программы</string>

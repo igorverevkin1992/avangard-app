@@ -72,13 +72,26 @@ fun GospelScreen(onBack: () -> Unit, onOpenBook: (String) -> Unit = {}, viewMode
     val tooLarge = stringResource(R.string.book_load_too_large)
     val noMemory = stringResource(R.string.book_load_memory)
     val unreadable = stringResource(R.string.book_load_unreadable)
+    val stageReading = stringResource(R.string.book_stage_reading)
+    val stageParsing = stringResource(R.string.book_stage_parsing)
+    val stageSaving = stringResource(R.string.book_stage_saving)
     // D-57: say why, not just «не удалось».
     val failed: (Throwable) -> String = { e ->
         when ((e as? com.itermeum.app.core.data.books.BookImportException)?.reason) {
             com.itermeum.app.core.data.books.BookImportException.Reason.TOO_LARGE -> tooLarge
             com.itermeum.app.core.data.books.BookImportException.Reason.MEMORY -> noMemory
             com.itermeum.app.core.data.books.BookImportException.Reason.UNREADABLE -> unreadable
-            else -> failText + " (" + (e.message ?: e.javaClass.simpleName) + ")"
+            // D-73: the stage and the real error, so a screenshot tells what went wrong.
+            else -> {
+                val ie = e as? com.itermeum.app.core.data.books.BookImportException
+                val stage = when (ie?.stage) {
+                    com.itermeum.app.core.data.books.BookLibrary.Progress.Stage.READING -> stageReading
+                    com.itermeum.app.core.data.books.BookLibrary.Progress.Stage.PARSING -> stageParsing
+                    com.itermeum.app.core.data.books.BookLibrary.Progress.Stage.SAVING -> stageSaving
+                    null -> null
+                }
+                listOfNotNull(failText, stage, ie?.detail ?: e.message ?: e.javaClass.simpleName).joinToString("\n")
+            }
         }
     }
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->

@@ -16,10 +16,21 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
 import kotlinx.serialization.json.encodeToStream
 
-/** [asPages] — a scanned PDF without text, shown as page images. */
-/** Why a book file could not be loaded — shown to the user (D-57). */
-class BookImportException(val reason: Reason) : Exception(reason.name) {
-    enum class Reason { TOO_LARGE, UNREADABLE, FORMAT, MEMORY }
+/**
+ * Why a book file could not be loaded — shown to the user (D-57). D-73: with the stage it
+ * failed at and the underlying error, so a failure on the phone can be told apart.
+ */
+class BookImportException(
+    val reason: Reason,
+    val stage: BookLibrary.Progress.Stage? = null,
+    cause: Throwable? = null,
+) : Exception(reason.name, cause) {
+    enum class Reason { TOO_LARGE, UNREADABLE, FORMAT, MEMORY, ERROR }
+
+    /** «IllegalStateException: …» of the first cause that says something, for the screen. */
+    val detail: String? get() = generateSequence(cause) { it.cause }.firstOrNull()?.let { c ->
+        (c.javaClass.simpleName + (c.message?.let { ": $it" } ?: "")).take(240)
+    }
 }
 
 data class BookInfo(val bookId: String, val title: String, val format: BookFormat, val asPages: Boolean = false, val fileName: String? = null)
@@ -91,8 +102,10 @@ class BookLibrary @Inject constructor(
             } else {
                 if (size > MAX_BYTES) throw BookImportException(BookImportException.Reason.TOO_LARGE)
                 val bytes = tmp.readBytes()
-                format = runCatching { BookParser.detect(bytes) }.getOrElse { throw BookImportException(BookImportException.Reason.FORMAT) }
-                book = runCatching { BookParser.parse(bytes, fileTitle) }.getOrElse { throw BookImportException(BookImportException.Reason.FORMAT) }
+                format = runCatching { BookParser.detect(bytes) }.getOrElse { throw BookImportException(BookImportException.Reason.FORMAT, Progress.Stage.PARSING, it) }
+                book = runCatching { BookParser.parse(bytes, fileTitle) }.getOrElse {
+                    throw if (it is OutOfMemoryError) it else BookImportException(BookImportException.Reason.FORMAT, Progress.Stage.PARSING, it)
+                }
             }
             _progress.value = Progress(Progress.Stage.SAVING)
             // D-72: the new copy is written in full first — streamed, never held as one big string —
@@ -122,7 +135,13 @@ class BookLibrary @Inject constructor(
             _books.value = scan()
             _books.value.getValue(bookId)
         }.recoverCatching { e ->
-            throw if (e is OutOfMemoryError) BookImportException(BookImportException.Reason.MEMORY) else e
+            val stage = _progress.value?.stage
+            android.util.Log.w("BookLibrary", "import $bookId failed at $stage", e)
+            throw when (e) {
+                is BookImportException -> e
+                is OutOfMemoryError -> BookImportException(BookImportException.Reason.MEMORY, stage, e)
+                else -> BookImportException(BookImportException.Reason.ERROR, stage, e)
+            }
         }.also {
             tmp.delete(); File(dir, "$bookId.json$PART").delete(); File(dir, "$bookId.pdf$PART").delete()
             _progress.value = null
@@ -136,10 +155,13 @@ class BookLibrary @Inject constructor(
         return runCatching { f.inputStream().buffered().use(BookParser::countChapters) }.getOrNull()
     }
 
-    suspend fun load(bookId: String): ParsedBook? = withContext(Dispatchers.IO) {
-        File(dir, "$bookId.json").takeIf { it.exists() }?.let { f ->
-            runCatching { f.inputStream().buffered().use { json.decodeFromStream(ParsedBook.serializer(), it) } }.getOrNull()
-        }
+    suspend fun load(bookId: String): ParsedBook? = loadResult(bookId).getOrNull()
+
+    /** The saved book, or why it did not open (D-73: the reader says so instead of an empty screen). */
+    suspend fun loadResult(bookId: String): Result<ParsedBook?> = withContext(Dispatchers.IO) {
+        val f = File(dir, "$bookId.json").takeIf { it.exists() } ?: return@withContext Result.success(null)
+        runCatching { f.inputStream().buffered().use { json.decodeFromStream(ParsedBook.serializer(), it) } }
+            .onFailure { android.util.Log.w("BookLibrary", "load $bookId failed", it) }
     }
 
     fun pdf(bookId: String): File? = File(dir, "$bookId.pdf").takeIf { it.exists() }
