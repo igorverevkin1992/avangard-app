@@ -196,4 +196,11 @@ class BookParserTest {
         assertEquals("Раздел 398 · Раздел 399", book.chapters.last().part)
         assertTrue(book.chapters.all { (it.part?.split(" · ")?.size ?: 0) <= 2 })
     }
+
+    @Test fun `markup scan keeps a lone angle bracket, cdata and skips comments`() {
+        val fb2 = """<?xml version="1.0" encoding="utf-8"?><FictionBook><body><section><title><p>Т</p></title>
+            <p>1 < 2 и 3 > 2</p><!-- комментарий --><p><![CDATA[<сырой>]]></p><p>Конец<br/>строки</p></section></body></FictionBook>""".toByteArray()
+        val p = BookParser.parse(fb2, "x").chapters.single().paragraphs
+        assertEquals(listOf("1 < 2 и 3 > 2", "<сырой>", "Конецстроки"), p)
+    }
 }

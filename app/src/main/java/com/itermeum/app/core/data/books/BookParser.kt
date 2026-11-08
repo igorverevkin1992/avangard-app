@@ -416,29 +416,63 @@ internal object Markup {
         data class Text(val text: String) : Token
     }
 
-    private val TAG = Regex("<!--.*?-->|<!\\[CDATA\\[(.*?)]]>|<[!?][^>]*>|<(/?)([A-Za-z][\\w:.-]*)([^>]*?)(/?)>", RegexOption.DOT_MATCHES_ALL)
     private val ATTR = Regex("([\\w:.-]+)\\s*=\\s*(?:\"([^\"]*)\"|'([^']*)')")
 
+    /**
+     * D-75: a hand-written scan, not `Regex.findAll` over the whole book. On Android each
+     * match of `findAll` makes a new matcher, and the ICU matcher copies the whole input:
+     * a Bible (3.7 M chars, 73 000 tags) took tens of minutes on the phone and half a second
+     * on a desktop. Same tokens as the former pattern
+     * `<!--.*?-->|<![CDATA[(.*?)]]>|<[!?][^>]*>|<(/?)([A-Za-z][\w:.-]*)([^>]*?)(/?)>`.
+     */
     fun tokens(source: String): Sequence<Token> = sequence {
-        var at = 0
-        for (m in TAG.findAll(source)) {
-            if (m.range.first > at) yield(Token.Text(decode(source.substring(at, m.range.first))))
-            at = m.range.last + 1
-            val cdata = m.groups[1]
-            val name = m.groups[3]
+        val n = source.length
+        var textStart = 0
+        var i = source.indexOf('<')
+        fun after(gt: Int) = if (gt < 0) -1 else gt + 1
+        while (i >= 0) {
+            var end = -1
+            var token: Token? = null
             when {
-                cdata != null -> yield(Token.Text(cdata.value))
-                name != null -> yield(
-                    Token.Tag(
-                        name = name.value.substringAfter(':').lowercase(),
-                        closing = m.groupValues[2] == "/",
-                        selfClosing = m.groupValues[5] == "/",
-                        attrs = ATTR.findAll(m.groupValues[4]).associate { a -> a.groupValues[1].substringAfter(':') to (a.groups[2]?.value ?: a.groupValues[3]) },
-                    ),
-                )
+                source.startsWith("<!--", i) -> {
+                    val e = source.indexOf("-->", i + 4)
+                    end = if (e >= 0) e + 3 else after(source.indexOf('>', i))
+                }
+                source.startsWith("<![CDATA[", i) -> {
+                    val e = source.indexOf("]]>", i + 9)
+                    if (e >= 0) { token = Token.Text(source.substring(i + 9, e)); end = e + 3 } else end = after(source.indexOf('>', i))
+                }
+                i + 1 < n && (source[i + 1] == '!' || source[i + 1] == '?') -> end = after(source.indexOf('>', i))
+                else -> {
+                    var j = i + 1
+                    val closing = j < n && source[j] == '/'
+                    if (closing) j++
+                    if (j < n && (source[j] in 'a'..'z' || source[j] in 'A'..'Z')) {
+                        val nameStart = j
+                        while (j < n && (source[j].isLetterOrDigit() || source[j] == '_' || source[j] == ':' || source[j] == '.' || source[j] == '-')) j++
+                        val gt = source.indexOf('>', j)
+                        if (gt >= 0) {
+                            val selfClosing = gt > j && source[gt - 1] == '/'
+                            val attrs = source.substring(j, if (selfClosing) gt - 1 else gt)
+                            token = Token.Tag(
+                                name = source.substring(nameStart, j).substringAfter(':').lowercase(),
+                                closing = closing,
+                                selfClosing = selfClosing,
+                                attrs = if ('=' !in attrs) emptyMap() else ATTR.findAll(attrs).associate { a -> a.groupValues[1].substringAfter(':') to (a.groups[2]?.value ?: a.groupValues[3]) },
+                            )
+                            end = gt + 1
+                        }
+                    }
+                }
             }
+            // Not markup (a lone «<»): it stays in the text.
+            if (end < 0) { i = source.indexOf('<', i + 1); continue }
+            if (i > textStart) yield(Token.Text(decode(source.substring(textStart, i))))
+            token?.let { yield(it) }
+            textStart = end
+            i = if (end < n) source.indexOf('<', end) else -1
         }
-        if (at < source.length) yield(Token.Text(decode(source.substring(at))))
+        if (textStart < n) yield(Token.Text(decode(source.substring(textStart))))
     }
 
     private val ENTITY = Regex("&(#x[0-9a-fA-F]+|#\\d+|[a-zA-Z]+);")
