@@ -73,6 +73,7 @@ class ReminderScheduler @Inject constructor(
         cancelNormReminders()
         val date = clock.logicalToday()
         val input = norms.inputFor(date)
+        if (input.sick) return // D-76: nothing is reminded on a sick day
         val items = DayScheduleEngine.schedule(input)
         val done = norms.observeDoneIds(date).first()
         val now = clock.now()

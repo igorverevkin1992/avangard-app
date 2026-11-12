@@ -187,11 +187,12 @@ class TodayViewModel @Inject constructor(
     fun answerQuarantine(kept: Boolean) = viewModelScope.launch { morning.answerQuarantine(date, kept) }
     fun markGym(home: Boolean) = viewModelScope.launch { morning.markGym(date, home) }
     /**
-     * Section 4: a sick day is marked before 06:00 or the evening before. Today can be
-     * switched on only before 06:00 (switching off is always allowed); otherwise it is
-     * set for tomorrow. Alarms are re-armed (sick wake = 08:00 without proof).
+     * A sick day pauses every streak (no «Милосердие» spent) and leaves only an optional Examen.
+     * Section 4 allowed today only before 06:00; D-76: at any hour. Alarms and reminders are
+     * re-armed (sick wake = 08:00 without proof, no norm reminders).
      */
-    fun canSetSickToday(): Boolean = clock.localTime().let { !it.isBefore(java.time.LocalTime.of(3, 0)) && it.isBefore(java.time.LocalTime.of(6, 0)) }
+    // D-76: a fever does not wait for 06:00 — «Болею сегодня» can be set at any hour of the day.
+    fun canSetSickToday(): Boolean = true
     fun setSick(sick: Boolean) = viewModelScope.launch { morning.setSick(date, sick); reminders.rescheduleAll() }
     fun setSickTomorrow(sick: Boolean) = viewModelScope.launch { morning.setSick(date.plusDays(1), sick); reminders.rescheduleAll() }
     val sickTomorrow: StateFlow<Boolean> = work.observePlan(date.plusDays(1)).map { it?.sick == true }

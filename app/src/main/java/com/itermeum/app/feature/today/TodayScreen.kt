@@ -196,7 +196,7 @@ private fun TodayMenu(
             DropdownMenuItem(text = { Text(stringResource(R.string.practices_title)) }, onClick = { open = false; onPractices() })
             DropdownMenuItem(text = { Text(stringResource(R.string.settings_title)) }, onClick = { open = false; onSettings() })
             DropdownMenuItem(text = { Text(stringResource(R.string.vow_menu)) }, onClick = { open = false; onVow() })
-            // Section 4: sick is set before 06:00 or for tomorrow; switching off is always possible.
+            // D-76: «Болею сегодня» at any hour, «Болею завтра» ahead; switching off is always possible.
             if (sick || canSickToday) {
                 DropdownMenuItem(text = { Text(stringResource(if (sick) R.string.today_sick_off else R.string.today_sick)) }, onClick = { open = false; onSickToday() })
             }

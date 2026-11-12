@@ -53,6 +53,8 @@ class NormReminderReceiver : BroadcastReceiver() {
         val date = clock.logicalToday()
         if (budget.alreadySent(normId, level)) return
         val input = norms.inputFor(date)
+        // D-76: a sick day is quiet — no norm reminders, no «стрик под угрозой».
+        if (input.sick) return
         val schedule = DayScheduleEngine.schedule(input)
         val item = schedule.firstOrNull { it.normId == normId }
         val doneIds = norms.observeDoneIds(date).first()
