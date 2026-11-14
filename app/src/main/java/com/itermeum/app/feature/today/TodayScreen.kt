@@ -229,7 +229,15 @@ private fun NowCard(ui: TodayUi, viewModel: TodayViewModel, mortification: com.i
     val planDue = noPlan && NormCatalog.DAY_PLAN in ui.items.map { it.normId } && NormCatalog.DAY_PLAN !in ui.done &&
         LocalTime.now().isBefore(ui.profile.workStart.plusMinutes(30))
     when {
-        ui.sick -> ImPanel { Text(stringResource(R.string.morning_sick), style = MaterialTheme.typography.bodyLarge) }
+        ui.sick -> ImPanel {
+            Text(stringResource(R.string.morning_sick), style = MaterialTheme.typography.bodyLarge)
+            // D-78: nothing is required on a sick day, but reading and prayer stay one tap away.
+            val lastBook by viewModel.lastBook.collectAsState()
+            Spacer(Modifier.height(ImSpacing.grid))
+            lastBook?.let { (id, title) -> ImPrimaryButton(stringResource(R.string.book_continue, title), onClick = { onOpenRoute(NavRoute.PrayerReader.of(id)) }) }
+            ImSecondaryButton(stringResource(R.string.sick_reading), onClick = { onOpenRoute(NavRoute.PrayerGospel.route) })
+            ImSecondaryButton(stringResource(R.string.sick_prayer), onClick = { onOpenRoute(NavRoute.Prayer.route) })
+        }
         morningActive -> MorningCard(ui, viewModel)
         fridayChoice -> MortificationCard(mortification, viewModel)
         planDue -> ImPanel {

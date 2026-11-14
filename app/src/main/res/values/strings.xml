@@ -503,6 +503,8 @@
     <string name="book_progress_saving">Сохраняю…</string>
     <string name="book_load">Загрузить файл книги</string>
     <string name="book_continue">Продолжить чтение: %1$s</string>
+    <string name="sick_reading">Евангелие и духовное чтение</string>
+    <string name="sick_prayer">Молитвы</string>
     <string name="book_read">Читать в приложении</string>
     <string name="book_replace">Заменить файл</string>
     <string name="book_remove">Удалить файл</string>

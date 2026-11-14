@@ -74,7 +74,12 @@ class TodayViewModel @Inject constructor(
     private val widget: com.itermeum.app.sync.widget.WidgetUpdater,
     private val clock: Clock,
     private val vows: com.itermeum.app.core.data.VowRepository,
+    library: com.itermeum.app.core.data.books.BookLibrary,
 ) : ViewModel() {
+    /** D-78: the book read last (id → title), for «Продолжить чтение» on a sick day. */
+    val lastBook: StateFlow<Pair<String, String>?> = combine(library.lastBook, library.books) { id, books ->
+        id?.let { books[it] }?.let { it.bookId to it.title }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     private val date: LocalDate = clock.logicalToday()
 
