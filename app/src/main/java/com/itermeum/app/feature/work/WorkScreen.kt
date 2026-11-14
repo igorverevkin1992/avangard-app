@@ -67,6 +67,8 @@ fun WorkScreen(
     ) {
         ImHeader(stringResource(R.string.nav_work))
         ImNavRow(stringResource(R.string.work_prayer_before), { onOpenPrayer("before_work") }, subtitle = stringResource(R.string.work_prayer_before_sub), done = NormCatalog.WORK_PRAYER in ui.done)
+        // D-77: St Joseph, the patron of work — a prayer for the blessing of the day's work (not a norm).
+        ImNavRow(stringResource(R.string.work_prayer_joseph), { onOpenPrayer("st_joseph_work") }, subtitle = stringResource(R.string.work_prayer_joseph_sub))
         ScriptCard(viewModel)
         FocusPanel(viewModel)
         // D-64: anything that comes to mind goes in here at once — it will not be lost.

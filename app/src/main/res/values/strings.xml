@@ -436,10 +436,12 @@
     <string name="hub_night_prayer">Молитва при отходе ко сну</string>
     <string name="hub_night_prayer_sub">После испытания совести</string>
     <string name="work_prayer_before">Молитва перед началом доброго дела</string>
+    <string name="work_prayer_joseph">Святому Иосифу — о благословении труда</string>
+    <string name="work_prayer_joseph_sub">Хранитель Святого Семейства и покровитель труда</string>
     <string name="work_prayer_before_sub">Перед работой и перед каждым важным делом</string>
-    <string name="hub_marian">Славься, Царица (суббота)</string>
+    <string name="hub_marian">Радуйся, Царица (суббота)</string>
     <string name="marian_saturday_sub">Молитва Богородице — обычай Opus Dei по субботам</string>
-    <string name="marian_saturday_about">«Славься, Царица» (лат. Salve Regina) — древняя молитва Богородице, Матери милосердия. В Opus Dei её читают по субботам: суббота в Церкви — день Девы Марии. Прочитайте молитву медленно, обращаясь к Ней лично, и отметьте ниже.</string>
+    <string name="marian_saturday_about">«Радуйся, Царица» (лат. Salve Regina) — древняя молитва Богородице, Матери милосердия. В Opus Dei её читают по субботам: суббота в Церкви — день Девы Марии. Прочитайте молитву медленно, обращаясь к Ней лично, и отметьте ниже.</string>
     <string name="hub_examen">Испытание совести</string>
     <string name="hub_book">Молитвенник</string>
     <string name="hub_calendar">Литургический календарь</string>

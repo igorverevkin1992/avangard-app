@@ -45,4 +45,8 @@ interface NormDao {
     /** D-60: the norm no longer ends at 14:00 — its stored title follows. */
     @Query("UPDATE norm SET title = 'Обзвон героев' WHERE id = 'frog' AND title = 'Обзвон героев до 14:00'")
     suspend fun renameFrog()
+
+    /** D-77: the parish edition calls Salve Regina «Радуйся, Царица». */
+    @Query("UPDATE norm SET title = 'Радуйся, Царица' WHERE id = 'marian_saturday' AND title = 'Славься, Царица'")
+    suspend fun renameMarian()
 }

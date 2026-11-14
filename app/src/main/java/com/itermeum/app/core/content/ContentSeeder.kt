@@ -40,6 +40,7 @@ class ContentSeeder @Inject constructor(
         db.normDao().insertIgnore(NormCatalog.all)
         db.normDao().retireFrog()
         db.normDao().renameFrog()
+        db.normDao().renameMarian()
 
         val prayers = assets.prayers.items.map {
             PrayerEntity(it.id, it.title, it.text, it.source, it.status, it.legal, it.verify, null, it.orderIndex)

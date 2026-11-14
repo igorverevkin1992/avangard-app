@@ -73,7 +73,7 @@ object NormCatalog {
         norm(ROSARY, "Розарий", NormCategory.PRAYER, t(20, 15), 20, days = ALL_DAYS, follows = false, order = 14),
         norm(EXAMEN, "Испытание совести", NormCategory.PRAYER, t(22, 40), 5, core = true, days = ALL_DAYS, follows = false, order = 15),
         norm(MORTIFICATION, "Малое умерщвление", NormCategory.PATH, null, 0, days = FRI, follows = false, order = 16),
-        norm(MARIAN_SATURDAY, "Славься, Царица", NormCategory.PRAYER, null, 2, days = SAT, follows = false, order = 17),
+        norm(MARIAN_SATURDAY, "Радуйся, Царица", NormCategory.PRAYER, null, 2, days = SAT, follows = false, order = 17),
         norm(CATECHESIS, "Катехизация + заметка", NormCategory.PATH, t(16, 0), 90, days = SAT, follows = false, order = 18),
         norm(MASS, "Месса + духовное причастие", NormCategory.PRAYER, null, 60, days = SAT or SUN, follows = false, order = 19, freq = NormFrequency.WEEKLY),
         norm(WEEKLY_REVIEW, "Обзор недели", NormCategory.PATH, t(18, 0), 20, days = SUN, follows = false, order = 20, freq = NormFrequency.WEEKLY),

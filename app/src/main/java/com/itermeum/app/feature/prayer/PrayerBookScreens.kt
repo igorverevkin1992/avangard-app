@@ -84,7 +84,7 @@ fun PrayerItemScreen(id: String, onBack: () -> Unit, viewModel: PrayerHubViewMod
     }
 }
 
-/** D-53: Saturday's «Славься, Царица» — what it is, the prayer itself, then «Помолился». */
+/** D-53: Saturday's «Радуйся, Царица» — what it is, the prayer itself, then «Помолился». */
 @Composable
 fun MarianSaturdayScreen(onBack: () -> Unit, viewModel: PrayerHubViewModel = hiltViewModel()) {
     val prayer by viewModel.observePrayer("salve_regina").collectAsState(initial = null)

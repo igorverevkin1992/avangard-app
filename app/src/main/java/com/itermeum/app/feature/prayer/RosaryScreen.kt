@@ -54,7 +54,7 @@ private val DECADE = listOf(
  * Section 5.10, reworked by D-56 after the parish order of the Rosary: the
  * chaplet is walked bead by bead — one tap for each prayer, as a finger moves
  * on the beads. Opening, five decades (the mystery stays on top while its
- * prayers are said), then «Славься, Царица». Progress is kept per logical day.
+ * prayers are said), then «Радуйся, Царица». Progress is kept per logical day.
  */
 @Composable
 fun RosaryScreen(onBack: () -> Unit, viewModel: RosaryViewModel = hiltViewModel(), book: PrayerHubViewModel = hiltViewModel()) {
