@@ -58,10 +58,10 @@ class PathViewModel @Inject constructor(
     private val reminders: ReminderScheduler,
     private val clock: Clock,
     private val items: com.itermeum.app.core.data.WorkItemRepository,
-    vows: com.itermeum.app.core.data.VowRepository,
+    vowRepo: com.itermeum.app.core.data.VowRepository,
 ) : ViewModel() {
     /** D-67: the sobriety vow's count, beside the streaks. */
-    val vow: StateFlow<com.itermeum.app.core.data.VowRepository.State?> = vows.observe().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+    val vows: StateFlow<List<com.itermeum.app.core.data.VowRepository.State>> = vowRepo.observeAll().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
     val today: LocalDate = clock.logicalToday()
     val nextClass: LocalDate = path.nextCatechesisDate()
     val weekStart: LocalDate = path.weekStart(today)

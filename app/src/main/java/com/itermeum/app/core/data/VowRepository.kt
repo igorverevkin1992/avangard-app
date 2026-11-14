@@ -14,9 +14,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 
 /**
- * D-67: the sobriety vow (зарок) — taken once, without a term; each day is confirmed
- * in the Examen (or the next morning). «Нет» starts the series again; nothing else
- * of the day's streaks depends on it.
+ * D-67, D-79: vows (зароки) — each taken once, without a term; each day is confirmed
+ * in the Examen (or the next morning). «Нет» starts that vow's series again; nothing
+ * else — no other vow, no streak — depends on it.
  */
 @Singleton
 class VowRepository @Inject constructor(
@@ -25,6 +25,7 @@ class VowRepository @Inject constructor(
     private val clock: Clock,
 ) {
     data class State(
+        val kind: VowKind,
         val vow: VowEntity? = null,
         val stats: VowEngine.Stats = VowEngine.Stats(),
         /** Days still to answer, oldest first (a week back at most). */
@@ -35,18 +36,23 @@ class VowRepository @Inject constructor(
         val active: Boolean get() = vow?.active == true
     }
 
-    fun observe(): Flow<State> = combine(dao.observe(ID), dao.observeDays(ID)) { vow, days -> compute(vow, days) }
+    fun observe(kind: VowKind): Flow<State> = combine(dao.observe(kind.id), dao.observeDays(kind.id)) { vow, days -> compute(kind, vow, days) }
 
-    suspend fun state(): State = compute(dao.get(ID), dao.days(ID))
+    /** Every kind, taken or not, in the order of [VowKind]. */
+    fun observeAll(): Flow<List<State>> = combine(dao.observeAll(), dao.observeAllDays()) { vows, days ->
+        VowKind.entries.map { k -> compute(k, vows.firstOrNull { it.id == k.id }, days.filter { it.vowId == k.id }) }
+    }
 
-    private fun compute(vow: VowEntity?, days: List<VowDayEntity>): State {
-        if (vow == null) return State()
+    suspend fun state(kind: VowKind): State = compute(kind, dao.get(kind.id), dao.days(kind.id))
+
+    private fun compute(kind: VowKind, vow: VowEntity?, days: List<VowDayEntity>): State {
+        if (vow == null) return State(kind)
         val today = clock.logicalToday()
         val since = days.filter { !it.logicalDate.isBefore(vow.startDate) }
         val answers = since.mapNotNull { d -> d.kept?.let { d.logicalDate to it } }.toMap()
         val pending = if (vow.active) VowEngine.pending(vow.startDate, today, answers.keys, todayOpen = eveningOpen()) else emptyList()
         return State(
-            vow = vow, stats = VowEngine.stats(answers), pending = pending,
+            kind = kind, vow = vow, stats = VowEngine.stats(answers), pending = pending,
             today = days.firstOrNull { it.logicalDate == today }, tomorrow = days.firstOrNull { it.logicalDate == today.plusDays(1) },
         )
     }
@@ -55,10 +61,11 @@ class VowRepository @Inject constructor(
     fun eveningOpen(): Boolean = clock.localTime().let { !it.isBefore(EVENING) || it.isBefore(LocalTime.of(3, 0)) }
 
     /** Takes the vow from today; taking it again later starts a new count. */
-    suspend fun take(intention: String?, helperName: String?, helperPhone: String?, declinePhrase: String?) {
-        val old = dao.get(ID)
+    suspend fun take(kind: VowKind, intention: String?, helperName: String?, helperPhone: String?, declinePhrase: String?) {
+        val old = dao.get(kind.id)
         dao.upsert(
             VowEntity(
+                id = kind.id,
                 startDate = if (old?.active == true) old.startDate else clock.logicalToday(),
                 intention = intention.clean(), helperName = helperName.clean(), helperPhone = helperPhone.clean(),
                 declinePhrase = declinePhrase.clean(), active = true, createdAt = old?.createdAt ?: clock.nowEpochMillis(),
@@ -66,49 +73,53 @@ class VowRepository @Inject constructor(
         )
     }
 
-    suspend fun updateDetails(intention: String?, helperName: String?, helperPhone: String?, declinePhrase: String?) {
-        val v = dao.get(ID) ?: return
+    suspend fun updateDetails(kind: VowKind, intention: String?, helperName: String?, helperPhone: String?, declinePhrase: String?) {
+        val v = dao.get(kind.id) ?: return
         dao.upsert(v.copy(intention = intention.clean(), helperName = helperName.clean(), helperPhone = helperPhone.clean(), declinePhrase = declinePhrase.clean()))
     }
 
     /** Lays the vow down; its days stay in the history. */
-    suspend fun release() { dao.get(ID)?.let { dao.upsert(it.copy(active = false)) } }
+    suspend fun release(kind: VowKind) { dao.get(kind.id)?.let { dao.upsert(it.copy(active = false)) } }
 
-    /** True when [date] still waits for an answer. */
-    suspend fun needsAnswer(date: LocalDate): Boolean {
-        val v = dao.get(ID)?.takeIf { it.active } ?: return false
+    /** True when [date] still waits for an answer for this vow. */
+    suspend fun needsAnswer(kind: VowKind, date: LocalDate): Boolean {
+        val v = dao.get(kind.id)?.takeIf { it.active } ?: return false
         if (date.isBefore(v.startDate) || date.isAfter(clock.logicalToday())) return false
-        return dao.day(ID, date)?.kept == null
+        return dao.day(kind.id, date)?.kept == null
     }
 
-    /** «Сохранил трезвость?» for [date]: answers count from the start of the vow to today. */
-    suspend fun answer(date: LocalDate, kept: Boolean) {
-        val v = dao.get(ID)?.takeIf { it.active } ?: return
+    /** The active vows that still wait for an answer about [date], in the order of [VowKind]. */
+    suspend fun needingAnswer(date: LocalDate): List<VowKind> = VowKind.entries.filter { needsAnswer(it, date) }
+
+    /** «Сохранил?» for [date]: answers count from the start of the vow to today. */
+    suspend fun answer(kind: VowKind, date: LocalDate, kept: Boolean) {
+        val v = dao.get(kind.id)?.takeIf { it.active } ?: return
         if (date.isBefore(v.startDate) || date.isAfter(clock.logicalToday())) return
-        val day = dao.day(ID, date) ?: VowDayEntity(vowId = ID, logicalDate = date)
+        val day = dao.day(kind.id, date) ?: VowDayEntity(vowId = kind.id, logicalDate = date)
         dao.upsertDay(day.copy(kept = kept, answeredAt = clock.nowEpochMillis()))
-        val best = state().stats.best
-        VowEngine.milestoneIds(best).forEach { streakDao.achieve(it, clock.nowEpochMillis()) }
+        val best = state(kind).stats.best
+        VowEngine.milestoneIds(best, kind.id).forEach { streakDao.achieve(it, clock.nowEpochMillis()) }
     }
 
-    /** A feast on [date] at [time] (null clears it): the reminder comes an hour before. */
+    /** A feast on [date] at [time] (null clears it): the sobriety reminder comes an hour before. */
     suspend fun setFeast(date: LocalDate, time: LocalTime?) {
-        val day = dao.day(ID, date) ?: VowDayEntity(vowId = ID, logicalDate = date)
+        val id = VowKind.SOBRIETY.id
+        val day = dao.day(id, date) ?: VowDayEntity(vowId = id, logicalDate = date)
         dao.upsertDay(day.copy(feastMinute = time?.let { it.hour * 60 + it.minute }))
     }
 
     /** Feasts from today on, for the reminders. */
-    suspend fun upcomingFeasts(): List<VowDayEntity> =
-        if (dao.get(ID)?.active == true) dao.feastsFrom(ID, clock.logicalToday()) else emptyList()
+    suspend fun upcomingFeasts(): List<VowDayEntity> {
+        val id = VowKind.SOBRIETY.id
+        return if (dao.get(id)?.active == true) dao.feastsFrom(id, clock.logicalToday()) else emptyList()
+    }
 
-    suspend fun vow(): VowEntity? = dao.get(ID)
-    suspend fun isActive(): Boolean = dao.get(ID)?.active == true
-    fun observeVow(): Flow<VowEntity?> = dao.observe(ID)
+    suspend fun vow(kind: VowKind): VowEntity? = dao.get(kind.id)
+    suspend fun isActive(kind: VowKind): Boolean = dao.get(kind.id)?.active == true
 
     private fun String?.clean(): String? = this?.trim()?.takeIf { it.isNotEmpty() }
 
     companion object {
-        const val ID = VowEntity.SOBRIETY
         val EVENING: LocalTime = LocalTime.of(18, 0)
         fun feastTime(day: VowDayEntity): LocalTime? = day.feastMinute?.let { LocalTime.of(it / 60, it % 60) }
     }

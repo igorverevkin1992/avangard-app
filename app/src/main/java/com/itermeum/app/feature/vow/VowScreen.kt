@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -43,6 +44,7 @@ import com.itermeum.app.core.content.ContentAssets
 import com.itermeum.app.core.data.PrayerRepository
 import com.itermeum.app.core.data.TimerController
 import com.itermeum.app.core.data.TimerFinisher
+import com.itermeum.app.core.data.VowKind
 import com.itermeum.app.core.data.VowRepository
 import com.itermeum.app.core.designsystem.ImCollapsible
 import com.itermeum.app.core.designsystem.ImHeader
@@ -72,6 +74,7 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class VowViewModel @Inject constructor(
+    savedState: androidx.lifecycle.SavedStateHandle,
     @ApplicationContext private val context: Context,
     private val vows: VowRepository,
     private val reminders: VowReminders,
@@ -81,8 +84,11 @@ class VowViewModel @Inject constructor(
     private val finisher: TimerFinisher,
     private val clock: Clock,
 ) : ViewModel() {
+    /** D-79: which vow this screen is about (`vow/{kind}`); the list screen has none. */
+    val kind: VowKind = VowKind.of(savedState["kind"]) ?: VowKind.SOBRIETY
     val today: LocalDate = clock.logicalToday()
-    val state: StateFlow<VowRepository.State?> = vows.observe().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+    val state: StateFlow<VowRepository.State?> = vows.observe(kind).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+    val all: StateFlow<List<VowRepository.State>> = vows.observeAll().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     /** «Нет» was just answered: the Nunc coepi panel stays until dismissed. */
     private val _slip = MutableStateFlow(false)
@@ -90,15 +96,15 @@ class VowViewModel @Inject constructor(
     fun dismissSlip() { _slip.value = false }
 
     fun take(intention: String, helperName: String, helperPhone: String, phrase: String) =
-        viewModelScope.launch { vows.take(intention, helperName, helperPhone, phrase) }
+        viewModelScope.launch { vows.take(kind, intention, helperName, helperPhone, phrase) }
 
     fun updateDetails(intention: String, helperName: String, helperPhone: String, phrase: String) =
-        viewModelScope.launch { vows.updateDetails(intention, helperName, helperPhone, phrase) }
+        viewModelScope.launch { vows.updateDetails(kind, intention, helperName, helperPhone, phrase) }
 
-    fun release() = viewModelScope.launch { vows.release(); reminders.schedule() }
+    fun release() = viewModelScope.launch { vows.release(kind); reminders.schedule() }
 
     fun answer(date: LocalDate, kept: Boolean) = viewModelScope.launch {
-        vows.answer(date, kept)
+        vows.answer(kind, date, kept)
         if (!kept) _slip.value = true
     }
 
@@ -107,8 +113,8 @@ class VowViewModel @Inject constructor(
     // ── «Хочется выпить» ────────────────────────────────────────────────────
 
     val prayer = MutableStateFlow<Pair<String, String>?>(null)
-    val jaculatories: List<Pair<String, String>> = assets.jaculatoria.items.filter { it.situation == SITUATION }.map { it.text to it.source }
-    init { viewModelScope.launch { prayers.get(PRAYER_ID)?.let { prayer.value = it.title to prayers.displayText(it) } } }
+    val jaculatories: List<Pair<String, String>> = assets.jaculatoria.items.filter { it.situation == kind.situation }.map { it.text to it.source }
+    init { kind.prayerId?.let { id -> viewModelScope.launch { prayers.get(id)?.let { prayer.value = it.title to prayers.displayText(it) } } } }
 
     val session: StateFlow<TimerController.Session?> = timers.session
     /** The wait counted on the screen only — when a prayer or reading timer holds the one timer. */
@@ -123,7 +129,7 @@ class VowViewModel @Inject constructor(
         if (cur != null && cur.kind != TimerController.Kind.CRAVING) {
             _localWait.value = clock.nowEpochMillis(); onResult(false)
         } else {
-            timers.start(TimerController.Kind.CRAVING, WAIT_MS)
+            timers.start(TimerController.Kind.CRAVING, WAIT_MS, label = kind.id)
             SessionTimerService.start(context)
             onResult(true)
         }
@@ -138,8 +144,6 @@ class VowViewModel @Inject constructor(
 
     companion object {
         const val WAIT_MS = 10 * 60_000L
-        const val SITUATION = "TEMPTATION"
-        const val PRAYER_ID = "st_matthias"
     }
 }
 
@@ -151,6 +155,15 @@ private fun dayLabel(date: LocalDate, today: LocalDate): String = when (date) {
     today.minusDays(1) -> stringResource(R.string.vow_question_yesterday)
     else -> stringResource(R.string.vow_question_day, date.format(dayFormat))
 }
+
+/** «Трезвость · вчера — сохранил?» (D-79): which vow and which day, for rows with several vows. */
+@Composable
+fun vowDayLabel(kind: VowKind, date: LocalDate, today: LocalDate): String =
+    stringResource(kind.short) + " · " + when (date) {
+        today -> stringResource(R.string.vow_when_today)
+        today.minusDays(1) -> stringResource(R.string.vow_when_yesterday)
+        else -> stringResource(R.string.vow_when_day, date.format(dayFormat))
+    }
 
 /** «Да / Нет» for one day of the vow. */
 @Composable
@@ -176,7 +189,7 @@ fun NuncCoepiPanel(onAgain: (() -> Unit)?) {
 
 /** D-67: the sobriety vow — taking it, the count, the days to answer, feasts, the details. */
 @Composable
-fun VowScreen(onBack: () -> Unit, onSos: () -> Unit, viewModel: VowViewModel = hiltViewModel()) {
+fun VowScreen(onBack: () -> Unit, onSos: (VowKind) -> Unit, viewModel: VowViewModel = hiltViewModel()) {
     val st by viewModel.state.collectAsState()
     val slip by viewModel.slip.collectAsState()
     val s = st
@@ -184,7 +197,7 @@ fun VowScreen(onBack: () -> Unit, onSos: () -> Unit, viewModel: VowViewModel = h
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(ImSpacing.screen),
         verticalArrangement = Arrangement.spacedBy(ImSpacing.grid),
     ) {
-        ImHeader(stringResource(R.string.vow_screen_title), onBack = onBack)
+        ImHeader(stringResource(viewModel.kind.title), onBack = onBack)
         if (s == null) return@Column
         if (!s.active) {
             TakeVow(s, viewModel)
@@ -209,9 +222,9 @@ fun VowScreen(onBack: () -> Unit, onSos: () -> Unit, viewModel: VowViewModel = h
             ImPanel { s.pending.forEach { d -> VowAnswerRow(dayLabel(d, viewModel.today)) { kept -> viewModel.answer(d, kept) } } }
         }
 
-        ImPrimaryButton(stringResource(R.string.vow_sos), onClick = onSos)
+        ImPrimaryButton(stringResource(viewModel.kind.sos), onClick = { onSos(viewModel.kind) })
 
-        FeastSection(s, viewModel)
+        if (viewModel.kind.feasts) FeastSection(s, viewModel)
 
         ImCollapsible(title = stringResource(R.string.vow_settings)) {
             val v = s.vow
@@ -219,7 +232,7 @@ fun VowScreen(onBack: () -> Unit, onSos: () -> Unit, viewModel: VowViewModel = h
             var name by rememberSaveable(v?.helperName) { mutableStateOf(v?.helperName.orEmpty()) }
             var phone by rememberSaveable(v?.helperPhone) { mutableStateOf(v?.helperPhone.orEmpty()) }
             var phrase by rememberSaveable(v?.declinePhrase) { mutableStateOf(v?.declinePhrase.orEmpty()) }
-            DetailsFields(intention, { intention = it }, name, { name = it }, phone, { phone = it }, phrase, { phrase = it })
+            DetailsFields(viewModel.kind, intention, { intention = it }, name, { name = it }, phone, { phone = it }, phrase, { phrase = it })
             ImSecondaryButton(stringResource(R.string.save), onClick = { viewModel.updateDetails(intention, name, phone, phrase) })
             var confirm by remember { mutableStateOf(false) }
             TextButton(onClick = { if (confirm) viewModel.release() else confirm = true }) {
@@ -236,16 +249,18 @@ private fun TakeVow(s: VowRepository.State, viewModel: VowViewModel) {
     var name by rememberSaveable { mutableStateOf(v?.helperName.orEmpty()) }
     var phone by rememberSaveable { mutableStateOf(v?.helperPhone.orEmpty()) }
     var phrase by rememberSaveable { mutableStateOf(v?.declinePhrase.orEmpty()) }
-    Text(stringResource(R.string.vow_intro), style = MaterialTheme.typography.bodyLarge)
-    Text(stringResource(R.string.vow_counts), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    val kind = viewModel.kind
+    Text(stringResource(kind.intro), style = MaterialTheme.typography.bodyLarge)
+    Text(stringResource(kind.counts), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     Text(stringResource(R.string.vow_director), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-    Text(stringResource(R.string.vow_health), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-    DetailsFields(intention, { intention = it }, name, { name = it }, phone, { phone = it }, phrase, { phrase = it })
+    if (kind.health) Text(stringResource(R.string.vow_health), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    DetailsFields(kind, intention, { intention = it }, name, { name = it }, phone, { phone = it }, phrase, { phrase = it })
     ImPrimaryButton(stringResource(R.string.vow_take), onClick = { viewModel.take(intention, name, phone, phrase) })
 }
 
 @Composable
 private fun DetailsFields(
+    kind: VowKind,
     intention: String, onIntention: (String) -> Unit,
     name: String, onName: (String) -> Unit,
     phone: String, onPhone: (String) -> Unit,
@@ -264,7 +279,7 @@ private fun DetailsFields(
         value = phone, onValueChange = onPhone, label = { Text(stringResource(R.string.vow_helper_phone)) }, singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone), modifier = Modifier.fillMaxWidth(),
     )
-    OutlinedTextField(
+    if (kind.feasts) OutlinedTextField(
         value = phrase, onValueChange = onPhrase, label = { Text(stringResource(R.string.vow_phrase)) },
         supportingText = { Text(stringResource(R.string.vow_phrase_hint)) }, singleLine = true,
         keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences), modifier = Modifier.fillMaxWidth(),
@@ -314,12 +329,12 @@ fun VowSosScreen(onBack: () -> Unit, viewModel: VowViewModel = hiltViewModel()) 
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(ImSpacing.screen),
         verticalArrangement = Arrangement.spacedBy(ImSpacing.grid),
     ) {
-        ImHeader(stringResource(R.string.vow_sos), onBack = onBack)
+        ImHeader(stringResource(viewModel.kind.sos), onBack = onBack)
         vow?.intention?.let {
             ImSectionLabel(stringResource(R.string.vow_your_intention))
             ImPanel { Text(it, style = MaterialTheme.typography.titleMedium.copy(fontStyle = FontStyle.Italic)) }
         }
-        Text(stringResource(R.string.vow_sos_hint), style = MaterialTheme.typography.bodyLarge)
+        Text(stringResource(viewModel.kind.sosHint), style = MaterialTheme.typography.bodyLarge)
 
         // Ten minutes: in the shade when the timer is free, on this screen otherwise.
         val started = session?.takeIf { it.kind == TimerController.Kind.CRAVING }?.startedAt ?: localWait
@@ -354,6 +369,7 @@ fun VowSosScreen(onBack: () -> Unit, viewModel: VowViewModel = hiltViewModel()) 
 
         prayer?.let { (title, text) ->
             ImSectionLabel(title)
+            viewModel.kind.prayerNote?.let { Text(stringResource(it), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
             ImPanel { Text(text, style = MaterialTheme.typography.bodyLarge) }
         }
 
@@ -361,6 +377,33 @@ fun VowSosScreen(onBack: () -> Unit, viewModel: VowViewModel = hiltViewModel()) 
             ImPrimaryButton(stringResource(R.string.vow_call, vow.helperName ?: phone), onClick = {
                 runCatching { context.startActivity(Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", phone, null))) }
             })
+        }
+    }
+}
+
+/** D-79: the vows — each taken on its own; a tap opens it (or offers to take it). */
+@Composable
+fun VowListScreen(onBack: () -> Unit, onOpen: (VowKind) -> Unit, viewModel: VowViewModel = hiltViewModel()) {
+    val all by viewModel.all.collectAsState()
+    Column(
+        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(ImSpacing.screen),
+        verticalArrangement = Arrangement.spacedBy(ImSpacing.grid),
+    ) {
+        ImHeader(stringResource(R.string.vows_title), onBack = onBack)
+        Text(stringResource(R.string.vows_intro), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        all.forEach { st ->
+            ImPanel(Modifier.fillMaxWidth().clickable { onOpen(st.kind) }) {
+                Text(stringResource(st.kind.title), style = MaterialTheme.typography.titleMedium)
+                Text(
+                    when {
+                        !st.active -> stringResource(R.string.vows_not_taken)
+                        st.stats.current == 0 && st.stats.slips > 0 -> stringResource(R.string.vow_restart)
+                        else -> stringResource(R.string.vow_day_n, st.stats.current)
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (st.active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
 }

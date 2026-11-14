@@ -172,7 +172,7 @@ class SessionTimerService : Service() {
             .setCategory(NotificationCompat.CATEGORY_STOPWATCH)
             .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
             .setPublicVersion(public)
-            .setContentIntent(presenter.deepLinkIntent("itermeum://vow", NOTIFICATION_ID))
+            .setContentIntent(presenter.deepLinkIntent("itermeum://vow" + (s.label?.let { "/$it" } ?: ""), NOTIFICATION_ID))
             .addAction(0, getString(R.string.timer_finish), finish)
             .build()
     }

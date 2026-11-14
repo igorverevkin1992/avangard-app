@@ -125,12 +125,16 @@ fun ExamenScreen(onBack: () -> Unit, viewModel: ExamenViewModel = hiltViewModel(
             }
             ExamenStep.VOW -> {
                 // D-67: one question of the vow, between the examination and contrition.
-                ImSectionLabel(stringResource(R.string.vow_title))
-                if (ui.vowSlip) {
+                ImSectionLabel(stringResource(R.string.vows_title))
+                if (ui.vowAsk.isNotEmpty()) {
+                    ImPanel {
+                        ui.vowAsk.forEach { k ->
+                            com.itermeum.app.feature.vow.VowAnswerRow(stringResource(k.short) + " — " + stringResource(R.string.vow_question_short)) { viewModel.answerVow(k, it) }
+                        }
+                    }
+                } else if (ui.vowSlip) {
                     com.itermeum.app.feature.vow.NuncCoepiPanel(null)
                     ImPrimaryButton(stringResource(R.string.next), onClick = viewModel::next)
-                } else {
-                    ImPanel { com.itermeum.app.feature.vow.VowAnswerRow(stringResource(R.string.vow_question)) { viewModel.answerVow(it) } }
                 }
             }
             ExamenStep.CONTRITION -> {

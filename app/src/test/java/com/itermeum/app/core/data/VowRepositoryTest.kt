@@ -46,7 +46,7 @@ class VowRepositoryTest {
         ContentSeeder(db, ContentAssets(context, Json { ignoreUnknownKeys = true })).seed()
         clock = FakeClock(start.atTime(10, 0))
         vows = VowRepository(db.vowDao(), db.streakDao(), clock)
-        vows.take("за брата", "Отец Павел", "+7 900 000-00-00", "Спасибо, я не пью")
+        vows.take(VowKind.SOBRIETY, "за брата", "Отец Павел", "+7 900 000-00-00", "Спасибо, я не пью")
     }
 
     @After
@@ -56,36 +56,36 @@ class VowRepositoryTest {
 
     @Test
     fun `today is asked only from the evening, yesterday the next morning`() = runBlocking {
-        assertTrue(vows.state().pending.isEmpty())
+        assertTrue(vows.state(VowKind.SOBRIETY).pending.isEmpty())
         dayOn(0, 21)
-        assertEquals(listOf(start), vows.state().pending)
+        assertEquals(listOf(start), vows.state(VowKind.SOBRIETY).pending)
         dayOn(1, 9)
-        assertEquals(listOf(start), vows.state().pending)
-        assertTrue(vows.needsAnswer(start))
+        assertEquals(listOf(start), vows.state(VowKind.SOBRIETY).pending)
+        assertTrue(vows.needsAnswer(VowKind.SOBRIETY, start))
     }
 
     @Test
     fun `kept days count, a slip starts again and keeps the best`() = runBlocking {
-        (0L..2L).forEach { dayOn(it); vows.answer(start.plusDays(it), true) }
-        dayOn(3); vows.answer(start.plusDays(3), false)
-        dayOn(4); vows.answer(start.plusDays(4), true)
-        val s = vows.state().stats
+        (0L..2L).forEach { dayOn(it); vows.answer(VowKind.SOBRIETY, start.plusDays(it), true) }
+        dayOn(3); vows.answer(VowKind.SOBRIETY, start.plusDays(3), false)
+        dayOn(4); vows.answer(VowKind.SOBRIETY, start.plusDays(4), true)
+        val s = vows.state(VowKind.SOBRIETY).stats
         assertEquals(1, s.current)
         assertEquals(3, s.best)
         assertEquals(4, s.total)
-        assertFalse(vows.needsAnswer(start.plusDays(4)))
+        assertFalse(vows.needsAnswer(VowKind.SOBRIETY, start.plusDays(4)))
     }
 
     @Test
     fun `nothing is counted before the vow or in the future`() = runBlocking {
-        vows.answer(start.minusDays(1), true)
-        vows.answer(start.plusDays(1), true)
-        assertEquals(0, vows.state().stats.total)
+        vows.answer(VowKind.SOBRIETY, start.minusDays(1), true)
+        vows.answer(VowKind.SOBRIETY, start.plusDays(1), true)
+        assertEquals(0, vows.state(VowKind.SOBRIETY).stats.total)
     }
 
     @Test
     fun `seven kept days reach the first milestone`() = runBlocking {
-        (0L..6L).forEach { dayOn(it); vows.answer(start.plusDays(it), true) }
+        (0L..6L).forEach { dayOn(it); vows.answer(VowKind.SOBRIETY, start.plusDays(it), true) }
         assertNotNull(db.streakDao().milestone("sobriety_7")?.achievedAt)
         assertNull(db.streakDao().milestone("sobriety_30")?.achievedAt)
     }
@@ -93,7 +93,7 @@ class VowRepositoryTest {
     @Test
     fun `a feast is kept on its day and cleared`() = runBlocking {
         vows.setFeast(start, LocalTime.of(19, 30))
-        assertEquals(LocalTime.of(19, 30), vows.state().today?.let { VowRepository.feastTime(it) })
+        assertEquals(LocalTime.of(19, 30), vows.state(VowKind.SOBRIETY).today?.let { VowRepository.feastTime(it) })
         assertEquals(1, vows.upcomingFeasts().size)
         vows.setFeast(start, null)
         assertTrue(vows.upcomingFeasts().isEmpty())
@@ -101,13 +101,32 @@ class VowRepositoryTest {
 
     @Test
     fun `a laid down vow asks nothing, taking it again starts a new count`() = runBlocking {
-        dayOn(0); vows.answer(start, true)
-        vows.release()
+        dayOn(0); vows.answer(VowKind.SOBRIETY, start, true)
+        vows.release(VowKind.SOBRIETY)
         dayOn(2)
-        assertFalse(vows.state().active)
-        assertTrue(vows.state().pending.isEmpty())
-        vows.take(null, null, null, null)
-        assertEquals(start.plusDays(2), vows.vow()?.startDate)
-        assertEquals(0, vows.state().stats.total)
+        assertFalse(vows.state(VowKind.SOBRIETY).active)
+        assertTrue(vows.state(VowKind.SOBRIETY).pending.isEmpty())
+        vows.take(VowKind.SOBRIETY, null, null, null, null)
+        assertEquals(start.plusDays(2), vows.vow(VowKind.SOBRIETY)?.startDate)
+        assertEquals(0, vows.state(VowKind.SOBRIETY).stats.total)
+    }
+
+    @Test
+    fun `vows count apart — a slip in one leaves the others`() = runBlocking {
+        vows.take(VowKind.PURITY, null, null, null, null)
+        vows.take(VowKind.GAMES, null, null, null, null)
+        dayOn(0)
+        assertEquals(listOf(VowKind.SOBRIETY, VowKind.PURITY, VowKind.GAMES), vows.needingAnswer(start))
+        vows.answer(VowKind.SOBRIETY, start, true)
+        vows.answer(VowKind.PURITY, start, false)
+        vows.answer(VowKind.GAMES, start, true)
+        assertEquals(1, vows.state(VowKind.SOBRIETY).stats.current)
+        assertEquals(0, vows.state(VowKind.PURITY).stats.current)
+        assertEquals(1, vows.state(VowKind.PURITY).stats.slips)
+        assertEquals(1, vows.state(VowKind.GAMES).stats.current)
+        assertTrue(vows.needingAnswer(start).isEmpty())
+        (1L..7L).forEach { dayOn(it); vows.answer(VowKind.GAMES, start.plusDays(it), true) }
+        assertNotNull(db.streakDao().milestone("games_7")?.achievedAt)
+        assertNull(db.streakDao().milestone("purity_7")?.achievedAt)
     }
 }

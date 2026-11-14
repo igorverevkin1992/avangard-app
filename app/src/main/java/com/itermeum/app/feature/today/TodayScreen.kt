@@ -114,7 +114,7 @@ fun TodayScreen(
                 onSickToday = { viewModel.setSick(!ui.sick) },
                 onSickTomorrow = { viewModel.setSickTomorrow(!sickTomorrow) },
                 onLowerBar = viewModel::offerPause,
-                onVow = { onOpenRoute(NavRoute.Vow.route) },
+                onVow = { onOpenRoute(NavRoute.Vows.route) },
             )
         }
         Row(
@@ -128,14 +128,16 @@ fun TodayScreen(
                 Text(stringResource(R.string.today_fidelity_days, fidelity), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
-        // D-67: the vow's count, one line; a tap opens it.
-        val vow by viewModel.vow.collectAsState()
+        // D-67, D-79: the vows' counts in one line — «Зароки: Трезвость 23 · Чистота 5»; a tap opens them.
+        val vows by viewModel.vows.collectAsState()
         val vowSlip by viewModel.vowSlip.collectAsState()
-        vow?.takeIf { it.active }?.let { v ->
+        val activeVows = vows.filter { it.active }
+        if (activeVows.isNotEmpty()) {
+            val parts = activeVows.map { v -> stringResource(v.kind.short) + " " + v.stats.current }
             Text(
-                if (v.stats.current == 0 && v.stats.slips > 0) stringResource(R.string.vow_today_line_restart) else stringResource(R.string.vow_today_line, v.stats.current),
+                stringResource(R.string.vow_today_line, parts.joinToString(" · ")),
                 style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.clickable { onOpenRoute(NavRoute.Vow.route) },
+                modifier = Modifier.clickable { onOpenRoute(NavRoute.Vows.route) },
             )
         }
         ImRule()
@@ -151,9 +153,14 @@ fun TodayScreen(
 
         // D-67: yesterday's answer of the vow, when the Examen did not ask it.
         if (vowSlip) com.itermeum.app.feature.vow.NuncCoepiPanel(viewModel::dismissVowSlip)
-        vow?.takeIf { it.active && viewModel.yesterday in it.pending }?.let {
+        val askYesterday = activeVows.filter { viewModel.yesterday in it.pending }
+        if (askYesterday.isNotEmpty()) {
             ImPanel {
-                com.itermeum.app.feature.vow.VowAnswerRow(stringResource(R.string.vow_question_yesterday)) { kept -> viewModel.answerVow(viewModel.yesterday, kept) }
+                askYesterday.forEach { v ->
+                    com.itermeum.app.feature.vow.VowAnswerRow(
+                        com.itermeum.app.feature.vow.vowDayLabel(v.kind, viewModel.yesterday, ui.date),
+                    ) { kept -> viewModel.answerVow(v.kind, viewModel.yesterday, kept) }
+                }
             }
         }
 

@@ -50,7 +50,7 @@ class VowReminders @Inject constructor(
     /** Posts the reminder for the feast that is now within the hour, then arms the next one. */
     suspend fun fire() {
         val now = clock.nowEpochMillis()
-        val vow = vows.vow()?.takeIf { it.active }
+        val vow = vows.vow(com.itermeum.app.core.data.VowKind.SOBRIETY)?.takeIf { it.active }
         val feast = vows.upcomingFeasts().mapNotNull { d -> VowRepository.feastTime(d)?.let { d.logicalDate.atTime(it) } }
             .map { it to ZonedDateTime.of(it, clock.zone()).toInstant().toEpochMilli() }
             .filter { (_, at) -> at > now && at - now <= REMIND_BEFORE_MS + 60_000L }
@@ -75,7 +75,7 @@ class VowReminders @Inject constructor(
                 .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
                 .setPublicVersion(public)
                 .setAutoCancel(true)
-                .setContentIntent(presenter.deepLinkIntent("itermeum://vow", NOTIFICATION_ID))
+                .setContentIntent(presenter.deepLinkIntent("itermeum://vow/sobriety", NOTIFICATION_ID))
                 .build()
             try { NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, n) } catch (e: SecurityException) { /* not granted */ }
         }

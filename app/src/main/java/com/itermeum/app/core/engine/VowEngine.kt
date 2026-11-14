@@ -34,5 +34,6 @@ object VowEngine {
     /** Milestones of the best series (D-67): 7, 30, 40, 100, 365 days. */
     val MILESTONES = listOf(7, 30, 40, 100, 365)
 
-    fun milestoneIds(best: Int): List<String> = MILESTONES.filter { best >= it }.map { "sobriety_$it" }
+    /** Milestone ids of a vow ([vow] is its id: sobriety, purity, games — D-79). */
+    fun milestoneIds(best: Int, vow: String = "sobriety"): List<String> = MILESTONES.filter { best >= it }.map { "${vow}_$it" }
 }

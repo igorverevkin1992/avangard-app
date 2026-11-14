@@ -735,6 +735,29 @@
     <string name="book_toc_books">← Все книги</string>
     <string name="note_bullets">• Список</string>
     <string name="note_numbers">1. Список</string>
+    <!-- D-79: several vows -->
+    <string name="vows_title">Зароки</string>
+    <string name="vows_intro">Каждый зарок принимается отдельно и без срока. Каждый вечер в испытании совести — по одному вопросу на зарок; срыв обнуляет только свой счёт. На экране блокировки о зароках ничего не видно.</string>
+    <string name="vows_not_taken">Не принят — нажмите, чтобы прочитать и принять</string>
+    <string name="vow_when_today">сегодня — сохранил?</string>
+    <string name="vow_when_yesterday">вчера — сохранил?</string>
+    <string name="vow_when_day">%1$s — сохранил?</string>
+    <string name="vow_question_short">сохранил сегодня?</string>
+    <string name="vow_sobriety_title">Зарок трезвости</string>
+    <string name="vow_sobriety_short">Трезвость</string>
+    <string name="vow_purity_title">Зарок чистоты</string>
+    <string name="vow_purity_short">Чистота</string>
+    <string name="vow_purity_intro">Отказ от мастурбации — как постоянное приношение, без срока. Чистота в учении Церкви — не просто запрет, а свобода любить. Каждый вечер в испытании совести — один вопрос: «Сохранил ли сегодня чистоту?»</string>
+    <string name="vow_purity_counts">Считается только сознательно допущенное. Нечаянные мысли, образы и сны — не срыв: важна воля. Помогают: не брать телефон в постель, ложиться вовремя, три «Радуйся, Мария» перед сном — обычай Opus Dei. После падения — исповедь, и начать снова.</string>
+    <string name="vow_purity_sos">Искушение</string>
+    <string name="vow_purity_sos_hint">Встаньте, смените место, отложите телефон. Десять минут — и станет легче. Вы не боретесь в одиночку.</string>
+    <string name="vow_purity_prayer_note">Три раза, медленно, обращаясь к Богородице.</string>
+    <string name="vow_games_title">Зарок: без компьютерных игр</string>
+    <string name="vow_games_short">Без игр</string>
+    <string name="vow_games_intro">Отказ от компьютерных игр — как постоянное приношение, без срока: время и внимание — Богу, работе и близким. Каждый вечер в испытании совести — один вопрос: «Обошёлся ли сегодня без игр?»</string>
+    <string name="vow_games_counts">Считаются игры на компьютере, телефоне и приставке. Настольные игры и спорт с людьми не считаются.</string>
+    <string name="vow_games_sos">Хочется поиграть</string>
+    <string name="vow_games_sos_hint">Десять минут переждать — и желание уйдёт. Вместо игры: прогулка, звонок близкому, глава книги.</string>
     <!-- D-67: the sobriety vow -->
     <string name="vow_title">Зарок</string>
     <string name="vow_screen_title">Зарок трезвости</string>
@@ -755,7 +778,7 @@
     <string name="vow_restart">Начинаю снова</string>
     <string name="vow_best_total">Лучшая серия: %1$d · всего дней: %2$d</string>
     <string name="vow_since">С %1$s</string>
-    <string name="vow_today_line">Зарок · день %1$d</string>
+    <string name="vow_today_line">Зароки: %1$s</string>
     <string name="vow_today_line_restart">Зарок · начинаю снова</string>
     <string name="vow_question">Сохранил ли трезвость?</string>
     <string name="vow_question_today">Сегодня — сохранил трезвость?</string>
@@ -788,7 +811,7 @@
     <string name="vow_settings">Намерение и помощь</string>
     <string name="vow_release">Снять зарок</string>
     <string name="vow_release_confirm">Точно снять? Нажмите ещё раз</string>
-    <string name="vow_menu">Зарок трезвости</string>
+    <string name="vow_menu">Зароки</string>
     <string name="craving_card_title">Переждать</string>
     <string name="craving_card_text">Волна пройдёт. Помолитесь.</string>
     <string name="craving_card_over">Десять минут прошли</string>

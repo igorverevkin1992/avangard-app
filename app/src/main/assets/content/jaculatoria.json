@@ -52,6 +52,10 @@
   {
    "id": "TEMPTATION",
    "title": "Искушение"
+  },
+  {
+   "id": "PURITY",
+   "title": "Чистота"
   }
  ],
  "items": [
@@ -528,6 +532,51 @@
    "situation": "TEMPTATION",
    "text": "Nunc coepi — сейчас начинаю.",
    "source": "Пс 76:11 (Вульгата); св. Хосемария",
+   "sourceKind": "scripture",
+   "legal": "текст Писания / традиции",
+   "verify": false
+  },
+  {
+   "id": "purity_1",
+   "situation": "PURITY",
+   "text": "Сердце чистое сотвори во мне, Боже, и дух правый обнови внутри меня.",
+   "source": "Пс 50:12",
+   "sourceKind": "scripture",
+   "legal": "текст Писания / традиции",
+   "verify": false
+  },
+  {
+   "id": "purity_2",
+   "situation": "PURITY",
+   "text": "Блаженны чистые сердцем, ибо они Бога узрят.",
+   "source": "Мф 5:8",
+   "sourceKind": "scripture",
+   "legal": "текст Писания / традиции",
+   "verify": false
+  },
+  {
+   "id": "purity_3",
+   "situation": "PURITY",
+   "text": "Не введи нас во искушение, но избавь нас от лукавого.",
+   "source": "Мф 6:13",
+   "sourceKind": "scripture",
+   "legal": "текст Писания / традиции",
+   "verify": false
+  },
+  {
+   "id": "purity_4",
+   "situation": "PURITY",
+   "text": "Иисус, Мария, Иосиф, помогите мне.",
+   "source": "традиционная молитва-стрела",
+   "sourceKind": "trad",
+   "legal": "текст Писания / традиции",
+   "verify": false
+  },
+  {
+   "id": "purity_5",
+   "situation": "PURITY",
+   "text": "Всё могу в укрепляющем меня Иисусе Христе.",
+   "source": "Флп 4:13",
    "sourceKind": "scripture",
    "legal": "текст Писания / традиции",
    "verify": false

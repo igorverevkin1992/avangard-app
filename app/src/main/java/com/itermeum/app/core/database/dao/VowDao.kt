@@ -15,6 +15,8 @@ interface VowDao {
     @Query("SELECT * FROM vow WHERE id = :id") suspend fun get(id: String): VowEntity?
     @Query("SELECT * FROM vow WHERE id = :id") fun observe(id: String): Flow<VowEntity?>
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun upsert(vow: VowEntity)
+    @Query("SELECT * FROM vow") fun observeAll(): Flow<List<VowEntity>>
+    @Query("SELECT * FROM vow_day ORDER BY logicalDate") fun observeAllDays(): Flow<List<VowDayEntity>>
 
     @Query("SELECT * FROM vow_day WHERE vowId = :id ORDER BY logicalDate") fun observeDays(id: String): Flow<List<VowDayEntity>>
     @Query("SELECT * FROM vow_day WHERE vowId = :id ORDER BY logicalDate") suspend fun days(id: String): List<VowDayEntity>

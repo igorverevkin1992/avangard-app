@@ -40,6 +40,7 @@ import com.itermeum.app.feature.work.ProjectDetailScreen
 import com.itermeum.app.feature.work.ProjectsScreen
 import com.itermeum.app.feature.work.StudioScreen
 import com.itermeum.app.feature.work.TransitionRitualScreen
+import com.itermeum.app.feature.vow.VowListScreen
 import com.itermeum.app.feature.vow.VowScreen
 import com.itermeum.app.feature.vow.VowSosScreen
 import com.itermeum.app.feature.work.WorkItemScreen
@@ -86,7 +87,8 @@ fun IterMeumNavHost(navController: NavHostController, startDestination: String) 
             WorkItemScreen(onBack = { navController.popBackStack() })
         }
         composable(NavRoute.WorkStudio.route) { StudioScreen(onBack = { navController.popBackStack() }) }
-        composable(NavRoute.Vow.route) { VowScreen(onBack = { navController.popBackStack() }, onSos = { navController.navigate(NavRoute.VowSos.route) }) }
+        composable(NavRoute.Vows.route) { VowListScreen(onBack = { navController.popBackStack() }, onOpen = { navController.navigate(NavRoute.Vow.of(it.id)) }) }
+        composable(NavRoute.Vow.route) { VowScreen(onBack = { navController.popBackStack() }, onSos = { navController.navigate(NavRoute.VowSos.of(it.id)) }) }
         composable(NavRoute.VowSos.route) { VowSosScreen(onBack = { navController.popBackStack() }) }
         composable(NavRoute.Ritual.route) { TransitionRitualScreen(onDone = { navController.popBackStack() }) }
         composable(NavRoute.Prayer.route) {
@@ -133,7 +135,7 @@ fun IterMeumNavHost(navController: NavHostController, startDestination: String) 
                 onMonth = { navController.navigate(NavRoute.PathMonth.route) },
                 onQuarter = { navController.navigate(NavRoute.PathQuarter.route) },
                 onChronicle = { navController.navigate(NavRoute.PathChronicle.route) },
-                onVow = { navController.navigate(NavRoute.Vow.route) },
+                onVow = { navController.navigate(NavRoute.Vow.of(it)) },
             )
         }
         composable(NavRoute.PathCatechesis.route, arguments = listOf(navArgument("noteId") { nullable = true; defaultValue = null })) { entry ->
